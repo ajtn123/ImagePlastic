@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Markup.Xaml.Converters;
+using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using ImagePlastic.ViewModels;
 
@@ -14,9 +16,12 @@ namespace ImagePlastic.Views
             InitializeComponent();
             TransparencyLevelHint = ViewModel.Config.Blur;
             SizeToContent = SizeToContent.WidthAndHeight;
-
+            Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
+            var accentColor = accentObject != null ? (Color)accentObject : Color.Parse("#40CFBF");
+            accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
+            AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
         }
-
+        public IBrush? AccentBrush { get; set; }
         private void TextBox_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
         {
             if (e.Key == Key.Enter) ViewModel!.RefreshImage();
@@ -49,18 +54,20 @@ namespace ImagePlastic.Views
 
         private void Window_SizeChanged(object? sender, Avalonia.Controls.SizeChangedEventArgs e)
         {
-            if (e.HeightChanged) ;
-            if (e.WidthChanged) Title.Width = Width;
+            //if (e.HeightChanged) ;
+            if (e.WidthChanged) TitleArea.Width = Width;
         }
 
         private void StackPanel_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
         {
             TitleBar.IsVisible = true;
+            TitleArea.Background = AccentBrush;
         }
 
         private void StackPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
         {
             TitleBar.IsVisible = false;
+            TitleArea.Background = Brush.Parse("#00000000");
         }
     }
 }
