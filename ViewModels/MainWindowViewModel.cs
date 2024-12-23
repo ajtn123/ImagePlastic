@@ -45,7 +45,7 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
 
-    public void DecodeImage()
+    public void ConvertImage()
     {
         Image = new MagickImage(ImageFile!.FullName);
         var sysBitmap = Image.ToBitmap();
@@ -69,7 +69,7 @@ public class MainWindowViewModel : ViewModelBase
 
             ImageFile = new FileInfo(Path);
             //Bitmap = new Bitmap(ImageFile.FullName);
-            DecodeImage();
+            ConvertImage();
             Status = $" | {FileIndex + 1}/{files.Count()} | {ImageFile.Length} | {Bitmap!.Size.ToString().Replace(", ", "*")} | {ImageFile.LastWriteTime}";
         }
         catch

@@ -11,5 +11,7 @@ namespace ImagePlastic.Models
         public IReadOnlyList<WindowTransparencyLevel> Blur { get; set; } = new List<WindowTransparencyLevel>() { WindowTransparencyLevel.AcrylicBlur };
         public IBrush BackgroundColor { get; set; } = Brushes.Transparent;
         public List<string> Extensions { get; set; } = [".jpg", ".png"];
+        public bool WindowSizeAuto { get; set; } = true;
+        public int ExtendImageToTitleBar { get; set; } = 1;
     }
 }

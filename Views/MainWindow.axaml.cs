@@ -13,6 +13,8 @@ namespace ImagePlastic.Views
             MainWindowViewModel ViewModel = new();
             InitializeComponent();
             TransparencyLevelHint = ViewModel.Config.Blur;
+            SizeToContent = SizeToContent.WidthAndHeight;
+
         }
 
         private void TextBox_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
@@ -43,6 +45,22 @@ namespace ImagePlastic.Views
         private void Window_PointerReleased(object? sender, PointerReleasedEventArgs e)
         {
             _mouseDownForWindowMoving = false;
+        }
+
+        private void Window_SizeChanged(object? sender, Avalonia.Controls.SizeChangedEventArgs e)
+        {
+            if (e.HeightChanged) ;
+            if (e.WidthChanged) Title.Width = Width;
+        }
+
+        private void StackPanel_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+        {
+            TitleBar.IsVisible = true;
+        }
+
+        private void StackPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+        {
+            TitleBar.IsVisible = false;
         }
     }
 }
