@@ -19,7 +19,7 @@ namespace ImagePlastic
             {
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel(),
+                    DataContext = new MainWindowViewModel(desktop.Args),
                 };
             }
 

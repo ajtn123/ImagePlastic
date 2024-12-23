@@ -10,14 +10,14 @@ namespace ImagePlastic.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public MainWindowViewModel()
+        public MainWindowViewModel(string[]? args = null)
         {
             config = new Config();
             if (Config.DefaultFile != null)
-            {
                 path = Config.DefaultFile.FullName;
-                RefreshImage();
-            }
+            if (args != null && args.Length > 0)
+                path = args[0];
+            RefreshImage();
             GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
             GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
         }
@@ -29,6 +29,7 @@ namespace ImagePlastic.ViewModels
         private string status = "";
         private int fileIndex;
 
+        public string Args { get; }
         public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
         public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
         public FileInfo? ImageFile { get => imageFile; set => this.RaiseAndSetIfChanged(ref imageFile, value); }
