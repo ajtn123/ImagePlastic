@@ -1,7 +1,9 @@
 ﻿using Avalonia.Media.Imaging;
 using DynamicData;
+using ImageMagick;
 using ImagePlastic.Models;
 using ReactiveUI;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
@@ -29,9 +31,11 @@ public class MainWindowViewModel : ViewModelBase
     private string path = "";
     private string status = "";
     private int fileIndex;
+    private MagickImage? image;
 
     public string[]? Args { get; }
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
+    public MagickImage? Image { get => image; set => this.RaiseAndSetIfChanged(ref image, value); }
     public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
     public FileInfo? ImageFile { get => imageFile; set => this.RaiseAndSetIfChanged(ref imageFile, value); }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
@@ -41,6 +45,15 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
 
+    public void DecodeImage()
+    {
+        Image = new MagickImage(ImageFile!.FullName);
+        var sysBitmap = Image.ToBitmap();
+        using MemoryStream stream = new();
+        sysBitmap.Save(stream, ImageFormat.Bmp);
+        stream.Position = 0;
+        Bitmap = new Bitmap(stream);
+    }
     public void RefreshImage(int offset = 0)
     {
         if (string.IsNullOrEmpty(path)) return;
@@ -55,8 +68,9 @@ public class MainWindowViewModel : ViewModelBase
             FileIndex = destination;
 
             ImageFile = new FileInfo(Path);
-            Bitmap = new Bitmap(ImageFile.FullName);
-            Status = $" | {FileIndex + 1}/{files.Count()} | {ImageFile.Length} | {Bitmap.Size.ToString().Replace(", ", "*")} | {ImageFile.LastWriteTime}";
+            //Bitmap = new Bitmap(ImageFile.FullName);
+            DecodeImage();
+            Status = $" | {FileIndex + 1}/{files.Count()} | {ImageFile.Length} | {Bitmap!.Size.ToString().Replace(", ", "*")} | {ImageFile.LastWriteTime}";
         }
         catch
         {
