@@ -18,22 +18,22 @@
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,*">
         <Panel Grid.Row="{Binding Config.ExtendImageToTitleBar}" 
                VerticalAlignment="Top" HorizontalAlignment="Left"
-			   Height="29" ZIndex="10" x:Name="TitleArea"
+               Height="29" ZIndex="10" x:Name="TitleArea"
                PointerEntered="StackPanel_PointerEntered"
                PointerExited="StackPanel_PointerExited"
-			   Background="Transparent">
-			<StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar" IsVisible="False">
-				<TextBox Name="PathBox" Text="{Binding Path}"
+               Background="Transparent">
+            <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar" IsVisible="False">
+                <TextBox Name="PathBox" Text="{Binding Path}"
                          KeyDown="TextBox_KeyDown"
                          Background="Transparent" BorderThickness="0"
                          FontSize="14" Padding="0" MinHeight="0"
                          VerticalAlignment="Center"/>
-				<TextBlock VerticalAlignment="Center"
+                <TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Status}"/>
-			</StackPanel>
+            </StackPanel>
         </Panel>
         <Button Content="◀️" HotKey="Right" Command="{Binding GoLeft}"
                 Grid.Row="1" HorizontalAlignment="Left" ZIndex="9"/>

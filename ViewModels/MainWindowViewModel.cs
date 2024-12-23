@@ -10,7 +10,7 @@ using System.Windows.Input;
 
 namespace ImagePlastic.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase
 {
     public MainWindowViewModel(string[]? args = null)
     {
@@ -61,14 +61,13 @@ public class MainWindowViewModel : ViewModelBase
         {
             ImageFile = new FileInfo(Path);
             if (!ImageFile.Exists) return;
-            var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.ToLower())).Select(a => a.FullName.ToLower());
+            var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.TrimStart('.').ToLower())).Select(a => a.FullName.ToLower());
             var currentIndex = files.IndexOf(ImageFile.FullName.ToLower());
             var destination = (currentIndex + offset) >= files.Count() ? (currentIndex + offset) - files.Count() : (currentIndex + offset) < 0 ? (currentIndex + offset) + files.Count() : (currentIndex + offset);
             Path = files.ElementAt(destination);
             FileIndex = destination;
 
             ImageFile = new FileInfo(Path);
-            //Bitmap = new Bitmap(ImageFile.FullName);
             ConvertImage();
             Status = $" | {FileIndex + 1}/{files.Count()} | {ImageFile.Length} | {Bitmap!.Size.ToString().Replace(", ", "*")} | {ImageFile.LastWriteTime}";
         }
