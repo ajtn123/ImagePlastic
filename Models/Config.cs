@@ -15,5 +15,5 @@ public class Config
     public IBrush BackgroundColor { get; set; } = Brushes.Transparent;
     public string[] Extensions { get; set; } = Enum.GetValues<MagickFormat>().Cast<MagickFormat>().Select((a, b) => { return a.ToString().ToLower(); }).ToArray();
     public bool WindowSizeAuto { get; set; } = true;
-    public int ExtendImageToTitleBar { get; set; } = 1;
+    public bool ExtendImageToTitleBar { get; set; } = true;
 }

@@ -20,6 +20,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         var accentColor = accentObject != null ? (Color)accentObject : Color.Parse("#40CFBF");
         accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
         AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
+        TitleBar.IsVisible = !ViewModel.Config.ExtendImageToTitleBar;
+        TitleArea.Background = ViewModel.Config.ExtendImageToTitleBar ? Brushes.Transparent : AccentBrush;
+        Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
     }
 
     public IBrush? AccentBrush { get; set; }
@@ -57,11 +60,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void StackPanel_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
     {
+        if (!ViewModel.Config.ExtendImageToTitleBar) return;
         TitleBar.IsVisible = true;
         TitleArea.Background = AccentBrush;
     }
     private void StackPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
     {
+        if (!ViewModel.Config.ExtendImageToTitleBar) return;
         TitleBar.IsVisible = false;
         TitleArea.Background = Brushes.Transparent;
     }

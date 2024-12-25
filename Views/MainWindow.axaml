@@ -23,13 +23,12 @@
 		<cvt:StatsConverter x:Key="StatsConverter"/>
 	</Window.Resources>
     <Grid RowDefinitions="Auto,*">
-        <Panel Grid.Row="{Binding Config.ExtendImageToTitleBar}" 
+        <Panel Grid.Row="0"
                VerticalAlignment="Top" HorizontalAlignment="Left"
                Height="29" ZIndex="10" x:Name="TitleArea"
                PointerEntered="StackPanel_PointerEntered"
-               PointerExited="StackPanel_PointerExited"
-               Background="Transparent">
-            <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar" IsVisible="False">
+               PointerExited="StackPanel_PointerExited">
+            <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar">
                 <TextBox Name="PathBox" Text="{Binding Path}"
                          Background="Transparent" BorderThickness="0"
                          FontSize="14" Padding="0" MinHeight="0"
