@@ -49,7 +49,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public string[]? Args { get; }
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
-    public MagickImage? Image { get => image; set => this.RaiseAndSetIfChanged(ref image, value); }
     public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
     public FileInfo? ImageFile { get => imageFile; set => this.RaiseAndSetIfChanged(ref imageFile, value); }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
@@ -60,21 +59,21 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
 
-    public void ConvertImage()
+    public delegate void ErrorStats(Stats errorStats);
+    public event ErrorStats ErrorReport;
+
+    public Bitmap? ConvertImage()
     {
         try
         {
-            Image = new MagickImage(ImageFile!.FullName);
-            using var sysBitmap = Image.ToBitmap();
+            using var image = new MagickImage(ImageFile!.FullName);
+            using var sysBitmap = image.ToBitmap();
             using MemoryStream stream = new();
             sysBitmap.Save(stream, ImageFormat.Bmp);
             stream.Position = 0;
-            Bitmap = new Bitmap(stream);
+            return new Bitmap(stream);
         }
-        catch
-        {
-            Stats = new(false);
-        }
+        catch { ReportError(); return null; }
     }
     public async void RefreshImage(int offset = 0)
     {
@@ -84,33 +83,46 @@ public partial class MainWindowViewModel : ViewModelBase
             ImageFile = new FileInfo(Path);
             if (!ImageFile.Exists)
             {
-                Stats = new(false);
+                ReportError();
                 return;
             }
             var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.TrimStart('.').ToLower())).Select(a => a.FullName.ToLower());
             var currentIndex = files.IndexOf(ImageFile.FullName.ToLower());
             var destination = (currentIndex + offset) >= files.Count() ? (currentIndex + offset) - files.Count() : (currentIndex + offset) < 0 ? (currentIndex + offset) + files.Count() : (currentIndex + offset);
             Path = files.ElementAt(destination);
+            var path = Path;
             FileIndex = destination;
 
             ImageFile = new FileInfo(Path);
             Stats = new(true) { FileIndex = FileIndex, FileCount = files.Count(), File = ImageFile };
-            await Task.Run(ConvertImage);
-            Stats = new(Stats) { ImageDimension = Bitmap!.Size };
+            await Task.Run(() =>
+            {
+                var b = ConvertImage();
+                if (path == Path)
+                {
+                    Bitmap = b;
+                }
+            });
+            if (path == Path)
+            {
+                Stats = new(true, Stats) { ImageDimension = Bitmap!.Size };
+                ErrorReport(Stats);
+            }
         }
-        catch
-        {
-            Stats = new(false);
-        }
+        catch { ReportError(); }
+    }
+    public void ReportError()
+    {
+        Stats = new(false) { File = ImageFile };
+        ErrorReport(Stats);
     }
 }
-
 public class Stats
 {
-    public Stats(bool success) { Success = success; }
-    public Stats(Stats stats)
+    public Stats(bool success, Stats? stats = null)
     {
-        Success = stats.Success;
+        Success = success;
+        if (stats == null) return;
         FileIndex = stats.FileIndex;
         ImageDimension = stats.ImageDimension;
         File = stats.File;

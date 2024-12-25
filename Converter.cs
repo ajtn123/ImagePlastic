@@ -14,7 +14,7 @@ public class StatsConverter : IValueConverter
     {
         var s = (Stats)value!;
         if (s == null) return "";
-        if (!s.Success) return " | ❌Filed";
+        if (!s.Success) return " | ⊘Filed";
         List<string> a = [];
         a.Add("");
         if (s.FileIndex != null && s.FileCount != null)

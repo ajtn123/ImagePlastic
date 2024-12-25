@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:cvt="using:ImagePlastic.Converter"
+		xmlns:view="using:ImagePlastic.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ImagePlastic.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -51,5 +52,8 @@
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer">
             <Image Source="{Binding Bitmap}"/>
         </ZoomBorder>
+		<Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
+			<view:Error x:Name="ErrorView"/>
+		</Viewbox>
     </Grid>
 </Window>
