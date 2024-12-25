@@ -44,15 +44,14 @@ public partial class MainWindowViewModel : ViewModelBase
     private FileInfo? imageFile;
     private string path = "";
     private Stats? stats;
-    private int fileIndex;
-    private MagickImage? image;
+    private int? fileIndex;
 
     public string[]? Args { get; }
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
     public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
     public FileInfo? ImageFile { get => imageFile; set => this.RaiseAndSetIfChanged(ref imageFile, value); }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
-    public int FileIndex { get => fileIndex; set => this.RaiseAndSetIfChanged(ref fileIndex, value); }
+    public int? FileIndex { get => fileIndex; set => this.RaiseAndSetIfChanged(ref fileIndex, value); }
     public Stats? Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
 
     public ICommand GoPath { get; }
@@ -60,7 +59,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand GoRight { get; }
 
     public delegate void ErrorStats(Stats errorStats);
-    public event ErrorStats ErrorReport;
+    public event ErrorStats ErrorReport = (e) => { };
 
     public Bitmap? ConvertImage()
     {
@@ -92,7 +91,6 @@ public partial class MainWindowViewModel : ViewModelBase
             Path = files.ElementAt(destination);
             var path = Path;
             FileIndex = destination;
-
             ImageFile = new FileInfo(Path);
             Stats = new(true) { FileIndex = FileIndex, FileCount = files.Count(), File = ImageFile };
             await Task.Run(() =>

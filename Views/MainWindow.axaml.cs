@@ -17,11 +17,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         InitializeComponent();
         //ViewModel = (this.DataContext as MainWindowViewModel);
 
-        this.WhenActivated(a => Initi());
+        this.WhenActivated(a => Init());
     }
-    public void Initi()
+    public void Init()
     {
-        ViewModel.ErrorReport += ShowError;
+        ViewModel!.ErrorReport += ShowError;
         TransparencyLevelHint = ViewModel.Config.Blur;
         //SizeToContent = SizeToContent.WidthAndHeight;
         Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
@@ -31,8 +31,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleBar.IsVisible = !ViewModel.Config.ExtendImageToTitleBar;
         TitleArea.Background = ViewModel.Config.ExtendImageToTitleBar ? Brushes.Transparent : AccentBrush;
         Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
-
     }
+
     public IBrush? AccentBrush { get; set; }
     public bool ErrorState { get; set; } = false;
 
@@ -69,13 +69,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void StackPanel_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
     {
-        if (!ViewModel.Config.ExtendImageToTitleBar || ErrorState) return;
+        if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState) return;
         TitleBar.IsVisible = true;
         TitleArea.Background = AccentBrush;
     }
     private void StackPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
     {
-        if (!ViewModel.Config.ExtendImageToTitleBar || ErrorState) return;
+        if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState) return;
         TitleBar.IsVisible = false;
         TitleArea.Background = Brushes.Transparent;
     }
@@ -96,6 +96,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleArea.Background = errorStats.Success ? TitleArea.Background = Brushes.Transparent : Brushes.Red;
         Zoomer.IsVisible = errorStats.Success;
         Error.IsVisible = !errorStats.Success;
-        ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
+        if (errorStats.File != null)
+            ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
     }
 }
