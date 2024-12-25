@@ -24,11 +24,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     public IBrush? AccentBrush { get; set; }
 
-    private void TextBox_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter) ViewModel!.RefreshImage();
-    }
-
     /// <summary>
     /// https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
     /// </summary>

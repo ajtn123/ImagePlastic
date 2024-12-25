@@ -1,11 +1,14 @@
-﻿using Avalonia.Media.Imaging;
+﻿using Avalonia;
+using Avalonia.Media.Imaging;
 using DynamicData;
 using ImageMagick;
 using ImagePlastic.Models;
 using ReactiveUI;
+using System;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace ImagePlastic.ViewModels;
@@ -21,6 +24,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (args != null && args.Length > 0)
             path = args[0];
         RefreshImage();
+        GoPath = ReactiveCommand.Create(() => { RefreshImage(0); });
         GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
         GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
     }
@@ -30,6 +34,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (Config.DefaultFile != null)
             path = Config.DefaultFile.FullName;
         RefreshImage();
+        GoPath = ReactiveCommand.Create(() => { RefreshImage(0); });
         GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
         GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
     }
@@ -38,7 +43,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private Bitmap? bitmap;
     private FileInfo? imageFile;
     private string path = "";
-    private string status = "";
+    private Stats? stats;
     private int fileIndex;
     private MagickImage? image;
 
@@ -49,27 +54,39 @@ public partial class MainWindowViewModel : ViewModelBase
     public FileInfo? ImageFile { get => imageFile; set => this.RaiseAndSetIfChanged(ref imageFile, value); }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
     public int FileIndex { get => fileIndex; set => this.RaiseAndSetIfChanged(ref fileIndex, value); }
-    public string Status { get => status; set => this.RaiseAndSetIfChanged(ref status, value); }
+    public Stats? Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
 
+    public ICommand GoPath { get; }
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
 
     public void ConvertImage()
     {
-        Image = new MagickImage(ImageFile!.FullName);
-        using var sysBitmap = Image.ToBitmap();
-        using MemoryStream stream = new();
-        sysBitmap.Save(stream, ImageFormat.Bmp);
-        stream.Position = 0;
-        Bitmap = new Bitmap(stream);
+        try
+        {
+            Image = new MagickImage(ImageFile!.FullName);
+            using var sysBitmap = Image.ToBitmap();
+            using MemoryStream stream = new();
+            sysBitmap.Save(stream, ImageFormat.Bmp);
+            stream.Position = 0;
+            Bitmap = new Bitmap(stream);
+        }
+        catch
+        {
+            Stats = new(false);
+        }
     }
-    public void RefreshImage(int offset = 0)
+    public async void RefreshImage(int offset = 0)
     {
         if (string.IsNullOrEmpty(path)) return;
         try
         {
             ImageFile = new FileInfo(Path);
-            if (!ImageFile.Exists) return;
+            if (!ImageFile.Exists)
+            {
+                Stats = new(false);
+                return;
+            }
             var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.TrimStart('.').ToLower())).Select(a => a.FullName.ToLower());
             var currentIndex = files.IndexOf(ImageFile.FullName.ToLower());
             var destination = (currentIndex + offset) >= files.Count() ? (currentIndex + offset) - files.Count() : (currentIndex + offset) < 0 ? (currentIndex + offset) + files.Count() : (currentIndex + offset);
@@ -77,12 +94,31 @@ public partial class MainWindowViewModel : ViewModelBase
             FileIndex = destination;
 
             ImageFile = new FileInfo(Path);
-            ConvertImage();
-            Status = $" | {FileIndex + 1}/{files.Count()} | {ImageFile.Length} | {Bitmap!.Size.ToString().Replace(", ", "*")} | {ImageFile.LastWriteTime}";
+            Stats = new(true) { FileIndex = FileIndex, FileCount = files.Count(), File = ImageFile };
+            await Task.Run(ConvertImage);
+            Stats = new(Stats) { ImageDimension = Bitmap!.Size };
         }
         catch
         {
-            Status = "❌";
+            Stats = new(false);
         }
     }
+}
+
+public class Stats
+{
+    public Stats(bool success) { Success = success; }
+    public Stats(Stats stats)
+    {
+        Success = stats.Success;
+        FileIndex = stats.FileIndex;
+        ImageDimension = stats.ImageDimension;
+        File = stats.File;
+        FileCount = stats.FileCount;
+    }
+    public bool Success { get; }
+    public FileInfo? File { get; set; }
+    public int? FileIndex { get; set; }
+    public int? FileCount { get; set; }
+    public Size? ImageDimension { get; set; }
 }
