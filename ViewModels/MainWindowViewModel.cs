@@ -12,7 +12,7 @@ namespace ImagePlastic.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    public MainWindowViewModel(string[]? args = null)
+    public MainWindowViewModel(string[]? args)
     {
         Args = args;
         config = new Config();
@@ -20,6 +20,15 @@ public partial class MainWindowViewModel : ViewModelBase
             path = Config.DefaultFile.FullName;
         if (args != null && args.Length > 0)
             path = args[0];
+        RefreshImage();
+        GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
+        GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
+    }
+    public MainWindowViewModel()
+    {
+        config = new Config();
+        if (Config.DefaultFile != null)
+            path = Config.DefaultFile.FullName;
         RefreshImage();
         GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
         GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
@@ -48,7 +57,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public void ConvertImage()
     {
         Image = new MagickImage(ImageFile!.FullName);
-        var sysBitmap = Image.ToBitmap();
+        using var sysBitmap = Image.ToBitmap();
         using MemoryStream stream = new();
         sysBitmap.Save(stream, ImageFormat.Bmp);
         stream.Position = 0;

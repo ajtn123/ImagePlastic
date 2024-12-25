@@ -65,10 +65,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleBar.IsVisible = true;
         TitleArea.Background = AccentBrush;
     }
-
     private void StackPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
     {
         TitleBar.IsVisible = false;
-        TitleArea.Background = Brush.Parse("#00000000");
+        TitleArea.Background = Brushes.Transparent;
+    }
+
+    private void Button_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        ((Button)sender!).Foreground = AccentBrush;
+    }
+    private void Button_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        ((Button)sender!).Foreground = Brushes.Transparent;
     }
 }

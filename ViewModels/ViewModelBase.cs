@@ -1,8 +1,7 @@
 ﻿using ReactiveUI;
 
-namespace ImagePlastic.ViewModels
+namespace ImagePlastic.ViewModels;
+
+public class ViewModelBase : ReactiveObject
 {
-    public class ViewModelBase : ReactiveObject
-    {
-    }
 }

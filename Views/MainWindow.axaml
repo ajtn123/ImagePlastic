@@ -35,10 +35,16 @@
                            FontSize="14" Text="{Binding Status}"/>
             </StackPanel>
         </Panel>
-        <Button Content="◀️" HotKey="Right" Command="{Binding GoLeft}"
-                Grid.Row="1" HorizontalAlignment="Left" ZIndex="9"/>
-        <Button Content="▶️" HotKey="Left" Command="{Binding GoRight}"
-                Grid.Row="1" HorizontalAlignment="Right" ZIndex="9"/>
+        <Button Content="←" HotKey="Left" Command="{Binding GoLeft}"
+                Grid.Row="1" HorizontalAlignment="Left" ZIndex="9"
+                Background="Transparent" Foreground="Transparent"
+                Margin="24,0,0,0" CornerRadius="24" FontSize="24"
+                PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
+        <Button Content="→" HotKey="Right" Command="{Binding GoRight}"
+                Grid.Row="1" HorizontalAlignment="Right" ZIndex="9"
+                Background="Transparent" Foreground="Transparent"
+                Margin="0,0,24,0" CornerRadius="24" FontSize="24"
+                PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
         <ZoomBorder Grid.Row="1" ZIndex="1">
             <Image Source="{Binding Bitmap}"/>
         </ZoomBorder>
