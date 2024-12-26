@@ -16,8 +16,10 @@
         PointerMoved="Window_PointerMoved"
         PointerPressed="Window_PointerPressed"
         PointerReleased="Window_PointerReleased"
-        SizeChanged="Window_SizeChanged">
+        SizeChanged="Window_SizeChanged"
+		TransparencyLevelHint="{Binding Config.Blur}">
         <!--KeyDown="Viewbox_KeyDown"-->
+
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
@@ -27,7 +29,8 @@
     <Window.KeyBindings>
         <KeyBinding Command="{Binding GoPath}" Gesture="Enter"/>
     </Window.KeyBindings>
-    <Grid RowDefinitions="Auto,*" ClipToBounds="False">
+
+    <Grid RowDefinitions="Auto,*">
         <Panel Grid.Row="0"
                VerticalAlignment="Top" HorizontalAlignment="Left"
                Height="29" ZIndex="10" x:Name="TitleArea"
@@ -45,9 +48,9 @@
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
                 <Button VerticalAlignment="Center" HotKey="OemPlus" Click="ResetZoom"
                            FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
-                <!--<Button IsVisible="False" Command="{Binding GoPath}" HotKey="Enter"/>-->
             </StackPanel>
         </Panel>
+
         <Button Content="←" HotKey="Left" Command="{Binding GoLeft}"
                 Grid.Row="1" HorizontalAlignment="Left" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
@@ -58,11 +61,13 @@
                 Background="Transparent" Foreground="Transparent"
                 Margin="0,0,24,0" CornerRadius="24" FontSize="24"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
+
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer"
                     Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"
                     ZoomChanged="ZoomBorder_ZoomChanged">
             <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
         </ZoomBorder>
+
         <Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
             <view:Error x:Name="ErrorView" />
         </Viewbox>

@@ -18,7 +18,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(string[]? args)
     {
         Args = args;
-        config = new Config();
         if (Config.DefaultFile != null)
             path = Config.DefaultFile.FullName;
         if (args != null && args.Length > 0)
@@ -28,9 +27,9 @@ public partial class MainWindowViewModel : ViewModelBase
         GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
         GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
     }
+    //For previewer.
     public MainWindowViewModel()
     {
-        config = new Config();
         if (Config.DefaultFile != null)
             path = Config.DefaultFile.FullName;
         RefreshImage();
@@ -39,7 +38,9 @@ public partial class MainWindowViewModel : ViewModelBase
         GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
     }
 
-    private Config config;
+    //Generating a new default configuration every time.
+    //A helper is needed to persist config, also a setting view.
+    private Config config = new();
     private Bitmap? bitmap;
     private FileInfo? imageFile;
     private string path = "";
@@ -60,7 +61,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };
+    public void ReportError()
+    {
+        Stats = new(false) { File = ImageFile };
+        ErrorReport(Stats);
+    }
 
+    //Convert any image to a Bitmap, not the perfect way though.
     public Bitmap? ConvertImage()
     {
         try
@@ -74,6 +81,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch { ReportError(); return null; }
     }
+
+    //Scan the path directory and show the image.
     public async void RefreshImage(int offset = 0)
     {
         if (string.IsNullOrEmpty(path)) return;
@@ -111,12 +120,9 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch { ReportError(); }
     }
-    public void ReportError()
-    {
-        Stats = new(false) { File = ImageFile };
-        ErrorReport(Stats);
-    }
 }
+
+//Not necessary, will be deleted later.
 public class Stats
 {
     public Stats(bool success, Stats? stats = null)

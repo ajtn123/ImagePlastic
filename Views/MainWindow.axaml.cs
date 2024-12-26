@@ -17,12 +17,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         InitializeComponent();
         this.WhenActivated(a => Init());
     }
+
+    public IBrush? AccentBrush { get; set; }
+    public bool ErrorState { get; set; } = false;
+    public bool TitleBarPersistent { get; set; } = false;
+    public Avalonia.Controls.PanAndZoom.ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
+    public double Scaling { get; set; } = 1;
+
     public void Init()
     {
         ScalingChanged += ScalingChangedHandler;
         Scaling = Screens.ScreenFromWindow(this)!.Scaling;
         ViewModel!.ErrorReport += ShowError;
-        TransparencyLevelHint = ViewModel.Config.Blur;
         //SizeToContent = SizeToContent.WidthAndHeight;
         Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
         var accentColor = accentObject != null ? (Color)accentObject : Color.Parse("#40CFBF");
@@ -33,15 +39,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
     }
 
-    public IBrush? AccentBrush { get; set; }
-    public bool ErrorState { get; set; } = false;
-    public bool TitleBarPersistent { get; set; } = false;
-    public Avalonia.Controls.PanAndZoom.ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
-    public double Scaling { get; set; } = 1;
-
-    /// <summary>
-    /// https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
-    /// </summary>
+    //https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
+    //Make entire window draggable.
     private bool _mouseDownForWindowMoving = false;
     private PointerPoint _originalPoint;
     private void Window_PointerMoved(object? sender, PointerEventArgs e)
@@ -62,12 +61,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void Window_PointerReleased(object? sender, PointerReleasedEventArgs e)
         => _mouseDownForWindowMoving = false;
 
+    //Auto resize Title Bar.
     private void Window_SizeChanged(object? sender, Avalonia.Controls.SizeChangedEventArgs e)
     {
         //if (e.HeightChanged) ;
         if (e.WidthChanged) TitleArea.Width = Width;
     }
 
+    //Auto hide Title Bar.
     private void StackPanel_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
     {
         if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) return;
@@ -81,11 +82,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleArea.Background = Brushes.Transparent;
     }
 
+    //Auto hide left and right Buttons.
     private void Button_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
         => ((Button)sender!).Foreground = AccentBrush;
     private void Button_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
         => ((Button)sender!).Foreground = Brushes.Transparent;
 
+    //Show Error View and make other ui changes.
     private void ShowError(Stats errorStats)
     {
         ErrorState = !errorStats.Success;
@@ -98,6 +101,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (errorStats.Success)
             ResizeImage();
     }
+
+    //Zoomer and Image scaling.
     private void ResetZoom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => Zoomer.ResetMatrix();
     private void ZoomBorder_ZoomChanged(object sender, Avalonia.Controls.PanAndZoom.ZoomChangedEventArgs e)
@@ -109,10 +114,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void ResizeImage()
     {
-        ImageItself.Height = ViewModel.Bitmap!.Size.Height / Scaling;
-        ImageItself.Width = ViewModel.Bitmap!.Size.Width / Scaling;
+        ImageItself.Height = ViewModel!.Bitmap!.Size.Height / Scaling;
+        ImageItself.Width = ViewModel!.Bitmap!.Size.Width / Scaling;
     }
 
+    //Shorten path when not on focus.
     private void TextBlock_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         PathBox.IsVisible = true;
@@ -129,5 +135,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         FileName.IsVisible = true;
         TitleBarPersistent = false;
     }
+
     //private void ShowKeyDown(object? sender, Avalonia.Input.KeyEventArgs e) => ErrorView.ErrorMsg.Text = e.Key.ToString();
 }
