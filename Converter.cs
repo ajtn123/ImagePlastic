@@ -15,6 +15,7 @@ public class StatsConverter : IValueConverter
         var s = (Stats)value!;
         if (s == null) return "";
         if (!s.Success) return " | ⊘Filed";
+
         List<string> a = [];
         a.Add("");
         if (s.FileIndex != null && s.FileCount != null)
@@ -25,6 +26,7 @@ public class StatsConverter : IValueConverter
             a.Add(s.ImageDimension.ToString()!.Replace(", ", "∗"));
         if (s.File != null)
             a.Add(s.File.LastWriteTime.ToString());
+
         return a.Aggregate((x, y) => x + " | " + y);
     }
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
