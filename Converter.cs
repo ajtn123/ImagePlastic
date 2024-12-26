@@ -28,7 +28,5 @@ public class StatsConverter : IValueConverter
         return a.Aggregate((x, y) => x + " | " + y);
     }
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 }

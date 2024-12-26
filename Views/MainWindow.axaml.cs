@@ -13,10 +13,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     public MainWindow()
     {
-
         InitializeComponent();
-        //ViewModel = (this.DataContext as MainWindowViewModel);
-
         this.WhenActivated(a => Init());
     }
     public void Init()
@@ -57,9 +54,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         _originalPoint = e.GetCurrentPoint(this);
     }
     private void Window_PointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        _mouseDownForWindowMoving = false;
-    }
+        => _mouseDownForWindowMoving = false;
 
     private void Window_SizeChanged(object? sender, Avalonia.Controls.SizeChangedEventArgs e)
     {
@@ -81,13 +76,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     private void Button_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        ((Button)sender!).Foreground = AccentBrush;
-    }
+        => ((Button)sender!).Foreground = AccentBrush;
     private void Button_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        ((Button)sender!).Foreground = Brushes.Transparent;
-    }
+        => ((Button)sender!).Foreground = Brushes.Transparent;
 
     private void ShowError(Stats errorStats)
     {
@@ -99,4 +90,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
     }
+    private void ResetZoom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Zoomer.ResetMatrix();
+    //private void ShowKeyDown(object? sender, Avalonia.Input.KeyEventArgs e) => ErrorView.ErrorMsg.Text = e.Key.ToString();
 }

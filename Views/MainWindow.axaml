@@ -17,12 +17,16 @@
         PointerPressed="Window_PointerPressed"
         PointerReleased="Window_PointerReleased"
         SizeChanged="Window_SizeChanged">
+		<!--KeyDown="Viewbox_KeyDown"-->
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 	<Window.Resources>
 		<cvt:StatsConverter x:Key="StatsConverter"/>
 	</Window.Resources>
+	<Window.KeyBindings>
+		<KeyBinding Command="{Binding GoPath}" Gesture="Enter"/>
+	</Window.KeyBindings>
     <Grid RowDefinitions="Auto,*">
         <Panel Grid.Row="0"
                VerticalAlignment="Top" HorizontalAlignment="Left"
@@ -36,7 +40,7 @@
                          VerticalAlignment="Center"/>
                 <TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
-				<Button IsVisible="False" Command="{Binding GoPath}" HotKey="Enter"/>
+				<!--<Button IsVisible="False" Command="{Binding GoPath}" HotKey="Enter"/>-->
             </StackPanel>
         </Panel>
         <Button Content="←" HotKey="Left" Command="{Binding GoLeft}"
@@ -49,11 +53,12 @@
                 Background="Transparent" Foreground="Transparent"
                 Margin="0,0,24,0" CornerRadius="24" FontSize="24"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
+		<Button IsVisible="False" HotKey="OemPlus" Click="ResetZoom"/>
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer">
             <Image Source="{Binding Bitmap}"/>
         </ZoomBorder>
 		<Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
-			<view:Error x:Name="ErrorView"/>
+			<view:Error x:Name="ErrorView" />
 		</Viewbox>
     </Grid>
 </Window>

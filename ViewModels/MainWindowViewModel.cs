@@ -85,9 +85,13 @@ public partial class MainWindowViewModel : ViewModelBase
                 ReportError();
                 return;
             }
-            var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.TrimStart('.').ToLower())).Select(a => a.FullName.ToLower());
+            var files = ImageFile.Directory!.EnumerateFiles()
+                                            .Where(a => config.Extensions.Contains(a.Extension.TrimStart('.').ToLower()))
+                                            .Select(a => a.FullName.ToLower());
             var currentIndex = files.IndexOf(ImageFile.FullName.ToLower());
-            var destination = (currentIndex + offset) >= files.Count() ? (currentIndex + offset) - files.Count() : (currentIndex + offset) < 0 ? (currentIndex + offset) + files.Count() : (currentIndex + offset);
+            var destination = currentIndex + offset >= files.Count() ? currentIndex + offset - files.Count()
+                                         : currentIndex + offset < 0 ? currentIndex + offset + files.Count()
+                                                                     : currentIndex + offset;
             Path = files.ElementAt(destination);
             var path = Path;
             FileIndex = destination;
@@ -97,9 +101,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 var b = ConvertImage();
                 if (path == Path)
-                {
                     Bitmap = b;
-                }
             });
             if (path == Path)
             {
