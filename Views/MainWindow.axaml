@@ -3,8 +3,8 @@
         xmlns:vm="using:ImagePlastic.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:cvt="using:ImagePlastic.Converter"
-		xmlns:view="using:ImagePlastic.Views"
+        xmlns:cvt="using:ImagePlastic.Converter"
+        xmlns:view="using:ImagePlastic.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ImagePlastic.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -17,17 +17,17 @@
         PointerPressed="Window_PointerPressed"
         PointerReleased="Window_PointerReleased"
         SizeChanged="Window_SizeChanged">
-		<!--KeyDown="Viewbox_KeyDown"-->
+        <!--KeyDown="Viewbox_KeyDown"-->
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-	<Window.Resources>
-		<cvt:StatsConverter x:Key="StatsConverter"/>
-	</Window.Resources>
-	<Window.KeyBindings>
-		<KeyBinding Command="{Binding GoPath}" Gesture="Enter"/>
-	</Window.KeyBindings>
-    <Grid RowDefinitions="Auto,*">
+    <Window.Resources>
+        <cvt:StatsConverter x:Key="StatsConverter"/>
+    </Window.Resources>
+    <Window.KeyBindings>
+        <KeyBinding Command="{Binding GoPath}" Gesture="Enter"/>
+    </Window.KeyBindings>
+    <Grid RowDefinitions="Auto,*" ClipToBounds="False">
         <Panel Grid.Row="0"
                VerticalAlignment="Top" HorizontalAlignment="Left"
                Height="29" ZIndex="10" x:Name="TitleArea"
@@ -37,10 +37,15 @@
                 <TextBox Name="PathBox" Text="{Binding Path}"
                          Background="Transparent" BorderThickness="0"
                          FontSize="14" Padding="0" MinHeight="0"
-                         VerticalAlignment="Center"/>
-                <TextBlock VerticalAlignment="Center"
+                         VerticalAlignment="Center" IsVisible="False"
+						 LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus"/>
+				<TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding ImageFile.Name}"
+						   PointerPressed="TextBlock_PointerPressed" x:Name="FileName"/>
+				<TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
-				<!--<Button IsVisible="False" Command="{Binding GoPath}" HotKey="Enter"/>-->
+                <Button VerticalAlignment="Center" HotKey="OemPlus" Click="ResetZoom"
+                           FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
+                <!--<Button IsVisible="False" Command="{Binding GoPath}" HotKey="Enter"/>-->
             </StackPanel>
         </Panel>
         <Button Content="←" HotKey="Left" Command="{Binding GoLeft}"
@@ -53,12 +58,13 @@
                 Background="Transparent" Foreground="Transparent"
                 Margin="0,0,24,0" CornerRadius="24" FontSize="24"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
-		<Button IsVisible="False" HotKey="OemPlus" Click="ResetZoom"/>
-        <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer">
-            <Image Source="{Binding Bitmap}"/>
+        <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer"
+                    Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    ZoomChanged="ZoomBorder_ZoomChanged">
+            <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
         </ZoomBorder>
-		<Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
-			<view:Error x:Name="ErrorView" />
-		</Viewbox>
+        <Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
+            <view:Error x:Name="ErrorView" />
+        </Viewbox>
     </Grid>
 </Window>

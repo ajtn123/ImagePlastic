@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.ReactiveUI;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
+using System;
 
 namespace ImagePlastic.Views;
 
@@ -18,6 +19,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     public void Init()
     {
+        ScalingChanged += ScalingChangedHandler;
+        Scaling = Screens.ScreenFromWindow(this)!.Scaling;
         ViewModel!.ErrorReport += ShowError;
         TransparencyLevelHint = ViewModel.Config.Blur;
         //SizeToContent = SizeToContent.WidthAndHeight;
@@ -32,6 +35,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     public IBrush? AccentBrush { get; set; }
     public bool ErrorState { get; set; } = false;
+    public bool TitleBarPersistent { get; set; } = false;
+    public Avalonia.Controls.PanAndZoom.ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
+    public double Scaling { get; set; } = 1;
 
     /// <summary>
     /// https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
@@ -64,13 +70,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void StackPanel_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
     {
-        if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState) return;
+        if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) return;
         TitleBar.IsVisible = true;
         TitleArea.Background = AccentBrush;
     }
     private void StackPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
     {
-        if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState) return;
+        if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) return;
         TitleBar.IsVisible = false;
         TitleArea.Background = Brushes.Transparent;
     }
@@ -89,8 +95,39 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Error.IsVisible = !errorStats.Success;
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
+        if (errorStats.Success)
+            ResizeImage();
     }
     private void ResetZoom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => Zoomer.ResetMatrix();
+    private void ZoomBorder_ZoomChanged(object sender, Avalonia.Controls.PanAndZoom.ZoomChangedEventArgs e)
+        => ZoomText.Content = double.Round(e.ZoomX * 100, 2).ToString() + "%";
+    private void ScalingChangedHandler(object? sender, EventArgs e)
+    {
+        Scaling = Screens.ScreenFromWindow(this)!.Scaling;
+        ResizeImage();
+    }
+    private void ResizeImage()
+    {
+        ImageItself.Height = ViewModel.Bitmap!.Size.Height / Scaling;
+        ImageItself.Width = ViewModel.Bitmap!.Size.Width / Scaling;
+    }
+
+    private void TextBlock_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        PathBox.IsVisible = true;
+        FileName.IsVisible = false;
+        PathBox.Focus();
+    }
+    private void TextBox_GotFocus(object? sender, Avalonia.Input.GotFocusEventArgs e)
+    {
+        TitleBarPersistent = true;
+    }
+    private void TextBox_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        PathBox.IsVisible = false;
+        FileName.IsVisible = true;
+        TitleBarPersistent = false;
+    }
     //private void ShowKeyDown(object? sender, Avalonia.Input.KeyEventArgs e) => ErrorView.ErrorMsg.Text = e.Key.ToString();
 }

@@ -26,6 +26,7 @@ public class StatsConverter : IValueConverter
             a.Add(s.ImageDimension.ToString()!.Replace(", ", "∗"));
         if (s.File != null)
             a.Add(s.File.LastWriteTime.ToString());
+        a.Add("");
 
         return a.Aggregate((x, y) => x + " | " + y);
     }
