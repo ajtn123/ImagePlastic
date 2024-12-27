@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media;
 using ImageMagick;
 using System;
@@ -19,4 +20,6 @@ public class Config
         = Enum.GetValues<MagickFormat>().Cast<MagickFormat>().Select((a, b) => { return a.ToString().ToLower(); }).ToArray();
     public bool WindowSizeAuto { get; set; } = true;
     public bool ExtendImageToTitleBar { get; set; } = true;
+    public StretchMode Stretch { get; set; }
+        = StretchMode.Uniform;
 }

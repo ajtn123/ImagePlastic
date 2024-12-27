@@ -17,9 +17,8 @@
         PointerPressed="Window_PointerPressed"
         PointerReleased="Window_PointerReleased"
         SizeChanged="Window_SizeChanged"
-		TransparencyLevelHint="{Binding Config.Blur}">
+        TransparencyLevelHint="{Binding Config.Blur}">
         <!--KeyDown="Viewbox_KeyDown"-->
-
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
@@ -41,13 +40,13 @@
                          Background="Transparent" BorderThickness="0"
                          FontSize="14" Padding="0" MinHeight="0"
                          VerticalAlignment="Center" IsVisible="False"
-						 LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus"/>
-				<TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding ImageFile.Name}"
-						   PointerPressed="TextBlock_PointerPressed" x:Name="FileName"/>
-				<TextBlock VerticalAlignment="Center"
+                         LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus"/>
+                <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding ImageFile.Name}"
+                           PointerPressed="TextBlock_PointerPressed" x:Name="FileName"/>
+                <TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
                 <Button VerticalAlignment="Center" HotKey="OemPlus" Click="ResetZoom"
-                           FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
+                        FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
             </StackPanel>
         </Panel>
 
@@ -63,13 +62,14 @@
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
 
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer"
-                    Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center"
-                    ZoomChanged="ZoomBorder_ZoomChanged">
+                    Stretch="{Binding Stretch}"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
             <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
         </ZoomBorder>
 
         <Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
-            <view:Error x:Name="ErrorView" />
+            <view:Error x:Name="ErrorView"/>
         </Viewbox>
     </Grid>
 </Window>

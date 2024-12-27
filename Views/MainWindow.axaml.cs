@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.Converters;
 using Avalonia.Media;
@@ -29,7 +30,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ScalingChanged += ScalingChangedHandler;
         Scaling = Screens.ScreenFromWindow(this)!.Scaling;
         ViewModel!.ErrorReport += ShowError;
-        //SizeToContent = SizeToContent.WidthAndHeight;
         Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
         var accentColor = accentObject != null ? (Color)accentObject : Color.Parse("#40CFBF");
         accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
@@ -39,8 +39,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
     }
 
-    //https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
     //Make entire window draggable.
+    //https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
     private bool _mouseDownForWindowMoving = false;
     private PointerPoint _originalPoint;
     private void Window_PointerMoved(object? sender, PointerEventArgs e)
@@ -69,13 +69,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     //Auto hide Title Bar.
-    private void StackPanel_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void StackPanel_PointerEntered(object? sender, PointerEventArgs e)
     {
         if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) return;
         TitleBar.IsVisible = true;
         TitleArea.Background = AccentBrush;
     }
-    private void StackPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void StackPanel_PointerExited(object? sender, PointerEventArgs e)
     {
         if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) return;
         TitleBar.IsVisible = false;
@@ -83,9 +83,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     //Auto hide left and right Buttons.
-    private void Button_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void Button_PointerEntered(object? sender, PointerEventArgs e)
         => ((Button)sender!).Foreground = AccentBrush;
-    private void Button_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void Button_PointerExited(object? sender, PointerEventArgs e)
         => ((Button)sender!).Foreground = Brushes.Transparent;
 
     //Show Error View and make other ui changes.
@@ -100,32 +100,39 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
         if (errorStats.Success)
             ResizeImage();
+        Zoomer.Stretch = StretchMode.Uniform;
     }
 
     //Zoomer and Image scaling.
     private void ResetZoom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => Zoomer.ResetMatrix();
-    private void ZoomBorder_ZoomChanged(object sender, Avalonia.Controls.PanAndZoom.ZoomChangedEventArgs e)
-        => ZoomText.Content = double.Round(e.ZoomX * 100, 2).ToString() + "%";
+    {
+        if (Zoomer.Stretch == StretchMode.Uniform)
+        {
+            Zoomer.ResetMatrix();
+            Zoomer.Stretch = StretchMode.None;
+        }
+        else Zoomer.Stretch = StretchMode.Uniform;
+    }
+    private void ZoomBorder_ZoomChanged(object sender, ZoomChangedEventArgs e)
+        => ZoomText.Content = $"{double.Round(e.ZoomX * 100, 2)}%";
+    private void ZoomBorder_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+        => Zoomer.Stretch = StretchMode.None;
     private void ScalingChangedHandler(object? sender, EventArgs e)
     {
         Scaling = Screens.ScreenFromWindow(this)!.Scaling;
         ResizeImage();
     }
     private void ResizeImage()
-    {
-        ImageItself.Height = ViewModel!.Bitmap!.Size.Height / Scaling;
-        ImageItself.Width = ViewModel!.Bitmap!.Size.Width / Scaling;
-    }
+        => ImageItself.Height = ViewModel!.Bitmap!.Size.Height / Scaling;
 
     //Shorten path when not on focus.
-    private void TextBlock_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void TextBlock_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         PathBox.IsVisible = true;
         FileName.IsVisible = false;
         PathBox.Focus();
     }
-    private void TextBox_GotFocus(object? sender, Avalonia.Input.GotFocusEventArgs e)
+    private void TextBox_GotFocus(object? sender, GotFocusEventArgs e)
     {
         TitleBarPersistent = true;
     }
