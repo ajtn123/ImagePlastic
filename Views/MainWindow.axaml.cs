@@ -96,6 +96,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleArea.Background = errorStats.Success ? TitleArea.Background = Brushes.Transparent : Brushes.Red;
         Zoomer.IsVisible = errorStats.Success;
         Error.IsVisible = !errorStats.Success;
+        ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
         if (errorStats.Success)

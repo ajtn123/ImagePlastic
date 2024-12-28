@@ -6,6 +6,7 @@ using ImageMagick;
 using ImagePlastic.Models;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -47,15 +48,14 @@ public partial class MainWindowViewModel : ViewModelBase
     private FileInfo? imageFile;
     private string path = "";
     private Stats stats = new(true);
-    private int? fileIndex;
     private StretchMode stretch;
 
     public string[]? Args { get; }
+    public Dictionary<string, Bitmap?> Preload { get; set; } = [];
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
     public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
     public FileInfo? ImageFile { get => imageFile; set => this.RaiseAndSetIfChanged(ref imageFile, value); }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
-    public int? FileIndex { get => fileIndex; set => this.RaiseAndSetIfChanged(ref fileIndex, value); }
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
     public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
 
@@ -65,42 +65,34 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };
-    public void ReportError()
-    {
-        Stats = new(false) { File = ImageFile };
-        ErrorReport(Stats);
-    }
 
     //Convert any image to a Bitmap, not the perfect way though.
-    public Bitmap? ConvertImage()
+    public Bitmap? ConvertImage(FileInfo file)
     {
         try
         {
-            using var image = new MagickImage(ImageFile!.FullName);
+            using MagickImage image = new(file);
             using var sysBitmap = image.ToBitmap();
             using MemoryStream stream = new();
             sysBitmap.Save(stream, ImageFormat.Bmp);
             stream.Position = 0;
             return new Bitmap(stream);
         }
-        catch { ReportError(); return null; }
+        catch { return null; }
     }
 
     public void ChangeImageToPath()
     {
         if (string.IsNullOrEmpty(path)) return;
-        try
+        ImageFile = new FileInfo(Path);
+        if (!ImageFile.Exists)
         {
-            ImageFile = new FileInfo(Path);
-            if (!ImageFile.Exists)
-            {
-                ReportError();
-                return;
-            }
-            Path = ImageFile.FullName;
-            RefreshImage(0);
+            Stats = new(false) { File = ImageFile };
+            ErrorReport(Stats);
+            return;
         }
-        catch { return; }
+        Path = ImageFile.FullName;
+        RefreshImage(0);
     }
 
     //Scan the path directory and show the image.
@@ -115,29 +107,54 @@ public partial class MainWindowViewModel : ViewModelBase
             var destination = currentIndex + offset >= files.Count() ? currentIndex + offset - files.Count()
                                          : currentIndex + offset < 0 ? currentIndex + offset + files.Count()
                                                                      : currentIndex + offset;
-            FileIndex = destination;
             ImageFile = files.ElementAt(destination);
             Path = fileNames.ElementAt(destination);
             var path = Path;
-            Stats = new(true) { FileIndex = FileIndex, FileCount = files.Count(), File = ImageFile };
+            Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = ImageFile };
 
+            //Todo: 1. remove bitmap from preload if the image is out of preload range.
+            //      2. fix showing error screen when displaying image that is in preload but not finished.
             await Task.Run(() =>
             {
-                var b = ConvertImage();
+                var b = Preload.TryGetValue(Path, out Bitmap? value) ? value : ConvertImage(ImageFile);
                 if (path == Path)
                     Bitmap = b;
             });
-            if (path == Path)
+            if (path != Path) return;
+            if (Bitmap == null)
+            {
+                Stats = new(false, Stats);
+                ErrorReport(Stats);
+            }
+            else
             {
                 Stats = new(true, Stats) { ImageDimension = Bitmap!.Size };
                 ErrorReport(Stats);
             }
+            await Task.Run(() =>
+            {
+                int i = config.PreloadLeft;
+                while (path == Path && i++ < Config.PreloadRight)
+                {
+                    if (i == 0) continue;
+                    var preIndex = destination + i >= files.Count() ? destination + i - files.Count()
+                          : destination + i < 0 ? destination + i + files.Count()
+                                                : destination + i;
+                    if (Preload.ContainsKey(fileNames.ElementAt(preIndex))) continue;
+                    if (Preload.TryAdd(fileNames.ElementAt(preIndex), null))
+                        Preload[fileNames.ElementAt(preIndex)] = ConvertImage(files.ElementAt(preIndex));
+                }
+            });
         }
-        catch { ReportError(); }
+        catch
+        {
+            Stats = new(false) { File = ImageFile };
+            ErrorReport(Stats);
+        }
     }
 }
 
-//Not necessary, will be deleted later. Will it?
+//Actually necessary, doesn't it?
 public class Stats
 {
     public Stats(bool success, Stats? stats = null)
