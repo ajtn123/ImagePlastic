@@ -67,7 +67,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public event ErrorStats ErrorReport = (e) => { };
 
     //Convert any image to a Bitmap, not the perfect way though.
-    public Bitmap? ConvertImage(FileInfo file)
+    public static Bitmap? ConvertImage(FileInfo file)
     {
         try
         {
@@ -112,8 +112,9 @@ public partial class MainWindowViewModel : ViewModelBase
             var path = Path;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = ImageFile };
 
-            //Todo: 1. remove bitmap from preload if the image is out of preload range.
-            //      2. fix showing error screen when displaying image that is in preload but not finished.
+            //Todo: 1. Remove bitmap from preload if the image is out of preload range.
+            //      2. Fix showing error screen when displaying image that is on preload but not finished.
+            //      3. Fix startup with no args.
             await Task.Run(() =>
             {
                 var b = Preload.TryGetValue(Path, out Bitmap? value) ? value : ConvertImage(ImageFile);
