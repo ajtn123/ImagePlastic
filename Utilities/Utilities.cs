@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media.Imaging;
 using ImageMagick;
+using System;
 using System.Drawing.Imaging;
 using System.IO;
 
@@ -26,5 +27,21 @@ public static class Utils
             return new Bitmap(stream);
         }
         catch { return null; }
+    }
+
+    public static string ToReadable(long length)
+    {
+        var l = Math.Log2(length);
+        if (l >= 0 && l < 10)
+            return $"{length} Bytes";
+        if (l >= 10 && l < 20)
+            return $"{double.Round(length / (double)(1 << 10), 2)} KiB";
+        if (l >= 20 && l < 30)
+            return $"{double.Round(length / (double)(1 << 20), 2)} MiB";
+        if (l >= 30 && l < 40)
+            return $"{double.Round(length / (double)(1 << 30), 2)} GiB";
+        if (l >= 40)
+            return $"{double.Round(length / (double)(1 << 40), 2)} TiB";
+        return length.ToString();
     }
 }

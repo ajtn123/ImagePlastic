@@ -1,5 +1,6 @@
 ﻿using Avalonia.Data.Converters;
 using ImagePlastic.Models;
+using ImagePlastic.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -20,7 +21,7 @@ public class StatsConverter : IValueConverter
         if (s.FileIndex != null && s.FileCount != null)
             a.Add($"{s.FileIndex + 1}/{s.FileCount}");
         if (s.File.Exists)
-            a.Add(ToReadable(s.File.Length));
+            a.Add(Utils.ToReadable(s.File.Length));
         if (s.ImageDimension != null)
             a.Add(s.ImageDimension.ToString()!.Replace(", ", "∗"));
         if (s.File.Exists)
@@ -33,19 +34,4 @@ public class StatsConverter : IValueConverter
     }
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
-    public static string ToReadable(long length)
-    {
-        var l = Math.Log2(length);
-        if (l >= 0 && l < 10)
-            return $"{length} Bytes";
-        if (l >= 10 && l < 20)
-            return $"{double.Round(length / (double)(1 << 10), 2)} KiB";
-        if (l >= 20 && l < 30)
-            return $"{double.Round(length / (double)(1 << 20), 2)} MiB";
-        if (l >= 30 && l < 40)
-            return $"{double.Round(length / (double)(1 << 30), 2)} GiB";
-        if (l >= 40)
-            return $"{double.Round(length / (double)(1 << 40), 2)} TiB";
-        return length.ToString();
-    }
 }
