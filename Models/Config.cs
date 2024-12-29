@@ -23,6 +23,6 @@ public class Config
     public StretchMode Stretch { get; set; }
         = StretchMode.Uniform;
     public bool Preload { get; set; } = true;
-    public int PreloadLeft { get; set; } = -2;
+    public int PreloadLeft { get; set; } = 0;
     public int PreloadRight { get; set; } = 2;
 }

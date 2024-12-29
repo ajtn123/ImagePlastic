@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Markup.Xaml.Converters;
 using Avalonia.Media;
 using Avalonia.ReactiveUI;
+using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
@@ -30,6 +31,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ScalingChanged += ScalingChangedHandler;
         Scaling = Screens.ScreenFromWindow(this)!.Scaling;
         ViewModel!.ErrorReport += ShowError;
+        ViewModel.ChangeImageToPath();
         Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
         var accentColor = accentObject != null ? (Color)accentObject : Color.Parse("#40CFBF");
         accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
@@ -149,7 +151,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void TextBox_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(ViewModel.Path)) return;
+        if (string.IsNullOrEmpty(ViewModel!.Path)) return;
         PathBox.IsVisible = false;
         FileName.IsVisible = true;
         TitleBarPersistent = false;

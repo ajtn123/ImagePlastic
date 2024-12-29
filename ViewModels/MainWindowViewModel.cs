@@ -1,13 +1,11 @@
-﻿using Avalonia;
-using Avalonia.Controls.PanAndZoom;
+﻿using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media.Imaging;
 using DynamicData;
-using ImageMagick;
 using ImagePlastic.Models;
+using ImagePlastic.Utilities;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,7 +25,6 @@ public partial class MainWindowViewModel : ViewModelBase
         else
             Stats = new(true);
         Stretch = Config.Stretch;
-        ChangeImageToPath();
         GoPath = ReactiveCommand.Create(ChangeImageToPath);
         GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
         GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
@@ -68,22 +65,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };
 
-    //Convert any image to a Bitmap, not the perfect way though.
-    //Could not convert image with alpha channel correctly.
-    public static Bitmap? ConvertImage(FileInfo file)
-    {
-        try
-        {
-            using MagickImage image = new(file);
-            using var sysBitmap = image.ToBitmap();
-            using MemoryStream stream = new();
-            sysBitmap.Save(stream, ImageFormat.Bmp);
-            stream.Position = 0;
-            return new Bitmap(stream);
-        }
-        catch { return null; }
-    }
-
     public void ChangeImageToPath()
     {
         Path = Path.Trim('"');
@@ -108,9 +89,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.ToLower()));
             var fileNames = files.Select(a => a.FullName);
             var currentIndex = fileNames.IndexOf(ImageFile.FullName);
-            var destination = currentIndex + offset >= files.Count() ? currentIndex + offset - files.Count()
-                                         : currentIndex + offset < 0 ? currentIndex + offset + files.Count()
-                                                                     : currentIndex + offset;
+            var destination = Utils.SeekIndex(currentIndex, offset, files.Count());
             ImageFile = files.ElementAt(destination);
             Path = fileNames.ElementAt(destination);
             var path = Path;
@@ -124,11 +103,11 @@ public partial class MainWindowViewModel : ViewModelBase
                     var searchResult = Preload.TryGetValue(Path, out Bitmap? value);
                     if (value == null)
                         searchResult = false;
-                    b = searchResult ? value : ConvertImage(ImageFile);
+                    b = searchResult ? value : Utils.ConvertImage(ImageFile);
                 }
                 else
                 {
-                    b = ConvertImage(ImageFile);
+                    b = Utils.ConvertImage(ImageFile);
                 }
                 if (path == Path)
                     Bitmap = b;
@@ -145,9 +124,15 @@ public partial class MainWindowViewModel : ViewModelBase
                 ErrorReport(Stats);
             }
 
-            //Todo: Improve preload order.
-            //      ... @4 @3 # @1 @2 ...
-            //      Make a static method for seeking directories.
+            //To Improve preload order:
+            //... @4 @3 # @1 @2 ...
+            //Or just set preload-left to 0:
+            //... @X @X # @1 @1 ...
+            //Or determine by last seek:
+            //... @2 @1 # <- # @X @X ...
+            //... @X @X # -> # @1 @2 ...
+            //Besides, should we keep for a while even if it is out of range?
+            //Too complicated, YOU PRELOAD have RUIN the whole thing!!!
             //Preload(🤪 ? Bitmaps : Bugs).
             if (config.Preload && path == Path)
                 await Task.Run(() =>
@@ -161,10 +146,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     var l = pl - 1;
                     while (path == Path && l++ < pr)
                     {
-                        if (l == 0) continue;
-                        var preIndex = destination + l >= files.Count() ? destination + l - files.Count()
-                                                  : destination + l < 0 ? destination + l + files.Count()
-                                                                        : destination + l;
+                        var preIndex = Utils.SeekIndex(destination, l, files.Count());
                         loads.Remove(fileNames.ElementAt(preIndex));
                     }
                     foreach (var fn in loads)
@@ -175,14 +157,12 @@ public partial class MainWindowViewModel : ViewModelBase
                     while (path == Path && i++ < pr)
                     {
                         if (i == 0) continue;
-                        var preIndex = destination + i >= files.Count() ? destination + i - files.Count()
-                                                  : destination + i < 0 ? destination + i + files.Count()
-                                                                        : destination + i;
+                        var preIndex = Utils.SeekIndex(destination, i, files.Count());
                         var fn = fileNames.ElementAt(preIndex);
                         if (Preload.ContainsKey(fn)) continue;
                         if (Preload.TryAdd(fn, null))
                         {
-                            var preBitmap = ConvertImage(files.ElementAt(preIndex));
+                            var preBitmap = Utils.ConvertImage(files.ElementAt(preIndex));
                             if (preBitmap == null)
                                 Preload.Remove(fn);
                             else if (Preload.ContainsKey(fn))
@@ -197,24 +177,4 @@ public partial class MainWindowViewModel : ViewModelBase
             ErrorReport(Stats);
         }
     }
-}
-
-//Actually necessary, doesn't it?
-public class Stats
-{
-    public Stats(bool success, Stats? stats = null)
-    {
-        Success = success;
-
-        if (stats == null) return;
-        FileIndex = stats.FileIndex;
-        ImageDimension = stats.ImageDimension;
-        File = stats.File;
-        FileCount = stats.FileCount;
-    }
-    public bool Success { get; }
-    public FileInfo? File { get; set; }
-    public int? FileIndex { get; set; }
-    public int? FileCount { get; set; }
-    public Size? ImageDimension { get; set; }
 }
