@@ -108,7 +108,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text =
-                $"Unable to open {errorStats.File.FullName}.\nMay be a issue caused by preload. Try switch back and forth, while keep this image in the range.";
+                $"Unable to open {errorStats.File.FullName}.";
         if (errorStats.Success)
             ResizeImage();
         Zoomer.Stretch = StretchMode.Uniform;

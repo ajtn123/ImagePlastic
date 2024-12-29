@@ -69,6 +69,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public event ErrorStats ErrorReport = (e) => { };
 
     //Convert any image to a Bitmap, not the perfect way though.
+    //Could not convert image with alpha channel correctly.
     public static Bitmap? ConvertImage(FileInfo file)
     {
         try
@@ -88,7 +89,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Path = Path.Trim('"');
         if (string.IsNullOrEmpty(Path)) return;
         ImageFile = new FileInfo(Path);
-        if (!ImageFile.Exists)
+        if (!ImageFile.Exists || !config.Extensions.Contains(ImageFile.Extension.ToLower()))
         {
             Stats = new(false) { File = ImageFile };
             ErrorReport(Stats);
@@ -104,7 +105,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (ImageFile == null || !ImageFile.Exists) return;
         try
         {
-            var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.TrimStart('.').ToLower()));
+            var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.ToLower()));
             var fileNames = files.Select(a => a.FullName);
             var currentIndex = fileNames.IndexOf(ImageFile.FullName);
             var destination = currentIndex + offset >= files.Count() ? currentIndex + offset - files.Count()
@@ -144,17 +145,21 @@ public partial class MainWindowViewModel : ViewModelBase
                 ErrorReport(Stats);
             }
 
-            //Todo: Improve Preload Order.
+            //Todo: Improve preload order.
             //      ... @4 @3 # @1 @2 ...
+            //      Make a static method for seeking directories.
             //Preload(🤪 ? Bitmaps : Bugs).
             if (config.Preload && path == Path)
                 await Task.Run(() =>
                 {
+                    var pl = (-config.PreloadLeft < files.Count()) ? config.PreloadLeft : -(files.Count() - 1);
+                    var pr = (config.PreloadRight < files.Count()) ? config.PreloadRight : (files.Count() - 1);
+
                     //Remove bitmap from preload if the image is out of preload range.
                     //It seems to be fine, hope no bugs to be discovered.
                     var loads = Preload.Keys.ToList();
-                    int l = config.PreloadLeft - 1;
-                    while (path == Path && l++ < Config.PreloadRight)
+                    var l = pl - 1;
+                    while (path == Path && l++ < pr)
                     {
                         if (l == 0) continue;
                         var preIndex = destination + l >= files.Count() ? destination + l - files.Count()
@@ -166,8 +171,8 @@ public partial class MainWindowViewModel : ViewModelBase
                         Preload.Remove(fn);
 
                     //Preload Bitmaps.
-                    int i = config.PreloadLeft - 1;
-                    while (path == Path && i++ < Config.PreloadRight)
+                    var i = pl - 1;
+                    while (path == Path && i++ < pr)
                     {
                         if (i == 0) continue;
                         var preIndex = destination + i >= files.Count() ? destination + i - files.Count()
