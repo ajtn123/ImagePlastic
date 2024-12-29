@@ -117,9 +117,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
             await Task.Run(() =>
             {
-                var searchResult = Preload.TryGetValue(Path, out Bitmap? value);
-                if (value == null) searchResult = false;
-                var b = searchResult ? value : ConvertImage(ImageFile);
+                Bitmap? b;
+                if (config.Preload)
+                {
+                    var searchResult = Preload.TryGetValue(Path, out Bitmap? value);
+                    if (value == null)
+                        searchResult = false;
+                    b = searchResult ? value : ConvertImage(ImageFile);
+                }
+                else
+                {
+                    b = ConvertImage(ImageFile);
+                }
                 if (path == Path)
                     Bitmap = b;
             });
