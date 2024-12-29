@@ -37,6 +37,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleBar.IsVisible = !ViewModel.Config.ExtendImageToTitleBar;
         TitleArea.Background = ViewModel.Config.ExtendImageToTitleBar ? Brushes.Transparent : AccentBrush;
         Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
+        if (ViewModel.ImageFile == null)
+        {
+            TitleArea.Background = AccentBrush;
+            TitleBar.IsVisible = true;
+            PathBox.IsVisible = true;
+            FileName.IsVisible = false;
+            PathBox.Focus();
+            ZoomText.IsVisible = false;
+        }
     }
 
     //Make entire window draggable.
@@ -71,8 +80,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     //Auto hide Title Bar.
     private void StackPanel_PointerEntered(object? sender, PointerEventArgs e)
     {
-        if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) return;
         TitleBar.IsVisible = true;
+        if (ErrorState) return;
         TitleArea.Background = AccentBrush;
     }
     private void StackPanel_PointerExited(object? sender, PointerEventArgs e)
@@ -98,7 +107,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Error.IsVisible = !errorStats.Success;
         ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
-            ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
+            ErrorView.ErrorMsg.Text =
+                $"Unable to open {errorStats.File.FullName}.\nMay be a issue caused by preload. Try switch back and forth, while keep this image in the range.";
         if (errorStats.Success)
             ResizeImage();
         Zoomer.Stretch = StretchMode.Uniform;
@@ -139,6 +149,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void TextBox_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        if (string.IsNullOrEmpty(ViewModel.Path)) return;
         PathBox.IsVisible = false;
         FileName.IsVisible = true;
         TitleBarPersistent = false;

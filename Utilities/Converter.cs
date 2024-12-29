@@ -13,17 +13,17 @@ public class StatsConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var s = (Stats)value!;
-        if (s == null) return string.Empty;
+        if (s == null || s.File == null) return string.Empty;
 
         List<string> a = [];
         a.Add(string.Empty);
         if (s.FileIndex != null && s.FileCount != null)
             a.Add($"{s.FileIndex + 1}/{s.FileCount}");
-        if (s.File != null)
+        if (s.File.Exists)
             a.Add(ToReadable(s.File.Length));
         if (s.ImageDimension != null)
             a.Add(s.ImageDimension.ToString()!.Replace(", ", "∗"));
-        if (s.File != null)
+        if (s.File.Exists)
             a.Add(s.File.LastWriteTime.ToString());
         if (!s.Success)
             a.Add("⊘Filed");

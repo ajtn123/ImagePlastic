@@ -12,7 +12,6 @@
         Title="{Binding ImageFile.Name}"
         Background="{Binding Config.BackgroundColor}"
         ExtendClientAreaToDecorationsHint="True"
-        Focusable="True"
         PointerMoved="Window_PointerMoved"
         PointerPressed="Window_PointerPressed"
         PointerReleased="Window_PointerReleased"
@@ -37,12 +36,11 @@
                PointerExited="StackPanel_PointerExited">
             <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar">
                 <TextBox Name="PathBox" Text="{Binding Path}"
-                         Background="Transparent" BorderThickness="0"
-                         FontSize="14" Padding="0" MinHeight="0"
+                         FontSize="14" Padding="0" MinHeight="10" MinWidth="50"
                          VerticalAlignment="Center" IsVisible="False"
                          LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus"/>
                 <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding ImageFile.Name}"
-                           PointerPressed="TextBlock_PointerPressed" x:Name="FileName"/>
+                           PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
                 <Button VerticalAlignment="Center" HotKey="OemPlus" Click="ResetZoom"
@@ -62,7 +60,7 @@
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
 
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer"
-                    Stretch="{Binding Stretch}"
+                    Stretch="{Binding Stretch}" Focusable="True"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
             <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
