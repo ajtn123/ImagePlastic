@@ -23,7 +23,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public IBrush? AccentBrush { get; set; }
     public bool ErrorState { get; set; } = false;
     public bool TitleBarPersistent { get; set; } = false;
-    public Avalonia.Controls.PanAndZoom.ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
+    public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling { get; set; } = 1;
 
     public void Init()
@@ -65,7 +65,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         var point = e.GetCurrentPoint(sender as Control);
         if (!point.Properties.IsLeftButtonPressed) return;
-        if (WindowState == Avalonia.Controls.WindowState.Maximized || WindowState == Avalonia.Controls.WindowState.FullScreen) return;
+        if (WindowState == WindowState.Maximized || WindowState == WindowState.FullScreen) return;
         _mouseDownForWindowMoving = true;
         _originalPoint = e.GetCurrentPoint(this);
     }
@@ -73,7 +73,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => _mouseDownForWindowMoving = false;
 
     //Auto resize Title Bar.
-    private void Window_SizeChanged(object? sender, Avalonia.Controls.SizeChangedEventArgs e)
+    private void Window_SizeChanged(object? sender, SizeChangedEventArgs e)
     {
         //if (e.HeightChanged) ;
         if (e.WidthChanged) TitleArea.Width = Width;
@@ -113,6 +113,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 $"Unable to open {errorStats.File.FullName}.";
         if (errorStats.Success)
             ResizeImage();
+        Zoomer.ResetMatrix();
+        Zoomer.Stretch = StretchMode.None;
+
         Zoomer.Stretch = StretchMode.Uniform;
     }
 

@@ -63,7 +63,8 @@
                     Stretch="{Binding Stretch}" Focusable="True"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
-            <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
+            <Image RenderOptions.BitmapInterpolationMode="HighQuality" 
+                   Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
         </ZoomBorder>
 
         <Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">

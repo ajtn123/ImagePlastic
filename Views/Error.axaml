@@ -6,7 +6,7 @@
              x:Class="ImagePlastic.Views.Error">
     <StackPanel VerticalAlignment="Center">
         <Image Source="{SvgImage /Assets/BrokenImage.svg}" Height="100"/>
-		<TextBlock HorizontalAlignment="Center" x:Name="ErrorMsg" Margin="50,5"
-				   TextWrapping="Wrap" Text="Error" />
+        <TextBlock HorizontalAlignment="Center" x:Name="ErrorMsg" Margin="50,5"
+                   TextWrapping="Wrap" Text="Error"/>
     </StackPanel>
 </UserControl>

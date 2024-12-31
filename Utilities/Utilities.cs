@@ -1,7 +1,7 @@
-﻿using Avalonia.Media.Imaging;
+﻿using Avalonia.Media;
 using ImageMagick;
+using SkiaSharp;
 using System;
-using System.Drawing.Imaging;
 using System.IO;
 
 namespace ImagePlastic.Utilities;
@@ -15,16 +15,13 @@ public static class Utils
 
     //Convert any image to a Bitmap, not the perfect way though.
     //Could not convert images with alpha channel correctly.
-    public static Bitmap? ConvertImage(FileInfo file)
+    public static IImage? ConvertImage(FileInfo file)
     {
         try
         {
-            using MagickImage image = new(file);
-            using var sysBitmap = image.ToBitmap();
-            using MemoryStream stream = new();
-            sysBitmap.Save(stream, ImageFormat.Bmp);
-            stream.Position = 0;
-            return new Bitmap(stream);
+            return
+                new MagickImage(file).ToBitmap().ConvertToAvaloniaBitmap() ??
+                SKBitmap.Decode(file.FullName).ToAvaloniaImage();
         }
         catch { return null; }
     }
@@ -38,10 +35,8 @@ public static class Utils
             return $"{double.Round(length / (double)(1 << 10), 2)} KiB";
         if (l >= 20 && l < 30)
             return $"{double.Round(length / (double)(1 << 20), 2)} MiB";
-        if (l >= 30 && l < 40)
+        if (l >= 30)
             return $"{double.Round(length / (double)(1 << 30), 2)} GiB";
-        if (l >= 40)
-            return $"{double.Round(length / (double)(1 << 40), 2)} TiB";
         return length.ToString();
     }
 }

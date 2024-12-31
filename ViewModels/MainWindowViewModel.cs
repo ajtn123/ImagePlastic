@@ -1,5 +1,5 @@
 ﻿using Avalonia.Controls.PanAndZoom;
-using Avalonia.Media.Imaging;
+using Avalonia.Media;
 using DynamicData;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
@@ -43,16 +43,16 @@ public partial class MainWindowViewModel : ViewModelBase
     //Generating a new default configuration every time.
     //A helper is needed to persist config, also a setting view.
     private Config config = new();
-    private Bitmap? bitmap;
+    private IImage? bitmap;
     private FileInfo? imageFile;
     private string path = "";
     private Stats stats = new(true);
     private StretchMode stretch;
 
     public string[]? Args { get; }
-    public Dictionary<string, Bitmap?> Preload { get; set; } = [];
+    public Dictionary<string, IImage?> Preload { get; set; } = [];
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
-    public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
+    public IImage? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
     public FileInfo? ImageFile { get => imageFile; set => this.RaiseAndSetIfChanged(ref imageFile, value); }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
@@ -97,18 +97,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
             await Task.Run(() =>
             {
-                Bitmap? b;
+                IImage? b, v;
                 if (config.Preload)
-                {
-                    var searchResult = Preload.TryGetValue(Path, out Bitmap? value);
-                    if (value == null)
-                        searchResult = false;
-                    b = searchResult ? value : Utils.ConvertImage(ImageFile);
-                }
+                    Preload.TryGetValue(Path, out v);
                 else
-                {
-                    b = Utils.ConvertImage(ImageFile);
-                }
+                    v = null;
+                b = v ?? Utils.ConvertImage(ImageFile);
+
                 if (path == Path)
                     Bitmap = b;
             });
@@ -124,16 +119,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 ErrorReport(Stats);
             }
 
-            //To Improve preload order:
-            //... @4 @3 # @1 @2 ...
-            //Or just set preload-left to 0:
-            //... @X @X # @1 @1 ...
-            //Or determine by last seek:
-            //... @2 @1 # <- # @X @X ...
-            //... @X @X # -> # @1 @2 ...
-            //Besides, should we keep for a while even if it is out of range?
-            //Too complicated, YOU PRELOAD have RUIN the whole thing!!!
-            //Preload(🤪 ? Bitmaps : Bugs).
+            //This has messed up the whole thing!!!
             if (config.Preload && path == Path)
                 await Task.Run(() =>
                 {
