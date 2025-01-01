@@ -39,7 +39,7 @@
                          FontSize="14" Padding="0" MinHeight="10" MinWidth="50"
                          VerticalAlignment="Center" IsVisible="False"
                          LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus"/>
-                <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding ImageFile.Name}"
+                <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
@@ -52,11 +52,13 @@
                 Grid.Row="1" HorizontalAlignment="Left" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
                 Margin="24,0,0,0" CornerRadius="24" FontSize="24"
+				IsVisible="{Binding !Stats.IsWeb}"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
         <Button Content="→" HotKey="Right" Command="{Binding GoRight}"
                 Grid.Row="1" HorizontalAlignment="Right" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
                 Margin="0,0,24,0" CornerRadius="24" FontSize="24"
+				IsVisible="{Binding !Stats.IsWeb}"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
 
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer"

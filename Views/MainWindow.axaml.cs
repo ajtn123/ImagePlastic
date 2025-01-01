@@ -104,7 +104,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         ErrorState = !errorStats.Success;
         TitleBar.IsVisible = !errorStats.Success;
-        TitleArea.Background = errorStats.Success ? TitleArea.Background = Brushes.Transparent : Brushes.Red;
+        TitleArea.Background = errorStats.Success ? Brushes.Transparent : Brushes.Red;
         Zoomer.IsVisible = errorStats.Success;
         Error.IsVisible = !errorStats.Success;
         ZoomText.IsVisible = errorStats.Success;
@@ -113,9 +113,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 $"Unable to open {errorStats.File.FullName}.";
         if (errorStats.Success)
             ResizeImage();
-        Zoomer.ResetMatrix();
-        Zoomer.Stretch = StretchMode.None;
-
         Zoomer.Stretch = StretchMode.Uniform;
     }
 

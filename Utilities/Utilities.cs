@@ -1,8 +1,10 @@
 ﻿using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using ImageMagick;
 using SkiaSharp;
 using System;
 using System.IO;
+using System.Net;
 
 namespace ImagePlastic.Utilities;
 
@@ -23,6 +25,26 @@ public static class Utils
                 SKBitmap.Decode(file.FullName).ToAvaloniaImage();
         }
         catch { return null; }
+    }
+
+    public static Bitmap? ConvertImageFromWeb(string url)
+    {
+        if (Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out Uri? uri))
+        {
+            HttpWebRequest httpRequest = (HttpWebRequest)WebRequest.Create(uri);
+
+            httpRequest.Timeout = 10000;
+            httpRequest.UseDefaultCredentials = true;
+            httpRequest.Proxy.Credentials = httpRequest.Credentials;
+            httpRequest.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36";
+
+            HttpWebResponse webResponse = (HttpWebResponse)httpRequest.GetResponse();
+            Stream response = webResponse.GetResponseStream();
+            //response.Seek(0, SeekOrigin.Begin);
+
+            return new MagickImage(response).ToBitmap().ConvertToAvaloniaBitmap();
+        }
+        return null;
     }
 
     public static string ToReadable(long length)

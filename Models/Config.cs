@@ -21,7 +21,7 @@ public class Config
         = [".png", ".jpg", ".jpeg", ".avif", ".heic", ".heif", ".bmp", ".jxl", ".gif", ".psd"];
     public bool WindowSizeAuto { get; set; } = true;
     public bool ExtendImageToTitleBar { get; set; } = true;
-    public bool LoadingIndicator { get; set; } = false;
+    public bool LoadingIndicator { get; set; } = true;
     public StretchMode Stretch { get; set; }
         = StretchMode.Uniform;
     public bool Preload { get; set; } = true;

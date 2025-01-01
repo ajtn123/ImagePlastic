@@ -6,6 +6,7 @@ using ImagePlastic.Utilities;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private IImage? bitmap;
     private FileInfo? imageFile;
     private string path = "";
-    private Stats stats = new(true);
+    private Stats stats = new(true) { DisplayName = "None" };
     private StretchMode stretch;
     private bool loading = false;
 
@@ -73,6 +74,12 @@ public partial class MainWindowViewModel : ViewModelBase
         if (int.TryParse(Path, out int des))
         {
             RefreshImage(destination: des - 1);
+            return;
+        }
+
+        if (new UrlAttribute().IsValid(Path))
+        {
+            ShowWebImage(Path);
             return;
         }
 
@@ -156,5 +163,16 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(false) { File = ImageFile };
             ErrorReport(Stats);
         }
+    }
+
+    public async void ShowWebImage(string url)
+    {
+        Loading = true;
+        var bitmapTemp = await Task.Run(() => { return Utils.ConvertImageFromWeb(url); });
+        if (url == Path) { Bitmap = bitmapTemp; }
+        Stats = (Bitmap == null) ? new(false) { IsWeb = true }
+                                 : new(true) { IsWeb = true, DisplayName = url.Split('/')[^1], ImageDimension = Bitmap!.Size };
+        ErrorReport(Stats);
+        Loading = false;
     }
 }
