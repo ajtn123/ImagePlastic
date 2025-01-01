@@ -13,8 +13,7 @@ public static class Utils
               : current + offset < 0 ? current + offset + total
                                      : current + offset;
 
-    //Convert any image to a Bitmap, not the perfect way though.
-    //Could not convert images with alpha channel correctly.
+    //Convert any image to a Bitmap.
     public static IImage? ConvertImage(FileInfo file)
     {
         try
