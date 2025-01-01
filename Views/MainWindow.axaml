@@ -52,13 +52,13 @@
                 Grid.Row="1" HorizontalAlignment="Left" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
                 Margin="24,0,0,0" CornerRadius="24" FontSize="24"
-				IsVisible="{Binding !Stats.IsWeb}"
+				IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
         <Button Content="→" HotKey="Right" Command="{Binding GoRight}"
                 Grid.Row="1" HorizontalAlignment="Right" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
                 Margin="0,0,24,0" CornerRadius="24" FontSize="24"
-				IsVisible="{Binding !Stats.IsWeb}"
+				IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
 
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer"
