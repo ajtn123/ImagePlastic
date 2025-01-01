@@ -66,6 +66,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void ChangeImageToPath()
     {
+        Path = Path.Trim('"');
+        if (string.IsNullOrEmpty(Path)) return;
+
         //Definitely should not be here.
         if (int.TryParse(Path, out int des))
         {
@@ -73,8 +76,6 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        Path = Path.Trim('"');
-        if (string.IsNullOrEmpty(Path)) return;
         ImageFile = new FileInfo(Path);
         if (!ImageFile.Exists || !config.Extensions.Contains(ImageFile.Extension.ToLower()))
         {
@@ -102,22 +103,17 @@ public partial class MainWindowViewModel : ViewModelBase
             Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file };
 
-            var b = await Task.Run(() =>
-            {
-                IImage? v;
-                if (config.Preload)
-                    Preload.TryGetValue(file.FullName, out v);
-                else
-                    v = null;
-                return v ?? Utils.ConvertImage(file);
-            });
+            IImage? bitmapTemp = null;
+            if (config.Preload)
+                Preload.TryGetValue(file.FullName, out bitmapTemp);
+            bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(file); });
 
             if (file.FullName != Path) return;
             else
             {
-                Bitmap = b;
+                Bitmap = bitmapTemp;
                 Loading = false;
-            };
+            }
 
             Stats = (Bitmap == null) ? new(false, Stats)
                                      : new(true, Stats) { ImageDimension = Bitmap!.Size };
@@ -127,37 +123,31 @@ public partial class MainWindowViewModel : ViewModelBase
             if (config.Preload && file.FullName == Path)
                 await Task.Run(() =>
                 {
-                    var pl = (-config.PreloadLeft < files.Count()) ? config.PreloadLeft : -(files.Count() - 1);
-                    var pr = (config.PreloadRight < files.Count()) ? config.PreloadRight : (files.Count() - 1);
+                    var leftRange = (-config.PreloadLeft < files.Count()) ? config.PreloadLeft : -(files.Count() - 1);
+                    var rightRange = (config.PreloadRight < files.Count()) ? config.PreloadRight : (files.Count() - 1);
 
                     //Remove bitmap from preload if the image is out of preload range.
                     //It seems to be fine, hope no bugs to be discovered.
-                    var loads = Preload.Keys.ToList();
-                    var l = pl - 1;
-                    while (file.FullName == Path && l++ < pr)
+                    var currentLoads = Preload.Keys.ToList();
+                    var removalOffset = leftRange - 1;
+                    while (++removalOffset <= rightRange && file.FullName == Path)
                     {
-                        var preIndex = Utils.SeekIndex((int)destination, l, files.Count());
-                        loads.Remove(fileNames.ElementAt(preIndex));
+                        var inRangeIndex = Utils.SeekIndex((int)destination, removalOffset, files.Count());
+                        currentLoads.Remove(fileNames.ElementAt(inRangeIndex));
                     }
-                    foreach (var fn in loads)
-                        Preload.Remove(fn);
+                    foreach (var ItemForRemoval in currentLoads)
+                        Preload.Remove(ItemForRemoval);
 
                     //Preload Bitmaps.
-                    var i = pl - 1;
-                    while (file.FullName == Path && i++ < pr)
+                    var additionOffset = leftRange - 1;
+                    while (++additionOffset <= rightRange && file.FullName == Path)
                     {
-                        if (i == 0) continue;
-                        var preIndex = Utils.SeekIndex((int)destination, i, files.Count());
-                        var fn = fileNames.ElementAt(preIndex);
-                        if (Preload.ContainsKey(fn)) continue;
-                        if (Preload.TryAdd(fn, null))
-                        {
-                            var preBitmap = Utils.ConvertImage(files.ElementAt(preIndex));
-                            if (preBitmap == null)
-                                Preload.Remove(fn);
-                            else if (Preload.ContainsKey(fn))
-                                Preload[fn] = preBitmap;
-                        }
+                        if (additionOffset == 0) continue;
+                        var preloadIndex = Utils.SeekIndex((int)destination, additionOffset, files.Count());
+                        var preloadFileName = fileNames.ElementAt(preloadIndex);
+                        if (Preload.ContainsKey(preloadFileName)) continue;
+                        if (Preload.TryAdd(preloadFileName, null))
+                            Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex));
                     }
                 });
         }

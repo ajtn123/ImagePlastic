@@ -13,7 +13,7 @@ public class Config
 {
     public FileInfo? DefaultFile { get; set; }
     public IReadOnlyList<WindowTransparencyLevel> Blur { get; set; }
-        = [WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur];
+        = [WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur, WindowTransparencyLevel.None];
     public IBrush BackgroundColor { get; set; }
         = Brushes.Transparent;
     public string[] Extensions { get; set; }
