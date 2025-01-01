@@ -26,18 +26,15 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(true);
         Stretch = Config.Stretch;
         GoPath = ReactiveCommand.Create(ChangeImageToPath);
-        GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
-        GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
+        GoLeft = ReactiveCommand.Create(() => { RefreshImage(offset: -1); });
+        GoRight = ReactiveCommand.Create(() => { RefreshImage(offset: 1); });
     }
     //For previewer.
     public MainWindowViewModel()
     {
-        if (Config.DefaultFile != null)
-            path = Config.DefaultFile.FullName;
-        ChangeImageToPath();
-        GoPath = ReactiveCommand.Create(ChangeImageToPath);
-        GoLeft = ReactiveCommand.Create(() => { RefreshImage(-1); });
-        GoRight = ReactiveCommand.Create(() => { RefreshImage(1); });
+        GoPath = ReactiveCommand.Create(() => { });
+        GoLeft = ReactiveCommand.Create(() => { });
+        GoRight = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -48,6 +45,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string path = "";
     private Stats stats = new(true);
     private StretchMode stretch;
+    private bool loading = false;
 
     public string[]? Args { get; }
     public Dictionary<string, IImage?> Preload { get; set; } = [];
@@ -57,6 +55,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
     public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
+    public bool Loading { get => config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
 
     public ICommand GoPath { get; }
     public ICommand GoLeft { get; }
@@ -67,6 +66,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void ChangeImageToPath()
     {
+        //Definitely should not be here.
+        if (int.TryParse(Path, out int des))
+        {
+            RefreshImage(destination: des - 1);
+            return;
+        }
+
         Path = Path.Trim('"');
         if (string.IsNullOrEmpty(Path)) return;
         ImageFile = new FileInfo(Path);
@@ -77,50 +83,48 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
         Path = ImageFile.FullName;
-        RefreshImage(0);
+        RefreshImage();
     }
 
     //Scan the path directory and show the image.
-    public async void RefreshImage(int offset = 0)
+    public async void RefreshImage(int offset = 0, int? destination = null)
     {
         if (ImageFile == null || !ImageFile.Exists) return;
         try
         {
+            Loading = true;
             var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.ToLower()));
             var fileNames = files.Select(a => a.FullName);
             var currentIndex = fileNames.IndexOf(ImageFile.FullName);
-            var destination = Utils.SeekIndex(currentIndex, offset, files.Count());
-            ImageFile = files.ElementAt(destination);
-            Path = fileNames.ElementAt(destination);
-            var path = Path;
-            Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = ImageFile };
+            destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());
+            var file = files.ElementAt((int)destination);
+            ImageFile = file;
+            Path = file.FullName;
+            Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file };
 
-            await Task.Run(() =>
+            var b = await Task.Run(() =>
             {
-                IImage? b, v;
+                IImage? v;
                 if (config.Preload)
-                    Preload.TryGetValue(Path, out v);
+                    Preload.TryGetValue(file.FullName, out v);
                 else
                     v = null;
-                b = v ?? Utils.ConvertImage(ImageFile);
-
-                if (path == Path)
-                    Bitmap = b;
+                return v ?? Utils.ConvertImage(file);
             });
-            if (path != Path) return;
-            if (Bitmap == null)
-            {
-                Stats = new(false, Stats);
-                ErrorReport(Stats);
-            }
+
+            if (file.FullName != Path) return;
             else
             {
-                Stats = new(true, Stats) { ImageDimension = Bitmap!.Size };
-                ErrorReport(Stats);
-            }
+                Bitmap = b;
+                Loading = false;
+            };
+
+            Stats = (Bitmap == null) ? new(false, Stats)
+                                     : new(true, Stats) { ImageDimension = Bitmap!.Size };
+            ErrorReport(Stats);
 
             //This has messed up the whole thing!!!
-            if (config.Preload && path == Path)
+            if (config.Preload && file.FullName == Path)
                 await Task.Run(() =>
                 {
                     var pl = (-config.PreloadLeft < files.Count()) ? config.PreloadLeft : -(files.Count() - 1);
@@ -130,9 +134,9 @@ public partial class MainWindowViewModel : ViewModelBase
                     //It seems to be fine, hope no bugs to be discovered.
                     var loads = Preload.Keys.ToList();
                     var l = pl - 1;
-                    while (path == Path && l++ < pr)
+                    while (file.FullName == Path && l++ < pr)
                     {
-                        var preIndex = Utils.SeekIndex(destination, l, files.Count());
+                        var preIndex = Utils.SeekIndex((int)destination, l, files.Count());
                         loads.Remove(fileNames.ElementAt(preIndex));
                     }
                     foreach (var fn in loads)
@@ -140,10 +144,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
                     //Preload Bitmaps.
                     var i = pl - 1;
-                    while (path == Path && i++ < pr)
+                    while (file.FullName == Path && i++ < pr)
                     {
                         if (i == 0) continue;
-                        var preIndex = Utils.SeekIndex(destination, i, files.Count());
+                        var preIndex = Utils.SeekIndex((int)destination, i, files.Count());
                         var fn = fileNames.ElementAt(preIndex);
                         if (Preload.ContainsKey(fn)) continue;
                         if (Preload.TryAdd(fn, null))
