@@ -39,7 +39,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleBar.IsVisible = !ViewModel.Config.ExtendImageToTitleBar;
         TitleArea.Background = ViewModel.Config.ExtendImageToTitleBar ? Brushes.Transparent : AccentBrush;
         Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
-        if (ViewModel.ImageFile == null)
+        if (string.IsNullOrEmpty(ViewModel.Path))
         {
             TitleArea.Background = AccentBrush;
             TitleBar.IsVisible = true;
@@ -109,8 +109,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Error.IsVisible = !errorStats.Success;
         ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
-            ErrorView.ErrorMsg.Text =
-                $"Unable to open {errorStats.File.FullName}.";
+            ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
         if (errorStats.Success)
             ResizeImage();
         Zoomer.Stretch = StretchMode.Uniform;

@@ -9,7 +9,7 @@
         x:Class="ImagePlastic.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="{Binding ImageFile.Name}"
+        Title="{Binding Stats.DisplayName}"
         Background="{Binding Config.BackgroundColor}"
         ExtendClientAreaToDecorationsHint="True"
         PointerMoved="Window_PointerMoved"

@@ -6,7 +6,6 @@ namespace ImagePlastic.Models;
 //Actually necessary, doesn't it?
 public class Stats
 {
-    private string? displayName;
     public Stats(bool success, Stats? stats = null)
     {
         Success = success;
@@ -22,7 +21,7 @@ public class Stats
     public bool Success { get; }
     public bool IsWeb { get; set; } = false;
     public FileInfo? File { get; set; }
-    public string? DisplayName { get => displayName ?? File.Name; set => displayName = value; }
+    public string? DisplayName { get; set; }
     public int? FileIndex { get; set; }
     public int? FileCount { get; set; }
     public Size? ImageDimension { get; set; }

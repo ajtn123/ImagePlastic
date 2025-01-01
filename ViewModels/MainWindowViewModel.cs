@@ -20,9 +20,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Args = args;
         if (Config.DefaultFile != null)
-            path = Config.DefaultFile.FullName;
+            Path = Config.DefaultFile.FullName;
         if (args != null && args.Length > 0)
-            path = args[0];
+            Path = args[0];
         else
             Stats = new(true);
         Stretch = Config.Stretch;
@@ -42,7 +42,6 @@ public partial class MainWindowViewModel : ViewModelBase
     //A helper is needed to persist config, also a setting view.
     private Config config = new();
     private IImage? bitmap;
-    private FileInfo? imageFile;
     private string path = "";
     private Stats stats = new(true) { DisplayName = "None" };
     private StretchMode stretch;
@@ -52,7 +51,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public Dictionary<string, IImage?> Preload { get; set; } = [];
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
     public IImage? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
-    public FileInfo? ImageFile { get => imageFile; set => this.RaiseAndSetIfChanged(ref imageFile, value); }
+    public FileInfo? ImageFile { get; set; }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
     public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
@@ -86,7 +85,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ImageFile = new FileInfo(Path);
         if (!ImageFile.Exists || !config.Extensions.Contains(ImageFile.Extension.ToLower()))
         {
-            Stats = new(false) { File = ImageFile };
+            Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
             ErrorReport(Stats);
             return;
         }
@@ -108,7 +107,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var file = files.ElementAt((int)destination);
             ImageFile = file;
             Path = file.FullName;
-            Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file };
+            Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
             IImage? bitmapTemp = null;
             if (config.Preload)
@@ -160,11 +159,20 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch
         {
-            Stats = new(false) { File = ImageFile };
+            Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
             ErrorReport(Stats);
         }
     }
-
+    public void PreloadImage(FileInfo file)
+    {
+        //Later... in a month probably.
+        throw new NotImplementedException();
+    }
+    public async void ShowLocalImage(FileInfo file)
+    {
+        //The Huge Method above should be separated.
+        throw new NotImplementedException();
+    }
     public async void ShowWebImage(string url)
     {
         Loading = true;
