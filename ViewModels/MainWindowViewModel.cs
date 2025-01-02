@@ -94,12 +94,11 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     //Scan the path directory and show the image.
-    public async void RefreshImage(int offset = 0, int? destination = null)
+    public void RefreshImage(int offset = 0, int? destination = null)
     {
         if (ImageFile == null || !ImageFile.Exists) return;
         try
         {
-            Loading = true;
             var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.ToLower()));
             var fileNames = files.Select(a => a.FullName);
             var currentIndex = fileNames.IndexOf(ImageFile.FullName);
@@ -109,53 +108,10 @@ public partial class MainWindowViewModel : ViewModelBase
             Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
-            IImage? bitmapTemp = null;
-            if (config.Preload)
-                Preload.TryGetValue(file.FullName, out bitmapTemp);
-            bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(file); });
+            ShowLocalImage(file);
 
-            if (file.FullName != Path) return;
-            else
-            {
-                Bitmap = bitmapTemp;
-                Loading = false;
-            }
-
-            Stats = (Bitmap == null) ? new(false, Stats)
-                                     : new(true, Stats) { ImageDimension = Bitmap!.Size };
-            ErrorReport(Stats);
-
-            //This has messed up the whole thing!!!
             if (config.Preload && file.FullName == Path)
-                await Task.Run(() =>
-                {
-                    var leftRange = (-config.PreloadLeft < files.Count()) ? config.PreloadLeft : -(files.Count() - 1);
-                    var rightRange = (config.PreloadRight < files.Count()) ? config.PreloadRight : (files.Count() - 1);
-
-                    //Remove bitmap from preload if the image is out of preload range.
-                    //It seems to be fine, hope no bugs to be discovered.
-                    var currentLoads = Preload.Keys.ToList();
-                    var removalOffset = leftRange - 1;
-                    while (++removalOffset <= rightRange && file.FullName == Path)
-                    {
-                        var inRangeIndex = Utils.SeekIndex((int)destination, removalOffset, files.Count());
-                        currentLoads.Remove(fileNames.ElementAt(inRangeIndex));
-                    }
-                    foreach (var ItemForRemoval in currentLoads)
-                        Preload.Remove(ItemForRemoval);
-
-                    //Preload Bitmaps.
-                    var additionOffset = leftRange - 1;
-                    while (++additionOffset <= rightRange && file.FullName == Path)
-                    {
-                        if (additionOffset == 0) continue;
-                        var preloadIndex = Utils.SeekIndex((int)destination, additionOffset, files.Count());
-                        var preloadFileName = fileNames.ElementAt(preloadIndex);
-                        if (Preload.ContainsKey(preloadFileName)) continue;
-                        if (Preload.TryAdd(preloadFileName, null))
-                            Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex));
-                    }
-                });
+                _ = Task.Run(() => { PreloadImage(files, fileNames, file, (int)destination); });
         }
         catch
         {
@@ -163,15 +119,50 @@ public partial class MainWindowViewModel : ViewModelBase
             ErrorReport(Stats);
         }
     }
-    public void PreloadImage(FileInfo file)
+    public void PreloadImage(IEnumerable<FileInfo> files, IEnumerable<string> fileNames, FileInfo file, int index)
     {
-        //Later... in a month probably.
-        throw new NotImplementedException();
+        var leftRange = (-config.PreloadLeft < files.Count()) ? config.PreloadLeft : -(files.Count() - 1);
+        var rightRange = (config.PreloadRight < files.Count()) ? config.PreloadRight : (files.Count() - 1);
+
+        //Remove bitmap from preload if the image is out of preload range.
+        //It seems to be fine, hope no bugs to be discovered.
+        var currentLoads = Preload.Keys.ToList();
+        var removalOffset = leftRange - 1;
+        while (++removalOffset <= rightRange && file.FullName == Path)
+        {
+            var inRangeIndex = Utils.SeekIndex(index, removalOffset, files.Count());
+            currentLoads.Remove(fileNames.ElementAt(inRangeIndex));
+        }
+        foreach (var ItemForRemoval in currentLoads)
+            Preload.Remove(ItemForRemoval);
+
+        //Preload Bitmaps.
+        var additionOffset = leftRange - 1;
+        while (++additionOffset <= rightRange && file.FullName == Path)
+        {
+            if (additionOffset == 0) continue;
+            var preloadIndex = Utils.SeekIndex(index, additionOffset, files.Count());
+            var preloadFileName = fileNames.ElementAt(preloadIndex);
+            if (Preload.ContainsKey(preloadFileName)) continue;
+            if (Preload.TryAdd(preloadFileName, null))
+                Task.Run(() => { Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)); });
+        }
     }
     public async void ShowLocalImage(FileInfo file)
     {
-        //The Huge Method above should be separated.
-        throw new NotImplementedException();
+        Loading = true;
+        IImage? bitmapTemp = null;
+        if (config.Preload)
+            Preload.TryGetValue(file.FullName, out bitmapTemp);
+        bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(file); });
+
+        if (file.FullName != Path) return;
+        else Bitmap = bitmapTemp;
+
+        Loading = false;
+        Stats = (Bitmap == null) ? new(false, Stats)
+                                 : new(true, Stats) { ImageDimension = Bitmap!.Size };
+        ErrorReport(Stats);
     }
     public async void ShowWebImage(string url)
     {
