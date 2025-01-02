@@ -83,14 +83,16 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         ImageFile = new FileInfo(Path);
-        if (!ImageFile.Exists || !config.Extensions.Contains(ImageFile.Extension.ToLower()))
+        if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
+        {
+            Path = ImageFile.FullName;
+            RefreshImage();
+        }
+        else
         {
             Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
             ErrorReport(Stats);
-            return;
         }
-        Path = ImageFile.FullName;
-        RefreshImage();
     }
 
     //Scan the path directory and show the image.
@@ -167,7 +169,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public async void ShowWebImage(string url)
     {
         Loading = true;
-        var bitmapTemp = await Task.Run(() => { return Utils.ConvertImageFromWeb(url); });
+        var bitmapTemp = await Utils.ConvertImageFromWeb(url);
         if (url == Path) { Bitmap = bitmapTemp; }
         Stats = (Bitmap == null) ? new(false) { IsWeb = true }
                                  : new(true) { IsWeb = true, DisplayName = url.Split('/')[^1], ImageDimension = Bitmap!.Size };

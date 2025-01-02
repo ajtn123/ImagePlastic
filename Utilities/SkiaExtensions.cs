@@ -9,7 +9,7 @@ using System;
 namespace ImagePlastic.Utilities;
 
 //https://github.com/AvaloniaUI/Avalonia/discussions/13610#discussioncomment-7576208
-internal static class SkiaExtensions
+public static class SkiaExtensions
 {
     private record class SKBitmapDrawOperation : ICustomDrawOperation
     {
