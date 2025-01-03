@@ -39,10 +39,7 @@ public static class Utils
                 Stream responseStream = await response.Content.ReadAsStreamAsync();
                 return new MagickImage(responseStream).ToBitmap().ConvertToAvaloniaBitmap();
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("Message :{0} ", e.Message);
-            }
+            catch { return null; }
         return null;
     }
 

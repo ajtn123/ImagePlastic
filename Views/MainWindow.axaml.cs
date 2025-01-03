@@ -25,6 +25,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public bool TitleBarPersistent { get; set; } = false;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling { get; set; } = 1;
+    public int HoldingOffset { get; set; } = 0;
 
     public void Init()
     {
@@ -48,6 +49,52 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             PathBox.Focus();
             ZoomText.IsVisible = false;
         }
+        KeyDown += KeyDownHandler;
+        KeyUp += KeyUpHandler;
+    }
+
+    //Hotkeys
+    private void KeyUpHandler(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.Left or Key.Right && !ViewModel!.Stats.IsWeb)
+        {
+            if (HoldingOffset >= 2 || HoldingOffset <= -2)
+                ViewModel!.RefreshImage();
+            HoldingOffset = 0;
+        }
+    }
+    private void KeyDownHandler(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Left && !ViewModel!.Stats.IsWeb)
+            if (e.KeyModifiers == KeyModifiers.Control)
+                if (!ViewModel!.Loading) ViewModel!.RefreshImage(offset: -1); else return;
+            else
+            {
+                if (HoldingOffset == 0)
+                    ViewModel!.RefreshImage(offset: -1);
+                else
+                {
+                    ViewModel!.Select(-1);
+                    TitleBar.IsVisible = true;
+                    TitleArea.Background = AccentBrush;
+                }
+                HoldingOffset -= 1;
+            }
+        else if (e.Key == Key.Right && !ViewModel!.Stats.IsWeb)
+            if (e.KeyModifiers == KeyModifiers.Control)
+                if (!ViewModel!.Loading) ViewModel!.RefreshImage(offset: 1); else return;
+            else
+            {
+                if (HoldingOffset == 0)
+                    ViewModel!.RefreshImage(offset: 1);
+                else
+                {
+                    ViewModel!.Select(1);
+                    TitleBar.IsVisible = true;
+                    TitleArea.Background = AccentBrush;
+                }
+                HoldingOffset += 1;
+            }
     }
 
     //Make entire window draggable.
@@ -110,32 +157,22 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
-        if (errorStats.Success)
-            ResizeImage();
         Zoomer.Stretch = StretchMode.Uniform;
     }
 
     //Zoomer and Image scaling.
     private void ResetZoom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        if (Zoomer.Stretch == StretchMode.Uniform)
-        {
-            Zoomer.ResetMatrix();
-            Zoomer.Stretch = StretchMode.None;
-        }
-        else Zoomer.Stretch = StretchMode.Uniform;
-    }
+        => Zoomer.Stretch = StretchMode.Uniform;
     private void ZoomBorder_ZoomChanged(object sender, ZoomChangedEventArgs e)
-        => ZoomText.Content = $"{double.Round(e.ZoomX * 100, 2)}%";
+        => RefreshZoomDisplay();
+    private void ZoomBorder_SizeChanged(object? sender, SizeChangedEventArgs e)
+        => RefreshZoomDisplay();
     private void ZoomBorder_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
         => Zoomer.Stretch = StretchMode.None;
     private void ScalingChangedHandler(object? sender, EventArgs e)
-    {
-        Scaling = Screens.ScreenFromWindow(this)!.Scaling;
-        ResizeImage();
-    }
-    private void ResizeImage()
-        => ImageItself.Height = ViewModel!.Bitmap!.Size.Height / Scaling;
+        => Scaling = Screens.ScreenFromWindow(this)!.Scaling;
+    private void RefreshZoomDisplay()
+        => ZoomText.Content = ImageItself.Source != null ? $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ImageItself.Source.Size.Height, 2)}%" : null;
 
     //Shorten path when not on focus.
     private void TextBlock_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -145,9 +182,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         PathBox.Focus();
     }
     private void TextBox_GotFocus(object? sender, GotFocusEventArgs e)
-    {
-        TitleBarPersistent = true;
-    }
+        => TitleBarPersistent = true;
     private void TextBox_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (string.IsNullOrEmpty(ViewModel!.Path)) return;
@@ -156,10 +191,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleBarPersistent = false;
     }
 
-    private void TextBlock_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
-    {
-        ViewModel!.UIMessage = null;
-    }
+    private void TextBlock_PointerReleased(object? sender, PointerReleasedEventArgs e)
+        => ViewModel!.UIMessage = null;
 
-    //private void ShowKeyDown(object? sender, Avalonia.Input.KeyEventArgs e) => ErrorView.ErrorMsg.Text = e.Key.ToString();
+    //private void ShowKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    //    => ViewModel!.UIMessage = e.Key.ToString();
 }

@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media;
 using DynamicData;
+using ExCSS;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
 using ReactiveUI;
@@ -47,6 +48,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private StretchMode stretch;
     private bool loading = false;
     private string? uIMessage;
+    private IEnumerable<FileInfo> currentDir = [];
+    private IEnumerable<string> currentDirName = [];
 
     public string[]? Args { get; }
     public Dictionary<string, IImage?> Preload { get; set; } = [];
@@ -96,6 +99,15 @@ public partial class MainWindowViewModel : ViewModelBase
         ErrorReport(Stats);
     }
 
+    public void Select(int offset)
+    {
+        var currentIndex = currentDirName.IndexOf(ImageFile.FullName);
+        var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
+        var file = currentDir.ElementAt(destination);
+        ImageFile = file;
+        Path = file.FullName;
+        Stats = new(true) { FileIndex = destination, FileCount = currentDir.Count(), File = file, DisplayName = file.Name };
+    }
     //Scan the path directory and show the image.
     public void RefreshImage(int offset = 0, int? destination = null)
     {
@@ -104,6 +116,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.ToLower()));
             var fileNames = files.Select(a => a.FullName);
+            currentDir = files; currentDirName = fileNames;
             var currentIndex = fileNames.IndexOf(ImageFile.FullName);
             destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());
             var file = files.ElementAt((int)destination);

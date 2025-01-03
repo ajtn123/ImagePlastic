@@ -25,9 +25,6 @@
         <cvt:StatsConverter x:Key="StatsConverter"/>
         <cvt:BoolConverter x:Key="BoolConverter"/>
     </Window.Resources>
-    <Window.KeyBindings>
-        <KeyBinding Command="{Binding GoPath}" Gesture="Enter"/>
-    </Window.KeyBindings>
 
     <Grid RowDefinitions="Auto,*,Auto">
         <Panel Grid.Row="0"
@@ -39,7 +36,11 @@
                 <TextBox Name="PathBox" Text="{Binding Path}"
                          FontSize="14" Padding="0" MinHeight="10" MinWidth="50"
                          VerticalAlignment="Center" IsVisible="False"
-                         LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus"/>
+                         LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus">
+					<TextBox.InnerRightContent>
+						<Button HotKey="Enter" Command="{Binding GoPath}" Content="Go" Padding="0" IsVisible="False"/>
+					</TextBox.InnerRightContent>
+				</TextBox>
                 <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center"
@@ -49,25 +50,25 @@
             </StackPanel>
         </Panel>
 
-        <Button Content="←" HotKey="Left" Command="{Binding GoLeft}"
+        <Button Content="←" Command="{Binding GoLeft}"
                 Grid.Row="1" HorizontalAlignment="Left" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
                 Margin="24,0,0,0" CornerRadius="24" FontSize="24"
 				IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
-        <Button Content="→" HotKey="Right" Command="{Binding GoRight}"
+        <Button Content="→" Command="{Binding GoRight}"
                 Grid.Row="1" HorizontalAlignment="Right" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
                 Margin="0,0,24,0" CornerRadius="24" FontSize="24"
 				IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
 
-        <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer"
+        <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer" SizeChanged="ZoomBorder_SizeChanged"
                     Stretch="{Binding Stretch}" Focusable="True"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
-            <Image RenderOptions.BitmapInterpolationMode="HighQuality" 
-                   Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
+                <Image RenderOptions.BitmapInterpolationMode="HighQuality"
+					   Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
         </ZoomBorder>
 
 		<ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>

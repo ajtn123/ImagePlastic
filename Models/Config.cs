@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using ImageMagick;
 using System;
 using System.Collections.Generic;
@@ -27,4 +28,6 @@ public class Config
     public bool Preload { get; set; } = true;
     public int PreloadLeft { get; set; } = 0;
     public int PreloadRight { get; set; } = 2;
+    public BitmapInterpolationMode InterpolationMode { get; set; }
+        = BitmapInterpolationMode.None;
 }
