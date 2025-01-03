@@ -33,20 +33,18 @@
                PointerEntered="StackPanel_PointerEntered"
                PointerExited="StackPanel_PointerExited">
             <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar">
-                <TextBox Name="PathBox" Text="{Binding Path}"
+                <TextBox Name="PathBox" Text="{Binding Path}" KeyDown="PathBox_KeyDown"
                          FontSize="14" Padding="0" MinHeight="10" MinWidth="50"
                          VerticalAlignment="Center" IsVisible="False"
-                         LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus">
-					<TextBox.InnerRightContent>
-						<Button HotKey="Enter" Command="{Binding GoPath}" Content="Go" Padding="0" IsVisible="False"/>
-					</TextBox.InnerRightContent>
-				</TextBox>
+                         LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus"/>
                 <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
-                <Button VerticalAlignment="Center" HotKey="OemPlus" Click="ResetZoom"
-                        FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
+				<TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
+                         FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
+				<Button FontSize="14" Padding="0" Content="1:1" Click="Button_Click_1" HotKey="OemPlus"/>
+				<Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus"/>
             </StackPanel>
         </Panel>
 

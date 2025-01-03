@@ -119,6 +119,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void Window_PointerReleased(object? sender, PointerReleasedEventArgs e)
         => _mouseDownForWindowMoving = false;
 
+    private void PathBox_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || string.IsNullOrEmpty(PathBox.Text)) return;
+        else ViewModel!.ChangeImageToPath();
+    }
+
     //Auto resize Title Bar.
     private void Window_SizeChanged(object? sender, SizeChangedEventArgs e)
     {
@@ -171,8 +177,31 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => Zoomer.Stretch = StretchMode.None;
     private void ScalingChangedHandler(object? sender, EventArgs e)
         => Scaling = Screens.ScreenFromWindow(this)!.Scaling;
+    private void TextBox_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || string.IsNullOrEmpty(ZoomText.Text)) return;
+        if (double.TryParse(ZoomText.Text, out double v1))
+        {
+            SetZoom(v1);
+            ZoomText.Background = Brushes.Transparent;
+        }
+        else if (double.TryParse(ZoomText.Text.TrimEnd('%'), out double v2))
+        {
+            SetZoom(v2 / 100);
+            ZoomText.Background = Brushes.Transparent;
+        }
+        else ZoomText.Background = Brushes.Red;
+    }
+    private void Button_Click_1(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (ImageItself.Source != null) SetZoom(1);
+    }
+    private void Button_Click_2(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Zoomer.Stretch = StretchMode.Uniform;
     private void RefreshZoomDisplay()
-        => ZoomText.Content = ImageItself.Source != null ? $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ImageItself.Source.Size.Height, 2)}%" : null;
+        => ZoomText.Text = ImageItself.Source != null ? $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ImageItself.Source.Size.Height, 2)}%" : null;
+    private void SetZoom(double zoom)
+        => Zoomer.Zoom(ImageItself.Source!.Size.Height * zoom / (Scaling * Zoomer.Bounds.Height), 0, 0);
 
     //Shorten path when not on focus.
     private void TextBlock_PointerPressed(object? sender, PointerPressedEventArgs e)
