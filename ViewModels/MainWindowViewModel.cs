@@ -46,6 +46,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private Stats stats = new(true) { DisplayName = "None" };
     private StretchMode stretch;
     private bool loading = false;
+    private string? uIMessage;
 
     public string[]? Args { get; }
     public Dictionary<string, IImage?> Preload { get; set; } = [];
@@ -56,6 +57,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
     public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
     public bool Loading { get => config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
+    public string? UIMessage { get => uIMessage; set => this.RaiseAndSetIfChanged(ref uIMessage, value); }
 
     public ICommand GoPath { get; }
     public ICommand GoLeft { get; }
@@ -87,12 +89,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             Path = ImageFile.FullName;
             RefreshImage();
+            return;
         }
-        else
-        {
-            Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
-            ErrorReport(Stats);
-        }
+
+        Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
+        ErrorReport(Stats);
     }
 
     //Scan the path directory and show the image.
@@ -165,13 +166,16 @@ public partial class MainWindowViewModel : ViewModelBase
         Stats = (Bitmap == null) ? new(false, Stats)
                                  : new(true, Stats) { ImageDimension = Bitmap!.Size };
         ErrorReport(Stats);
+
+        //GC.Collect();
+        //UIMessage = $"Estimated bytes on heap: {GC.GetTotalMemory(false)}";
     }
     public async void ShowWebImage(string url)
     {
         Loading = true;
         var bitmapTemp = await Utils.ConvertImageFromWeb(url);
         if (url == Path) { Bitmap = bitmapTemp; }
-        Stats = (Bitmap == null) ? new(false) { IsWeb = true }
+        Stats = (Bitmap == null) ? new(false) { IsWeb = true, DisplayName = url.Split('/')[^1] }
                                  : new(true) { IsWeb = true, DisplayName = url.Split('/')[^1], ImageDimension = Bitmap!.Size };
         ErrorReport(Stats);
         Loading = false;

@@ -23,12 +23,13 @@
     </Design.DataContext>
     <Window.Resources>
         <cvt:StatsConverter x:Key="StatsConverter"/>
+        <cvt:BoolConverter x:Key="BoolConverter"/>
     </Window.Resources>
     <Window.KeyBindings>
         <KeyBinding Command="{Binding GoPath}" Gesture="Enter"/>
     </Window.KeyBindings>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*,Auto">
         <Panel Grid.Row="0"
                VerticalAlignment="Top" HorizontalAlignment="Left"
                Height="29" ZIndex="10" x:Name="TitleArea"
@@ -70,6 +71,8 @@
         </ZoomBorder>
 
 		<ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
+		<TextBlock Grid.Row="2" Background="AntiqueWhite" Text="{Binding UIMessage}"
+				   PointerReleased="TextBlock_PointerReleased" IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
         <Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
             <view:Error x:Name="ErrorView"/>
         </Viewbox>

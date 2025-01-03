@@ -156,5 +156,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TitleBarPersistent = false;
     }
 
+    private void TextBlock_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+    {
+        ViewModel!.UIMessage = null;
+    }
+
     //private void ShowKeyDown(object? sender, Avalonia.Input.KeyEventArgs e) => ErrorView.ErrorMsg.Text = e.Key.ToString();
 }
