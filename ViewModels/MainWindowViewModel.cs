@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media;
 using DynamicData;
-using ExCSS;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
 using ReactiveUI;
@@ -101,7 +100,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void Select(int offset)
     {
-        var currentIndex = currentDirName.IndexOf(ImageFile.FullName);
+        if (ImageFile == null || !ImageFile.Exists) return;
+        var currentIndex = Stats.FileIndex ?? currentDirName.IndexOf(ImageFile.FullName);
         var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
         var file = currentDir.ElementAt(destination);
         ImageFile = file;
