@@ -26,14 +26,12 @@ public partial class MainWindowViewModel : ViewModelBase
         else
             Stats = new(true);
         Stretch = Config.Stretch;
-        GoPath = ReactiveCommand.Create(ChangeImageToPath);
         GoLeft = ReactiveCommand.Create(() => { RefreshImage(offset: -1); });
         GoRight = ReactiveCommand.Create(() => { RefreshImage(offset: 1); });
     }
     //For previewer.
     public MainWindowViewModel()
     {
-        GoPath = ReactiveCommand.Create(() => { });
         GoLeft = ReactiveCommand.Create(() => { });
         GoRight = ReactiveCommand.Create(() => { });
     }
@@ -49,6 +47,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string? uIMessage;
     private IEnumerable<FileInfo> currentDir = [];
     private IEnumerable<string> currentDirName = [];
+    private bool pinned = false;
 
     public string[]? Args { get; }
     public Dictionary<string, IImage?> Preload { get; set; } = [];
@@ -60,8 +59,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
     public bool Loading { get => config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
     public string? UIMessage { get => uIMessage; set => this.RaiseAndSetIfChanged(ref uIMessage, value); }
+    public bool Pinned { get => pinned; set => this.RaiseAndSetIfChanged(ref pinned, value); }
 
-    public ICommand GoPath { get; }
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
 
@@ -73,19 +72,21 @@ public partial class MainWindowViewModel : ViewModelBase
         Path = Path.Trim('"');
         if (string.IsNullOrEmpty(Path)) return;
 
-        //Definitely should not be here.
+        //Using index of current dir.
         if (int.TryParse(Path, out int des))
         {
             RefreshImage(destination: des - 1);
             return;
         }
 
+        //Using web URL.
         if (new UrlAttribute().IsValid(Path))
         {
             ShowWebImage(Path);
             return;
         }
 
+        //Using file path.
         ImageFile = new FileInfo(Path);
         if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
         {
@@ -94,6 +95,7 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        //Exceptions.
         Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
         ErrorReport(Stats);
     }

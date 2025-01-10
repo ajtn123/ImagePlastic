@@ -33,17 +33,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Scaling = Screens.ScreenFromWindow(this)!.Scaling;
         ViewModel!.ErrorReport += ShowError;
         ViewModel.ChangeImageToPath();
-        Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
-        var accentColor = accentObject != null ? (Color)accentObject : Color.Parse("#40CFBF");
-        accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
-        AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
-        TitleBar.IsVisible = !ViewModel.Config.ExtendImageToTitleBar;
-        TitleArea.Background = ViewModel.Config.ExtendImageToTitleBar ? Brushes.Transparent : AccentBrush;
+        if (ViewModel.Config.SystemAccentColor)
+        {
+            Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
+            var accentColor = (Color?)accentObject ?? ViewModel.Config.CustomAccentColor;
+            accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
+            AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
+        }
+        else
+            AccentBrush = (IBrush?)ColorToBrushConverter.Convert(ViewModel.Config.CustomAccentColor, typeof(IBrush));
+        SwitchBar(!ViewModel.Config.ExtendImageToTitleBar);
         Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
         if (string.IsNullOrEmpty(ViewModel.Path))
         {
-            TitleArea.Background = AccentBrush;
-            TitleBar.IsVisible = true;
+            SwitchBar(true);
             PathBox.IsVisible = true;
             FileName.IsVisible = false;
             PathBox.Focus();
@@ -75,8 +78,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 else
                 {
                     ViewModel!.Select(-1);
-                    TitleBar.IsVisible = true;
-                    TitleArea.Background = AccentBrush;
+                    SwitchBar(true);
                 }
                 HoldingOffset -= 1;
             }
@@ -90,8 +92,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 else
                 {
                     ViewModel!.Select(1);
-                    TitleBar.IsVisible = true;
-                    TitleArea.Background = AccentBrush;
+                    SwitchBar(true);
                 }
                 HoldingOffset += 1;
             }
@@ -133,18 +134,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     //Auto hide Title Bar.
+    private void SwitchBar(bool visible)
+    {
+        visible = (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) || visible;
+        TitleBar.IsVisible = visible;
+        TitleArea.Background = ErrorState ? Brushes.Red
+                                : visible ? AccentBrush
+                                          : Brushes.Transparent;
+    }
     private void StackPanel_PointerEntered(object? sender, PointerEventArgs e)
-    {
-        TitleBar.IsVisible = true;
-        if (ErrorState) return;
-        TitleArea.Background = AccentBrush;
-    }
+        => SwitchBar(true);
     private void StackPanel_PointerExited(object? sender, PointerEventArgs e)
-    {
-        if (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) return;
-        TitleBar.IsVisible = false;
-        TitleArea.Background = Brushes.Transparent;
-    }
+        => SwitchBar(false);
 
     //Auto hide left and right Buttons.
     private void Button_PointerEntered(object? sender, PointerEventArgs e)
@@ -156,13 +157,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void ShowError(Stats errorStats)
     {
         ErrorState = !errorStats.Success;
-        TitleBar.IsVisible = !errorStats.Success;
-        TitleArea.Background = errorStats.Success ? Brushes.Transparent : Brushes.Red;
+        SwitchBar(!errorStats.Success);
         Zoomer.IsVisible = errorStats.Success;
         Error.IsVisible = !errorStats.Success;
         ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
-            ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}.";
+            ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}";
         Zoomer.Stretch = StretchMode.Uniform;
     }
 
