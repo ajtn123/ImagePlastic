@@ -17,7 +17,6 @@
         PointerReleased="Window_PointerReleased"
         SizeChanged="Window_SizeChanged"
         TransparencyLevelHint="{Binding Config.Blur}">
-        <!--KeyDown="Viewbox_KeyDown"-->
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>

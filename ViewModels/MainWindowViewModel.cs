@@ -43,11 +43,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private string path = "";
     private Stats stats = new(true) { DisplayName = "None" };
     private StretchMode stretch;
-    private bool loading = false;
     private string? uIMessage;
     private IEnumerable<FileInfo> currentDir = [];
     private IEnumerable<string> currentDirName = [];
     private bool pinned = false;
+    public bool loading = false;
 
     public string[]? Args { get; }
     public Dictionary<string, IImage?> Preload { get; set; } = [];

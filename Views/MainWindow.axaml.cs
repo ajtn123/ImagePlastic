@@ -57,20 +57,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     //Hotkeys
-    private void KeyUpHandler(object? sender, KeyEventArgs e)
-    {
-        if (e.Key is Key.Left or Key.Right && !ViewModel!.Stats.IsWeb)
-        {
-            if (HoldingOffset >= 2 || HoldingOffset <= -2)
-                ViewModel!.RefreshImage();
-            HoldingOffset = 0;
-        }
-    }
     private void KeyDownHandler(object? sender, KeyEventArgs e)
     {
         if (e.Key == Key.Left && !ViewModel!.Stats.IsWeb)
             if (e.KeyModifiers == KeyModifiers.Control)
-                if (!ViewModel!.Loading) ViewModel!.RefreshImage(offset: -1); else return;
+                if (!ViewModel!.loading) ViewModel!.RefreshImage(offset: -1); else return;
             else
             {
                 if (HoldingOffset == 0)
@@ -84,7 +75,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             }
         else if (e.Key == Key.Right && !ViewModel!.Stats.IsWeb)
             if (e.KeyModifiers == KeyModifiers.Control)
-                if (!ViewModel!.Loading) ViewModel!.RefreshImage(offset: 1); else return;
+                if (!ViewModel!.loading) ViewModel!.RefreshImage(offset: 1); else return;
             else
             {
                 if (HoldingOffset == 0)
@@ -96,6 +87,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 }
                 HoldingOffset += 1;
             }
+        //ViewModel!.UIMessage = "KeyDown:" + e.Key.ToString();
+    }
+    private void KeyUpHandler(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.Left or Key.Right && !ViewModel!.Stats.IsWeb)
+        {
+            if (HoldingOffset >= 2 || HoldingOffset <= -2)
+                ViewModel!.RefreshImage();
+            HoldingOffset = 0;
+        }
+        //ViewModel!.UIMessage = "KeyUp:" + e.Key.ToString();
     }
 
     //Make entire window draggable.
@@ -222,7 +224,4 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void TextBlock_PointerReleased(object? sender, PointerReleasedEventArgs e)
         => ViewModel!.UIMessage = null;
-
-    //private void ShowKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
-    //    => ViewModel!.UIMessage = e.Key.ToString();
 }
