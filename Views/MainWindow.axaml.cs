@@ -22,7 +22,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     public IBrush? AccentBrush { get; set; }
     public bool ErrorState { get; set; } = false;
-    public bool TitleBarPersistent { get; set; } = false;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling { get; set; } = 1;
     public int HoldingOffset { get; set; } = 0;
@@ -138,7 +137,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     //Auto hide Title Bar.
     private void SwitchBar(bool visible)
     {
-        visible = (!ViewModel!.Config.ExtendImageToTitleBar || ErrorState || TitleBarPersistent) || visible;
+        visible = visible || (ErrorState || PathBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned);
         TitleBar.IsVisible = visible;
         TitleArea.Background = ErrorState ? Brushes.Red
                                 : visible ? AccentBrush
@@ -212,14 +211,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         FileName.IsVisible = false;
         PathBox.Focus();
     }
-    private void TextBox_GotFocus(object? sender, GotFocusEventArgs e)
-        => TitleBarPersistent = true;
     private void TextBox_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (string.IsNullOrEmpty(ViewModel!.Path)) return;
         PathBox.IsVisible = false;
         FileName.IsVisible = true;
-        TitleBarPersistent = false;
     }
 
     private void TextBlock_PointerReleased(object? sender, PointerReleasedEventArgs e)

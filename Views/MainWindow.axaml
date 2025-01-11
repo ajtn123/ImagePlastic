@@ -35,7 +35,7 @@
                 <TextBox Name="PathBox" Text="{Binding Path}" KeyDown="PathBox_KeyDown"
                          FontSize="14" Padding="0" MinHeight="10" MinWidth="50"
                          VerticalAlignment="Center" IsVisible="False"
-                         LostFocus="TextBox_LostFocus" GotFocus="TextBox_GotFocus"/>
+                         LostFocus="TextBox_LostFocus"/>
                 <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center"
