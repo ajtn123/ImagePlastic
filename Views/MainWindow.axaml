@@ -40,11 +40,11 @@
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
-				<TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
+                <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
                          FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
-				<Button FontSize="14" Padding="0" Content="1:1" Click="Button_Click_1" HotKey="OemPlus"/>
-				<Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus"/>
-				<CheckBox FontSize="14" Padding="0" IsChecked="{Binding Pinned}"/>
+                <Button FontSize="14" Padding="0" Content="1:1" Click="Button_Click_1" HotKey="OemPlus"/>
+                <Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus"/>
+                <CheckBox FontSize="14" Padding="0" IsChecked="{Binding Pinned}"/>
             </StackPanel>
         </Panel>
 
@@ -52,13 +52,13 @@
                 Grid.Row="1" HorizontalAlignment="Left" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
                 Margin="24,0,0,0" CornerRadius="24" FontSize="24"
-				IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
+                IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
         <Button Content="→" Command="{Binding GoRight}"
                 Grid.Row="1" HorizontalAlignment="Right" ZIndex="9"
                 Background="Transparent" Foreground="Transparent"
                 Margin="0,0,24,0" CornerRadius="24" FontSize="24"
-				IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
+                IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
 
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer" SizeChanged="ZoomBorder_SizeChanged"
@@ -68,9 +68,9 @@
                 <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
         </ZoomBorder>
 
-		<ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
-		<TextBlock Grid.Row="2" Background="AntiqueWhite" Text="{Binding UIMessage}"
-				   PointerReleased="TextBlock_PointerReleased" IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
+        <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
+        <TextBlock Grid.Row="2" Background="AntiqueWhite" Text="{Binding UIMessage}"
+                   PointerReleased="TextBlock_PointerReleased" IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
         <Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
             <view:Error x:Name="ErrorView"/>
         </Viewbox>
