@@ -4,6 +4,7 @@ using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.Converters;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.ReactiveUI;
 using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
@@ -53,6 +54,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
+        RenderOptions.SetBitmapInterpolationMode(ImageItself, ViewModel.Config.InterpolationMode);
     }
 
     //Hotkeys

@@ -14,6 +14,7 @@ internal sealed class Program
         => AppBuilder.Configure<App>()
                      .UsePlatformDetect()
                      .WithInterFont()
+                     .With(new SkiaOptions { MaxGpuResourceSizeBytes = 1 << 30 })
                      .LogToTrace()
                      .UseReactiveUI();
 }

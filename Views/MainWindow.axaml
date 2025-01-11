@@ -65,8 +65,7 @@
                     Stretch="{Binding Stretch}" Focusable="True"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
-                <Image RenderOptions.BitmapInterpolationMode="HighQuality"
-					   Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
+                <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
         </ZoomBorder>
 
 		<ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
