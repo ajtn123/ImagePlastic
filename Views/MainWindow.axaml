@@ -44,7 +44,8 @@
                          FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
                 <Button FontSize="14" Padding="0" Content="1:1" Click="Button_Click_1" HotKey="OemPlus"/>
                 <Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus"/>
-                <CheckBox FontSize="14" Padding="0" IsChecked="{Binding Pinned}"/>
+                <Button FontSize="14" Padding="0" Content="OPT" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
+                <CheckBox FontSize="14" Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
             </StackPanel>
         </Panel>
 

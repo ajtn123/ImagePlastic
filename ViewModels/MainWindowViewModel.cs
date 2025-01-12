@@ -28,12 +28,23 @@ public partial class MainWindowViewModel : ViewModelBase
         Stretch = Config.Stretch;
         GoLeft = ReactiveCommand.Create(() => { RefreshImage(offset: -1); });
         GoRight = ReactiveCommand.Create(() => { RefreshImage(offset: 1); });
+        OptCommand = ReactiveCommand.Create(async () =>
+        {
+            if (Stats == null || Stats.Optimizable == false) return;
+            Loading = true;
+            var beforeLength = Utils.ToReadable(Stats.File!.Length);
+            var result = await Task.Run(() => { return Utils.Optimize(Stats.File!); });
+            Loading = false;
+            Stats = new(true, Stats);
+            UIMessage = $"Opt: {Stats.DisplayName} {result}" + (result ? $"{beforeLength} => {Utils.ToReadable(Stats.File!.Length)}" : "");
+        });
     }
     //For previewer.
     public MainWindowViewModel()
     {
         GoLeft = ReactiveCommand.Create(() => { });
         GoRight = ReactiveCommand.Create(() => { });
+        OptCommand = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -63,6 +74,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
+    public ICommand OptCommand { get; }
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };

@@ -1,5 +1,7 @@
 ﻿using Avalonia;
+using ImagePlastic.Utilities;
 using System.IO;
+using System.Linq;
 
 namespace ImagePlastic.Models;
 
@@ -17,6 +19,9 @@ public class Stats
         File = stats.File;
         FileCount = stats.FileCount;
         DisplayName = stats.DisplayName;
+
+        if (File != null && Success)
+            Optimizable = Constants.OptimizableExts.Contains(File.Extension);
     }
     public bool Success { get; }
     public bool IsWeb { get; set; } = false;
@@ -25,4 +30,5 @@ public class Stats
     public int? FileIndex { get; set; }
     public int? FileCount { get; set; }
     public Size? ImageDimension { get; set; }
+    public bool Optimizable { get; set; } = false;
 }

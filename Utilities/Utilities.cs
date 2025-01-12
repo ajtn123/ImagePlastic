@@ -43,6 +43,12 @@ public static class Utils
         return null;
     }
 
+    public static bool Optimize(FileInfo file)
+    {
+        var optimizer = new ImageOptimizer();
+        return optimizer.LosslessCompress(file);
+    }
+
     public static string ToReadable(long length)
     {
         var l = Math.Log2(length);

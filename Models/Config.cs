@@ -4,7 +4,6 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 
 namespace ImagePlastic.Models;
 
