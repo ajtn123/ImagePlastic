@@ -75,9 +75,8 @@
         <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
         <TextBlock Grid.Row="2" Background="AntiqueWhite" Text="{Binding UIMessage}"
                    PointerReleased="TextBlock_PointerReleased" IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
-        <Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
-            <view:Error x:Name="ErrorView"/>
-        </Viewbox>
+        
+        <view:Error Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="ErrorView"/>
 
         <Grid.ContextMenu>
             <ContextMenu>

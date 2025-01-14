@@ -163,7 +163,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ErrorState = !errorStats.Success;
         SwitchBar(!errorStats.Success);
         Zoomer.IsVisible = errorStats.Success;
-        Error.IsVisible = !errorStats.Success;
+        ErrorView.IsVisible = !errorStats.Success;
         ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}";
