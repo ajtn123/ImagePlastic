@@ -1,12 +1,5 @@
-﻿using ImagePlastic.Models;
-using ReactiveUI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using ReactiveUI;
 using System.Reactive;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace ImagePlastic.ViewModels;
 
