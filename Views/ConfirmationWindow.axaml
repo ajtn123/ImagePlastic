@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" Width="300" Height="100"
+        Icon="/Assets/avalonia-logo.ico"
+        x:Class="ImagePlastic.Views.ConfirmationWindow"
+        xmlns:vm="using:ImagePlastic.ViewModels"
+        x:DataType="vm:ConfirmationWindowViewModel"
+        Title="{Binding Title}">
+    <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto">
+        <Image Source="{SvgImage /Assets/Info.svg}" Height="50" Margin="5" VerticalAlignment="Top"/>
+        <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" Margin="5"/>
+        <StackPanel HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
+            <Button Content="Yes" Command="{Binding ConfirmCommand}"/>
+            <Button Content="No" Command="{Binding DenyCommand}"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -3,12 +3,14 @@ using Avalonia.Media;
 using DynamicData;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
+using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -38,6 +40,13 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(true, Stats);
             UIMessage = $"Opt: {Stats.DisplayName} {result}" + (result ? $"{beforeLength} => {Utils.ToReadable(Stats.File!.Length)}" : "");
         });
+        DeleteCommand = ReactiveCommand.Create(async () =>
+        {
+            if (Stats == null || Stats.IsWeb == true || Stats.File == null) return;
+            if (Config.DeleteConfirmation && !await RequireConfirmation.Handle(new ConfirmationWindowViewModel("File delete confirmation", "Sure to send this image to recycle bin?"))) return;
+            FileSystem.DeleteFile(Stats.File.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin, UICancelOption.DoNothing);
+            UIMessage = $"{Stats.File.FullName} is sent to recycle bin.";
+        });
     }
     //For previewer.
     public MainWindowViewModel()
@@ -45,6 +54,7 @@ public partial class MainWindowViewModel : ViewModelBase
         GoLeft = ReactiveCommand.Create(() => { });
         GoRight = ReactiveCommand.Create(() => { });
         OptCommand = ReactiveCommand.Create(() => { });
+        DeleteCommand = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -75,6 +85,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
     public ICommand OptCommand { get; }
+    public ICommand DeleteCommand { get; }
+    public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };

@@ -9,6 +9,7 @@ using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
+using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
 
@@ -17,6 +18,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public MainWindow()
     {
         InitializeComponent();
+        this.WhenActivated(a => ViewModel!.RequireConfirmation.RegisterHandler(ShowConfirmationWindow));
         this.WhenActivated(a => Init());
     }
 
@@ -219,6 +221,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         FileName.IsVisible = true;
     }
 
+    //Manually hide UIMessage.
     private void TextBlock_PointerReleased(object? sender, PointerReleasedEventArgs e)
         => ViewModel!.UIMessage = null;
+
+    //Show confirmation window.
+    private async Task ShowConfirmationWindow(IInteractionContext<ConfirmationWindowViewModel, bool> interaction)
+    {
+        var confirmationWindow = new ConfirmationWindow { DataContext = interaction.Input, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        var isConfirmed = await confirmationWindow.ShowDialog<bool>(this);
+        interaction.SetOutput(isConfirmed);
+    }
 }

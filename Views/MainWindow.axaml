@@ -41,10 +41,13 @@
                 <TextBlock VerticalAlignment="Center"
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
-                         FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent"/>
-                <Button FontSize="14" Padding="0" Content="1:1" Click="Button_Click_1" HotKey="OemPlus"/>
-                <Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus"/>
-                <Button FontSize="14" Padding="0" Content="OPT" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
+                         FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
+                <Button FontSize="14" Padding="0" Click="Button_Click_1" HotKey="OemPlus">
+                    <Image Source="{SvgImage /Assets/ViewRealSize.svg}"/>
+                </Button>
+                <Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus">
+                    <Image Source="{SvgImage /Assets/AspectRatio.svg}"/>
+                </Button>
                 <CheckBox FontSize="14" Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
             </StackPanel>
         </Panel>
@@ -75,5 +78,12 @@
         <Viewbox Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="Error">
             <view:Error x:Name="ErrorView"/>
         </Viewbox>
+
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
+                <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
+            </ContextMenu>
+        </Grid.ContextMenu>
     </Grid>
 </Window>
