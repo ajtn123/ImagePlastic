@@ -55,7 +55,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
-        RenderOptions.SetBitmapInterpolationMode(ImageItself, ViewModel.Config.InterpolationMode);
+        RenderOptions.SetBitmapInterpolationMode(BitmapImage, ViewModel.Config.InterpolationMode);
+        //Zoomer.PanButton = ButtonName.Right;
     }
 
     //Hotkeys
@@ -197,15 +198,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else ZoomText.Background = Brushes.Red;
     }
     private void Button_Click_1(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        if (ImageItself.Source != null) SetZoom(1);
-    }
+        => SetZoom(1);
     private void Button_Click_2(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => Zoomer.Stretch = StretchMode.Uniform;
     private void RefreshZoomDisplay()
-        => ZoomText.Text = ImageItself.Source != null ? $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ImageItself.Source.Size.Height, 2)}%" : null;
+        => ZoomText.Text = $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ViewModel!.Stats.Height, 2)}%";
     private void SetZoom(double zoom)
-        => Zoomer.Zoom(ImageItself.Source!.Size.Height * zoom / (Scaling * Zoomer.Bounds.Height), 0, 0);
+        => Zoomer.Zoom(ViewModel!.Stats.Height * zoom / (Scaling * Zoomer.Bounds.Height), 0, 0);
 
     //Shorten path when not on focus.
     private void TextBlock_PointerPressed(object? sender, PointerPressedEventArgs e)

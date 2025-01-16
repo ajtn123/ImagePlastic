@@ -1,5 +1,4 @@
 ﻿using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using ImageMagick;
 using SkiaSharp;
 using System;
@@ -18,26 +17,35 @@ public static class Utils
                                      : current + offset;
 
     //Convert any image to a Bitmap.
-    public static IImage? ConvertImage(FileInfo file)
+    public static IImage? ConvertImage(Stream stream)
     {
         try
         {
             return
-                new MagickImage(file).ToBitmap().ConvertToAvaloniaBitmap() ??
-                SKBitmap.Decode(file.FullName).ToAvaloniaImage();
+                new MagickImage(stream).ToBitmap().ConvertToAvaloniaBitmap() ??
+                SKBitmap.Decode(stream).ToAvaloniaImage();
         }
         catch { return null; }
     }
+    public static IImage? ConvertImage(FileInfo file)
+    {
+        try { return ConvertImage(file.OpenRead()); }
+        catch { return null; }
+    }
+    public static IImage? ConvertImage(MagickImage image)
+    {
+        try { return image.ToBitmap().ConvertToAvaloniaBitmap(); }
+        catch { return null; }
+    }
 
-    public static async Task<Bitmap?> ConvertImageFromWeb(string url)
+    public static async Task<Stream?> GetStreamFromWeb(string url)
     {
         if (Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out Uri? uri))
             try
             {
-                using HttpResponseMessage response = await client.GetAsync(uri);
+                HttpResponseMessage response = await client.GetAsync(uri);
                 response.EnsureSuccessStatusCode();
-                Stream responseStream = await response.Content.ReadAsStreamAsync();
-                return new MagickImage(responseStream).ToBitmap().ConvertToAvaloniaBitmap();
+                return await response.Content.ReadAsStreamAsync();
             }
             catch { return null; }
         return null;

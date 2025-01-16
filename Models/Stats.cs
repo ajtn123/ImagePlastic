@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using ImagePlastic.Utilities;
+﻿using ImagePlastic.Utilities;
 using System.IO;
 using System.Linq;
 
@@ -15,7 +14,8 @@ public class Stats
         if (stats == null) return;
         IsWeb = stats.IsWeb;
         FileIndex = stats.FileIndex;
-        ImageDimension = stats.ImageDimension;
+        Height = stats.Height;
+        Width = stats.Width;
         File = stats.File;
         FileCount = stats.FileCount;
         DisplayName = stats.DisplayName;
@@ -29,6 +29,7 @@ public class Stats
     public string? DisplayName { get; set; }
     public int? FileIndex { get; set; }
     public int? FileCount { get; set; }
-    public Size? ImageDimension { get; set; }
+    public double Height { get; set; } = double.NaN;
+    public double Width { get; set; } = double.NaN;
     public bool Optimizable { get; set; } = false;
 }

@@ -11,11 +11,11 @@ public class Config
 {
     public FileInfo? DefaultFile { get; set; }
     public IReadOnlyList<WindowTransparencyLevel> Blur { get; set; }
-        = [WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur, WindowTransparencyLevel.None];
-    public IBrush BackgroundColor { get; set; } = Brushes.Transparent;
+        = [WindowTransparencyLevel.AcrylicBlur, WindowTransparencyLevel.Blur, WindowTransparencyLevel.Transparent];
+    public IBrush BackgroundColor { get; set; } = Brush.Parse("#00BFBFBF");
     public string[] Extensions { get; set; }
         //= Enum.GetValues<MagickFormat>().Cast<MagickFormat>().Select((a, b) => { return a.ToString().ToLower().Insert(0, "."); }).ToArray();
-        = [".png", ".jpg", ".jpeg", ".avif", ".heic", ".heif", ".bmp", ".jxl", ".gif", ".psd"];
+        = [".png", ".jpg", ".jpeg", ".avif", ".heic", ".heif", ".bmp", ".jxl", ".gif", ".psd", ".svg"];
     public bool ExtendImageToTitleBar { get; set; } = true;
     public bool SystemAccentColor { get; set; } = true;
     public Color CustomAccentColor { get; set; } = Color.Parse("#7F40CFBF");
@@ -27,4 +27,5 @@ public class Config
     public int PreloadRight { get; set; } = 2;
     public BitmapInterpolationMode InterpolationMode { get; set; }
         = BitmapInterpolationMode.HighQuality;
+    public ButtonName PanButton { get; set; } = ButtonName.Left;
 }

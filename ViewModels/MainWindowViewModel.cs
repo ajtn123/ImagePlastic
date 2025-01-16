@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media;
 using DynamicData;
+using ImageMagick;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
 using Microsoft.VisualBasic.FileIO;
@@ -69,6 +70,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private IEnumerable<string> currentDirName = [];
     private bool pinned = false;
     public bool loading = false;
+    private string? svgPath;
 
     public string[]? Args { get; }
     public Dictionary<string, IImage?> Preload { get; set; } = [];
@@ -81,6 +83,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool Loading { get => config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
     public string? UIMessage { get => uIMessage; set => this.RaiseAndSetIfChanged(ref uIMessage, value); }
     public bool Pinned { get => pinned; set => this.RaiseAndSetIfChanged(ref pinned, value); }
+    public string? SvgPath { get => svgPath; set => this.RaiseAndSetIfChanged(ref svgPath, value); }
 
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
@@ -190,21 +193,35 @@ public partial class MainWindowViewModel : ViewModelBase
                 Task.Run(() => { Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)); });
         }
     }
-    public async void ShowLocalImage(FileInfo file)
+    public void ShowLocalImage(FileInfo file)
+        => ShowImage(file.OpenRead(), file.FullName);
+    public async void ShowImage(Stream stream, string fullName)
     {
         Loading = true;
-        IImage? bitmapTemp = null;
-        if (config.Preload)
-            Preload.TryGetValue(file.FullName, out bitmapTemp);
-        bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(file); });
+        MagickImage image = new(stream);
+        if (image.Format == MagickFormat.Svg)
+        {
+            SvgPath = fullName;
+            Bitmap = null;
+            Stats = new(true, Stats) { Height = image.Width, Width = image.Height };
+            ErrorReport(Stats);
+        }
+        else
+        {
+            IImage? bitmapTemp = null;
+            if (config.Preload)
+                Preload.TryGetValue(fullName, out bitmapTemp);
+            bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(image); });
 
-        if (file.FullName != Path) return;
-        else Bitmap = bitmapTemp;
+            if (fullName != Path) return;
+            else Bitmap = bitmapTemp;
 
+            SvgPath = null;
+            Stats = (Bitmap == null) ? new(false, Stats)
+                                     : new(true, Stats) { Height = Bitmap.Size.Height, Width = Bitmap.Size.Width };
+            ErrorReport(Stats);
+        }
         Loading = false;
-        Stats = (Bitmap == null) ? new(false, Stats)
-                                 : new(true, Stats) { ImageDimension = Bitmap!.Size };
-        ErrorReport(Stats);
 
         //GC.Collect();
         //UIMessage = $"Estimated bytes on heap: {GC.GetTotalMemory(false)}";
@@ -212,11 +229,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public async void ShowWebImage(string url)
     {
         Loading = true;
-        var bitmapTemp = await Utils.ConvertImageFromWeb(url);
-        if (url == Path) { Bitmap = bitmapTemp; }
-        Stats = (Bitmap == null) ? new(false) { IsWeb = true, DisplayName = url.Split('/')[^1] }
-                                 : new(true) { IsWeb = true, DisplayName = url.Split('/')[^1], ImageDimension = Bitmap!.Size };
+        var webStream = await Utils.GetStreamFromWeb(url);
+        if (webStream == null) return;
+        ShowImage(webStream, url);
+        Stats = new(Stats.Success, Stats) { IsWeb = true, DisplayName = url.Split('/')[^1] };
         ErrorReport(Stats);
+        webStream.Dispose();
         Loading = false;
     }
 }

@@ -22,8 +22,8 @@ public class StatsConverter : IValueConverter
             a.Add($"{s.FileIndex + 1}/{s.FileCount}");
         if (s.File != null && s.File.Exists)
             a.Add(Utils.ToReadable(s.File.Length));
-        if (s.ImageDimension != null)
-            a.Add(s.ImageDimension.ToString()!.Replace(", ", "∗"));
+        if (true)
+            a.Add($"{s.Height}*{s.Width}");
         if (s.File != null && s.File.Exists)
             a.Add(s.File.LastWriteTime.ToString());
         if (!s.Success)

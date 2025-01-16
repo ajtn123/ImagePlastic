@@ -12,9 +12,6 @@
         Title="{Binding Stats.DisplayName}"
         Background="{Binding Config.BackgroundColor}"
         ExtendClientAreaToDecorationsHint="True"
-        PointerMoved="Window_PointerMoved"
-        PointerPressed="Window_PointerPressed"
-        PointerReleased="Window_PointerReleased"
         SizeChanged="Window_SizeChanged"
         TransparencyLevelHint="{Binding Config.Blur}">
     <Design.DataContext>
@@ -30,7 +27,10 @@
                VerticalAlignment="Top" HorizontalAlignment="Left"
                Height="29" ZIndex="10" x:Name="TitleArea"
                PointerEntered="StackPanel_PointerEntered"
-               PointerExited="StackPanel_PointerExited">
+               PointerExited="StackPanel_PointerExited"
+               PointerMoved="Window_PointerMoved"
+               PointerPressed="Window_PointerPressed"
+               PointerReleased="Window_PointerReleased">
             <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar">
                 <TextBox Name="PathBox" Text="{Binding Path}" KeyDown="PathBox_KeyDown"
                          FontSize="14" Padding="0" MinHeight="10" MinWidth="50"
@@ -66,10 +66,13 @@
                 PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
 
         <ZoomBorder Grid.Row="1" ZIndex="1" x:Name="Zoomer" SizeChanged="ZoomBorder_SizeChanged"
-                    Stretch="{Binding Stretch}" Focusable="True"
+                    Stretch="{Binding Stretch}" Focusable="True" PanButton="{Binding Config.PanButton}"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
-                <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="ImageItself"/>
+            <Panel x:Name="ImagePanel">
+                <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="BitmapImage" IsVisible="{Binding Bitmap,Converter={StaticResource BoolConverter}}"/>
+                <Svg Path="{Binding SvgPath}" x:Name="SvgImage" IsVisible="{Binding SvgPath,Converter={StaticResource BoolConverter}}"/>
+            </Panel>
         </ZoomBorder>
 
         <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
