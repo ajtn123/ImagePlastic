@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media;
 using DynamicData;
+using ExCSS;
 using ImageMagick;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
@@ -9,6 +10,7 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
@@ -29,8 +31,8 @@ public partial class MainWindowViewModel : ViewModelBase
         else
             Stats = new(true);
         Stretch = Config.Stretch;
-        GoLeft = ReactiveCommand.Create(() => { RefreshImage(offset: -1); });
-        GoRight = ReactiveCommand.Create(() => { RefreshImage(offset: 1); });
+        GoLeft = ReactiveCommand.Create(() => { ShowLocalImage(offset: -1); });
+        GoRight = ReactiveCommand.Create(() => { ShowLocalImage(offset: 1); });
         OptCommand = ReactiveCommand.Create(async () =>
         {
             if (Stats == null || Stats.Optimizable == false) return;
@@ -48,6 +50,11 @@ public partial class MainWindowViewModel : ViewModelBase
             FileSystem.DeleteFile(Stats.File.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin, UICancelOption.DoNothing);
             UIMessage = $"{Stats.File.FullName} is sent to recycle bin.";
         });
+        EditCommand = ReactiveCommand.Create(() =>
+        {
+            if (Stats != null && Stats.EditCmd != null)
+                Process.Start(Stats.EditCmd);
+        });
     }
     //For previewer.
     public MainWindowViewModel()
@@ -56,6 +63,7 @@ public partial class MainWindowViewModel : ViewModelBase
         GoRight = ReactiveCommand.Create(() => { });
         OptCommand = ReactiveCommand.Create(() => { });
         DeleteCommand = ReactiveCommand.Create(() => { });
+        EditCommand = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -89,6 +97,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand GoRight { get; }
     public ICommand OptCommand { get; }
     public ICommand DeleteCommand { get; }
+    public ICommand EditCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
@@ -102,7 +111,7 @@ public partial class MainWindowViewModel : ViewModelBase
         //Using index of current dir.
         if (int.TryParse(Path, out int des))
         {
-            RefreshImage(destination: des - 1);
+            ShowLocalImage(destination: des - 1);
             return;
         }
 
@@ -118,7 +127,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
         {
             Path = ImageFile.FullName;
-            RefreshImage();
+            ShowLocalImage();
             return;
         }
 
@@ -138,7 +147,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Stats = new(true) { FileIndex = destination, FileCount = currentDir.Count(), File = file, DisplayName = file.Name };
     }
     //Scan the path directory and show the image.
-    public void RefreshImage(int offset = 0, int? destination = null)
+    public void ShowLocalImage(int offset = 0, int? destination = null)
     {
         if (ImageFile == null || !ImageFile.Exists) return;
         try
@@ -153,7 +162,9 @@ public partial class MainWindowViewModel : ViewModelBase
             Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
-            ShowLocalImage(file);
+            ShowImage(file.OpenRead(), file.FullName);
+
+            Stats = new(Stats.Success, Stats) { EditCmd = GetProcessStartInfo(file, Stats.Format) };
 
             if (config.Preload && file.FullName == Path)
                 _ = Task.Run(() => { PreloadImage(files, fileNames, file, (int)destination); });
@@ -193,18 +204,16 @@ public partial class MainWindowViewModel : ViewModelBase
                 Task.Run(() => { Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)); });
         }
     }
-    public void ShowLocalImage(FileInfo file)
-        => ShowImage(file.OpenRead(), file.FullName);
     public async void ShowImage(Stream stream, string fullName)
     {
         Loading = true;
         MagickImage image = new(stream);
+        Stats = new(true, Stats) { Format = image.Format };
         if (image.Format == MagickFormat.Svg)
         {
             SvgPath = fullName;
             Bitmap = null;
             Stats = new(true, Stats) { Height = image.Width, Width = image.Height };
-            ErrorReport(Stats);
         }
         else
         {
@@ -219,8 +228,8 @@ public partial class MainWindowViewModel : ViewModelBase
             SvgPath = null;
             Stats = (Bitmap == null) ? new(false, Stats)
                                      : new(true, Stats) { Height = Bitmap.Size.Height, Width = Bitmap.Size.Width };
-            ErrorReport(Stats);
         }
+        ErrorReport(Stats);
         Loading = false;
 
         //GC.Collect();
@@ -231,10 +240,20 @@ public partial class MainWindowViewModel : ViewModelBase
         Loading = true;
         var webStream = await Utils.GetStreamFromWeb(url);
         if (webStream == null) return;
+        Stats = new(true) { IsWeb = true };
         ShowImage(webStream, url);
-        Stats = new(Stats.Success, Stats) { IsWeb = true, DisplayName = url.Split('/')[^1] };
+        Stats = new(Stats.Success, Stats) { DisplayName = url.Split('/')[^1], Url = url };
         ErrorReport(Stats);
         webStream.Dispose();
         Loading = false;
+    }
+    public ProcessStartInfo? GetProcessStartInfo(FileInfo file, MagickFormat format)
+    {
+        if (Config.EditApp.TryGetValue(format, out string? app))
+            return app != "" ? new ProcessStartInfo
+            { FileName = app ?? Config.EditApp[default], Arguments = $"\"{file.FullName}\"" } : null;
+        else
+            return new ProcessStartInfo
+            { FileName = Config.EditApp[default], Arguments = $"\"{file.FullName}\"" };
     }
 }

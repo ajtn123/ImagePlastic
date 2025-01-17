@@ -18,6 +18,10 @@ public class StatsConverter : IValueConverter
 
         List<string> a = [];
         a.Add(string.Empty);
+        //Show the actual image format if it is different from the file extension.
+        if ((s.IsWeb && s.Url != null && !s.Url.Split('.')[^1].Equals(s.Format.ToString(), StringComparison.OrdinalIgnoreCase)) ||
+            (s.File != null && !s.File.Extension.TrimStart('.').Equals(s.Format.ToString(), StringComparison.OrdinalIgnoreCase)))
+            a.Add(s.Format.ToString());
         if (s.FileIndex != null && s.FileCount != null)
             a.Add($"{s.FileIndex + 1}/{s.FileCount}");
         if (s.File != null && s.File.Exists)

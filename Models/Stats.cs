@@ -1,4 +1,7 @@
-﻿using ImagePlastic.Utilities;
+﻿using ImageMagick;
+using ImagePlastic.Utilities;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -19,12 +22,16 @@ public class Stats
         File = stats.File;
         FileCount = stats.FileCount;
         DisplayName = stats.DisplayName;
+        EditCmd = stats.EditCmd;
+        Format = stats.Format;
+        Url = stats.Url;
 
         if (File != null && Success)
             Optimizable = Constants.OptimizableExts.Contains(File.Extension);
     }
     public bool Success { get; }
     public bool IsWeb { get; set; } = false;
+    public string? Url { get; set; }
     public FileInfo? File { get; set; }
     public string? DisplayName { get; set; }
     public int? FileIndex { get; set; }
@@ -32,4 +39,6 @@ public class Stats
     public double Height { get; set; } = double.NaN;
     public double Width { get; set; } = double.NaN;
     public bool Optimizable { get; set; } = false;
+    public ProcessStartInfo? EditCmd { get; set; }
+    public MagickFormat Format { get; set; }
 }

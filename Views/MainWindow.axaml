@@ -77,7 +77,8 @@
 
         <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
         <TextBlock Grid.Row="2" Background="AntiqueWhite" Text="{Binding UIMessage}"
-                   PointerReleased="TextBlock_PointerReleased" IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
+                   PointerReleased="TextBlock_PointerReleased"
+                   IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
         
         <view:Error Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="ErrorView"/>
 
@@ -85,6 +86,7 @@
             <ContextMenu>
                 <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
+                <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
             </ContextMenu>
         </Grid.ContextMenu>
     </Grid>

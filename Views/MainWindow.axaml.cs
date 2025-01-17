@@ -20,9 +20,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         InitializeComponent();
         this.WhenActivated(a => ViewModel!.RequireConfirmation.RegisterHandler(ShowConfirmationWindow));
         this.WhenActivated(a => Init());
+        KeyDown += KeyDownHandler;
+        KeyUp += KeyUpHandler;
+        ScalingChanged += ScalingChangedHandler;
+        Scaling = Screens.ScreenFromWindow(this)!.Scaling;
     }
 
-    public IBrush? AccentBrush { get; set; }
+    public IBrush? AccentBrush { get; set; } = Brushes.Aquamarine;
     public bool ErrorState { get; set; } = false;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling { get; set; } = 1;
@@ -30,9 +34,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     public void Init()
     {
-        ScalingChanged += ScalingChangedHandler;
-        Scaling = Screens.ScreenFromWindow(this)!.Scaling;
-        ViewModel!.ErrorReport += ShowError;
+        if (ViewModel == null) return;
+        ViewModel.ErrorReport += ShowError;
         ViewModel.ChangeImageToPath();
         if (ViewModel.Config.SystemAccentColor)
         {
@@ -53,10 +56,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             PathBox.Focus();
             ZoomText.IsVisible = false;
         }
-        KeyDown += KeyDownHandler;
-        KeyUp += KeyUpHandler;
         RenderOptions.SetBitmapInterpolationMode(BitmapImage, ViewModel.Config.InterpolationMode);
-        //Zoomer.PanButton = ButtonName.Right;
     }
 
     //Hotkeys
@@ -64,11 +64,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         if (e.Key == Key.Left && !ViewModel!.Stats.IsWeb)
             if (e.KeyModifiers == KeyModifiers.Control)
-                if (!ViewModel!.loading) ViewModel!.RefreshImage(offset: -1); else return;
+                if (!ViewModel!.loading) ViewModel!.ShowLocalImage(offset: -1); else return;
             else
             {
                 if (HoldingOffset == 0)
-                    ViewModel!.RefreshImage(offset: -1);
+                    ViewModel!.ShowLocalImage(offset: -1);
                 else
                 {
                     ViewModel!.Select(-1);
@@ -78,11 +78,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             }
         else if (e.Key == Key.Right && !ViewModel!.Stats.IsWeb)
             if (e.KeyModifiers == KeyModifiers.Control)
-                if (!ViewModel!.loading) ViewModel!.RefreshImage(offset: 1); else return;
+                if (!ViewModel!.loading) ViewModel!.ShowLocalImage(offset: 1); else return;
             else
             {
                 if (HoldingOffset == 0)
-                    ViewModel!.RefreshImage(offset: 1);
+                    ViewModel!.ShowLocalImage(offset: 1);
                 else
                 {
                     ViewModel!.Select(1);
@@ -97,7 +97,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (e.Key is Key.Left or Key.Right && !ViewModel!.Stats.IsWeb)
         {
             if (HoldingOffset >= 2 || HoldingOffset <= -2)
-                ViewModel!.RefreshImage();
+                ViewModel!.ShowLocalImage();
             HoldingOffset = 0;
         }
         //ViewModel!.UIMessage = "KeyUp:" + e.Key.ToString();
@@ -168,18 +168,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}";
-        Zoomer.Stretch = StretchMode.Uniform;
+        ViewModel!.Stretch = StretchMode.Uniform;
     }
 
     //Zoomer and Image scaling.
     private void ResetZoom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => Zoomer.Stretch = StretchMode.Uniform;
+        => ViewModel!.Stretch = StretchMode.Uniform;
     private void ZoomBorder_ZoomChanged(object sender, ZoomChangedEventArgs e)
         => RefreshZoomDisplay();
     private void ZoomBorder_SizeChanged(object? sender, SizeChangedEventArgs e)
         => RefreshZoomDisplay();
     private void ZoomBorder_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
-        => Zoomer.Stretch = StretchMode.None;
+        => ViewModel!.Stretch = StretchMode.None;
     private void ScalingChangedHandler(object? sender, EventArgs e)
         => Scaling = Screens.ScreenFromWindow(this)!.Scaling;
     private void TextBox_KeyDown(object? sender, KeyEventArgs e)
@@ -200,7 +200,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void Button_Click_1(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => SetZoom(1);
     private void Button_Click_2(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => Zoomer.Stretch = StretchMode.Uniform;
+        => ViewModel!.Stretch = StretchMode.Uniform;
     private void RefreshZoomDisplay()
         => ZoomText.Text = $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ViewModel!.Stats.Height, 2)}%";
     private void SetZoom(double zoom)
