@@ -23,7 +23,7 @@ public class Config
     public Color CustomAccentColor { get; set; } = Color.Parse("#7F40CFBF");
     public bool LoadingIndicator { get; set; } = true;
     public StretchMode Stretch { get; set; } = StretchMode.Uniform;
-    public bool DeleteConfirmation { get; set; } = true;
+    public bool DeleteConfirmation { get; set; } = false;
     public bool Preload { get; set; } = true;
     public int PreloadLeft { get; set; } = 0;
     public int PreloadRight { get; set; } = 2;

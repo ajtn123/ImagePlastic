@@ -47,15 +47,25 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             if (Stats == null || Stats.IsWeb == true || Stats.File == null) return;
             if (Config.DeleteConfirmation && !await RequireConfirmation.Handle(new ConfirmationWindowViewModel("File delete confirmation", "Sure to send this image to recycle bin?"))) return;
-            FileSystem.DeleteFile(Stats.File.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin, UICancelOption.DoNothing);
-            UIMessage = $"{Stats.File.FullName} is sent to recycle bin.";
+
+            var file = Stats.File;
+            ImageFile = SeekFile(-1);
+            FileSystem.DeleteFile(file.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin, UICancelOption.DoNothing);
+            ShowLocalImage();
+
+            file = new FileInfo(file.FullName);
+            UIMessage = file.Exists ? $"Failed to delete {file.FullName}" : $"{file.FullName} is sent to recycle bin.";
         });
         EditCommand = ReactiveCommand.Create(() =>
         {
             if (Stats != null && Stats.EditCmd != null)
                 Process.Start(Stats.EditCmd);
         });
-        ShowInExplorerCommand = ReactiveCommand.Create(() => { if (Stats != null && Stats.File != null) Utils.SelectInExplorer(Stats.File.FullName); });
+        ShowInExplorerCommand = ReactiveCommand.Create(() =>
+        {
+            if (Stats != null && Stats.File != null)
+                Utils.SelectInExplorer(Stats.File.FullName);
+        });
     }
     //For previewer.
     public MainWindowViewModel()
@@ -110,33 +120,33 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Path = Path.Trim('"');
         if (string.IsNullOrEmpty(Path)) return;
-
         //Using index of current dir.
-        if (int.TryParse(Path, out int des))
-        {
+        else if (int.TryParse(Path, out int des))
             ShowLocalImage(destination: des - 1);
-            return;
-        }
-
         //Using web URL.
-        if (new UrlAttribute().IsValid(Path))
-        {
+        else if (new UrlAttribute().IsValid(Path))
             ShowWebImage(Path);
-            return;
-        }
-
         //Using file path.
-        ImageFile = new FileInfo(Path);
-        if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
+        else if (new FileInfo(Path).Exists)
         {
-            Path = ImageFile.FullName;
-            ShowLocalImage();
-            return;
+            ImageFile = new FileInfo(Path);
+            if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
+            {
+                Path = ImageFile.FullName;
+                ShowLocalImage();
+                return;
+            }//Exceptions.
+            else
+            {
+                Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
+                ErrorReport(Stats);
+            }
         }
-
-        //Exceptions.
-        Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
-        ErrorReport(Stats);
+        else
+        {
+            Stats = new(false);
+            ErrorReport(Stats);
+        }
     }
 
     public void Select(int offset)
@@ -148,6 +158,13 @@ public partial class MainWindowViewModel : ViewModelBase
         ImageFile = file;
         Path = file.FullName;
         Stats = new(true) { FileIndex = destination, FileCount = currentDir.Count(), File = file, DisplayName = file.Name };
+    }
+    public FileInfo? SeekFile(int offset)
+    {
+        if (ImageFile == null || !ImageFile.Exists) return null;
+        var currentIndex = Stats.FileIndex ?? currentDirName.IndexOf(ImageFile.FullName);
+        var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
+        return currentDir.ElementAt(destination);
     }
     //Scan the path directory and show the image.
     public void ShowLocalImage(int offset = 0, int? destination = null)
@@ -161,8 +178,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var currentIndex = fileNames.IndexOf(ImageFile.FullName);
             destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());
             var file = files.ElementAt((int)destination);
-            ImageFile = file;
-            Path = file.FullName;
+            ImageFile = file; Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
             ShowImage(file.OpenRead(), file.FullName);
@@ -207,14 +223,14 @@ public partial class MainWindowViewModel : ViewModelBase
                 Task.Run(() => { Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)); });
         }
     }
-    public async void ShowImage(Stream stream, string fullName)
+    public async void ShowImage(Stream stream, string path)
     {
         Loading = true;
-        MagickImage image = new(stream);
+        using MagickImage image = new(stream);
         Stats = new(true, Stats) { Format = image.Format };
         if (image.Format == MagickFormat.Svg)
         {
-            SvgPath = fullName;
+            SvgPath = path;
             Bitmap = null;
             Stats = new(true, Stats) { Height = image.Width, Width = image.Height };
         }
@@ -222,10 +238,10 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             IImage? bitmapTemp = null;
             if (config.Preload)
-                Preload.TryGetValue(fullName, out bitmapTemp);
+                Preload.TryGetValue(path, out bitmapTemp);
             bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(image); });
 
-            if (fullName != Path) return;
+            if (path != Path) return;
             else Bitmap = bitmapTemp;
 
             SvgPath = null;
@@ -234,13 +250,14 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         ErrorReport(Stats);
         Loading = false;
+        stream.Dispose();
 
         //GC.Collect();
         //UIMessage = $"Estimated bytes on heap: {GC.GetTotalMemory(false)}";
     }
     public async void ShowWebImage(string url)
     {
-        Loading = true;
+        Loading = true; ImageFile = null;
         var webStream = await Utils.GetStreamFromWeb(url);
         if (webStream == null) return;
         Stats = new(true) { IsWeb = true };

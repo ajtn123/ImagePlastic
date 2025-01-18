@@ -27,7 +27,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     public IBrush? AccentBrush { get; set; } = Brushes.Aquamarine;
-    public bool ErrorState { get; set; } = false;
+    public bool ErrorState => ViewModel != null && ViewModel.Stats != null && !ViewModel.Stats.Success;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling { get; set; } = 1;
     public int HoldingOffset { get; set; } = 0;
@@ -161,11 +161,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     //Show Error View and make other ui changes.
     private void ShowError(Stats errorStats)
     {
-        ErrorState = !errorStats.Success;
         SwitchBar(!errorStats.Success);
+        ZoomText.IsVisible = errorStats.Success;
         Zoomer.IsVisible = errorStats.Success;
         ErrorView.IsVisible = !errorStats.Success;
-        ZoomText.IsVisible = errorStats.Success;
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}";
         ViewModel!.Stretch = StretchMode.Uniform;
@@ -215,7 +214,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void TextBox_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(ViewModel!.Path)) return;
+        if (string.IsNullOrEmpty(ViewModel!.Path) || ErrorState) return;
         PathBox.IsVisible = false;
         FileName.IsVisible = true;
     }

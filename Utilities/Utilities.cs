@@ -12,6 +12,7 @@ namespace ImagePlastic.Utilities;
 public static class Utils
 {
     private static readonly HttpClient client = new();
+    private static readonly ImageOptimizer optimizer = new() { IgnoreUnsupportedFormats = true };
     public static int SeekIndex(int current, int offset, int total)
         => current + offset >= total ? current + offset - total
               : current + offset < 0 ? current + offset + total
@@ -30,8 +31,8 @@ public static class Utils
     }
     public static IImage? ConvertImage(FileInfo file)
     {
-        try { return ConvertImage(file.OpenRead()); }
-        catch { return null; }
+        using var a = file.OpenRead();
+        return ConvertImage(a);
     }
     public static IImage? ConvertImage(MagickImage image)
     {
@@ -53,10 +54,7 @@ public static class Utils
     }
 
     public static bool Optimize(FileInfo file)
-    {
-        var optimizer = new ImageOptimizer();
-        return optimizer.LosslessCompress(file);
-    }
+        => optimizer.LosslessCompress(file);
 
     public static void SelectInExplorer(string path)
         => Process.Start("explorer.exe", $@"/select,""{path}""");
