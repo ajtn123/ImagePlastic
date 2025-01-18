@@ -87,6 +87,7 @@
                 <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
+                <MenuItem Header="Explorer" Command="{Binding ShowInExplorerCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
             </ContextMenu>
         </Grid.ContextMenu>
     </Grid>

@@ -2,6 +2,7 @@
 using ImageMagick;
 using SkiaSharp;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -56,6 +57,12 @@ public static class Utils
         var optimizer = new ImageOptimizer();
         return optimizer.LosslessCompress(file);
     }
+
+    public static void SelectInExplorer(string path)
+        => Process.Start("explorer.exe", $@"/select,""{path}""");
+
+    public static void OpenInExplorer(string path)
+        => Process.Start("explorer.exe", $@"""{path}""");
 
     public static string ToReadable(long length)
     {

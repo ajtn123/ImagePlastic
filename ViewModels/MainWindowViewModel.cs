@@ -55,6 +55,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (Stats != null && Stats.EditCmd != null)
                 Process.Start(Stats.EditCmd);
         });
+        ShowInExplorerCommand = ReactiveCommand.Create(() => { if (Stats != null && Stats.File != null) Utils.SelectInExplorer(Stats.File.FullName); });
     }
     //For previewer.
     public MainWindowViewModel()
@@ -64,6 +65,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OptCommand = ReactiveCommand.Create(() => { });
         DeleteCommand = ReactiveCommand.Create(() => { });
         EditCommand = ReactiveCommand.Create(() => { });
+        ShowInExplorerCommand = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -98,6 +100,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OptCommand { get; }
     public ICommand DeleteCommand { get; }
     public ICommand EditCommand { get; }
+    public ICommand ShowInExplorerCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
