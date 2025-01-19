@@ -19,6 +19,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         InitializeComponent();
         this.WhenActivated(a => ViewModel!.RequireConfirmation.RegisterHandler(ShowConfirmationWindow));
+        this.WhenActivated(a => ViewModel!.InquiryString.RegisterHandler(ShowInquiryWindow));
         this.WhenActivated(a => Init());
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
@@ -223,11 +224,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void TextBlock_PointerReleased(object? sender, PointerReleasedEventArgs e)
         => ViewModel!.UIMessage = null;
 
-    //Show confirmation window.
-    private async Task ShowConfirmationWindow(IInteractionContext<ConfirmationWindowViewModel, bool> interaction)
+    //Show child window.
+    private async Task ShowConfirmationWindow(IInteractionContext<ConfirmationWindowViewModel, bool> context)
     {
-        var confirmationWindow = new ConfirmationWindow { DataContext = interaction.Input, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        var confirmationWindow = new ConfirmationWindow { DataContext = context.Input, WindowStartupLocation = WindowStartupLocation.CenterOwner };
         var isConfirmed = await confirmationWindow.ShowDialog<bool>(this);
-        interaction.SetOutput(isConfirmed);
+        context.SetOutput(isConfirmed);
+    }
+    private async Task ShowInquiryWindow(IInteractionContext<StringInquiryWindowViewModel, string> context)
+    {
+        var confirmationWindow = new StringInquiryWindow { DataContext = context.Input, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        var answer = await confirmationWindow.ShowDialog<string>(this);
+        context.SetOutput(answer);
     }
 }

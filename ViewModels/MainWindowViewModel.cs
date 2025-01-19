@@ -8,7 +8,6 @@ using ImagePlastic.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -46,16 +45,22 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         DeleteCommand = ReactiveCommand.Create(async () =>
         {
-            if (Stats == null || Stats.IsWeb == true || Stats.File == null) return;
-            if (Config.DeleteConfirmation && !await RequireConfirmation.Handle(new ConfirmationWindowViewModel("File delete confirmation", "Sure to send this image to recycle bin?"))) return;
-
             var file = Stats.File;
-            ImageFile = SeekFile(-1);
-            FileSystem.DeleteFile(file.FullName, UIOption.AllDialogs, RecycleOption.SendToRecycleBin, UICancelOption.DoNothing);
-            ShowLocalImage();
+            if (Stats == null || Stats.IsWeb == true || file == null) return;
+            var fallbackFile = SeekFile(-1);
 
-            file = new FileInfo(file.FullName);
-            UIMessage = file.Exists ? $"Failed to delete {file.FullName}" : $"{file.FullName} is sent to recycle bin.";
+            try
+            {
+                FileSystem.DeleteFile(file.FullName, Config.DeleteConfirmation ? UIOption.AllDialogs : UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+
+                ImageFile = fallbackFile;
+                ShowLocalImage();
+                UIMessage = $"{file.FullName} is sent to recycle bin.";
+            }
+            catch (Exception e)
+            {
+                UIMessage = e.Message;
+            }
         });
         EditCommand = ReactiveCommand.Create(() =>
         {
@@ -67,6 +72,29 @@ public partial class MainWindowViewModel : ViewModelBase
             if (Stats != null && Stats.File != null)
                 Utils.SelectInExplorer(Stats.File.FullName);
         });
+        RenameCommand = ReactiveCommand.Create(async () =>
+        {
+            var file = Stats.File;
+            if (Stats == null || Stats.IsWeb == true || file == null) return;
+            var newName = await InquiryString.Handle(new("Renaming File", file.Name));
+            if (string.IsNullOrEmpty(newName) || newName == file.Name) return;
+
+            try
+            {
+                FileSystem.RenameFile(file.FullName, newName);
+
+                var newFile = new FileInfo($@"{file.DirectoryName}\{newName}");
+                if (newFile.Exists)
+                {
+                    ImageFile = newFile;
+                    ShowLocalImage();
+                }
+            }
+            catch (Exception e)
+            {
+                UIMessage = e.Message;
+            }
+        });
     }
     //For previewer.
     public MainWindowViewModel()
@@ -77,6 +105,7 @@ public partial class MainWindowViewModel : ViewModelBase
         DeleteCommand = ReactiveCommand.Create(() => { });
         EditCommand = ReactiveCommand.Create(() => { });
         ShowInExplorerCommand = ReactiveCommand.Create(() => { });
+        RenameCommand = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -88,7 +117,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private StretchMode stretch;
     private string? uIMessage;
     private IEnumerable<FileInfo> currentDir = [];
-    private IEnumerable<string> currentDirName = [];
     private bool pinned = false;
     public bool loading = false;
     private string? svgPath;
@@ -112,7 +140,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand DeleteCommand { get; }
     public ICommand EditCommand { get; }
     public ICommand ShowInExplorerCommand { get; }
+    public ICommand RenameCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
+    public Interaction<StringInquiryWindowViewModel, string> InquiryString { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };
@@ -152,8 +182,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void Select(int offset)
     {
-        if (ImageFile == null || !ImageFile.Exists) return;
-        var currentIndex = Stats.FileIndex ?? currentDirName.IndexOf(ImageFile.FullName);
+        if (ImageFile == null || !ImageFile.Exists || Stats.IsWeb) return;
+        var currentIndex = Stats.FileIndex ?? currentDir.IndexOf(ImageFile, EqualityComparer<FileInfo>.Create((a, b) => a!.FullName.Equals(b!.FullName, StringComparison.OrdinalIgnoreCase)));
         var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
         var file = currentDir.ElementAt(destination);
         ImageFile = file;
@@ -162,8 +192,8 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     public FileInfo? SeekFile(int offset)
     {
-        if (ImageFile == null || !ImageFile.Exists) return null;
-        var currentIndex = Stats.FileIndex ?? currentDirName.IndexOf(ImageFile.FullName);
+        if (ImageFile == null || !ImageFile.Exists || Stats.IsWeb) return null;
+        var currentIndex = Stats.FileIndex ?? currentDir.IndexOf(ImageFile, EqualityComparer<FileInfo>.Create((a, b) => a!.FullName.Equals(b!.FullName, StringComparison.OrdinalIgnoreCase)));
         var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
         return currentDir.ElementAt(destination);
     }
@@ -174,12 +204,10 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             var files = ImageFile.Directory!.EnumerateFiles()
-                                            .Where(a => config.Extensions.Contains(a.Extension.ToLower()))
+                                            .Where(file => config.Extensions.Contains(file.Extension.ToLower()))
                                             .OrderBy(file => file.FullName, new IntuitiveStringComparer());
-            //.OrderBy(file => file.FullName);
-            //var fileNames = files.Select(a => a.FullName);
-            //currentDir = files; currentDirName = fileNames;
-            var currentIndex = files.IndexOf(ImageFile, EqualityComparer<FileInfo>.Create((a, b) => a.FullName.Equals(b.FullName, StringComparison.OrdinalIgnoreCase)));
+            currentDir = files;
+            var currentIndex = files.IndexOf(ImageFile, EqualityComparer<FileInfo>.Create((a, b) => a!.FullName.Equals(b!.FullName, StringComparison.OrdinalIgnoreCase)));
             destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());
             var file = files.ElementAt((int)destination);
             ImageFile = file; Path = file.FullName;
@@ -189,8 +217,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Stats = new(Stats.Success, Stats) { EditCmd = GetProcessStartInfo(file, Stats.Format) };
 
-            //if (config.Preload && file.FullName == Path)
-            //    _ = Task.Run(() => { PreloadImage(files, fileNames, file, (int)destination); });
+            if (config.Preload && file.FullName == Path)
+                _ = Task.Run(() => { PreloadImage(files, file, (int)destination); });
         }
         catch
         {
@@ -198,7 +226,7 @@ public partial class MainWindowViewModel : ViewModelBase
             ErrorReport(Stats);
         }
     }
-    public void PreloadImage(IEnumerable<FileInfo> files, IEnumerable<string> fileNames, FileInfo file, int index)
+    public void PreloadImage(IEnumerable<FileInfo> files, FileInfo file, int index)
     {
         var leftRange = (-config.PreloadLeft < files.Count()) ? config.PreloadLeft : -(files.Count() - 1);
         var rightRange = (config.PreloadRight < files.Count()) ? config.PreloadRight : (files.Count() - 1);
@@ -210,7 +238,7 @@ public partial class MainWindowViewModel : ViewModelBase
         while (++removalOffset <= rightRange && file.FullName == Path)
         {
             var inRangeIndex = Utils.SeekIndex(index, removalOffset, files.Count());
-            currentLoads.Remove(fileNames.ElementAt(inRangeIndex));
+            currentLoads.Remove(files.ElementAt(inRangeIndex).FullName);
         }
         foreach (var ItemForRemoval in currentLoads)
             Preload.Remove(ItemForRemoval);
@@ -221,7 +249,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             if (additionOffset == 0) continue;
             var preloadIndex = Utils.SeekIndex(index, additionOffset, files.Count());
-            var preloadFileName = fileNames.ElementAt(preloadIndex);
+            var preloadFileName = files.ElementAt(preloadIndex).FullName;
             if (Preload.ContainsKey(preloadFileName)) continue;
             if (Preload.TryAdd(preloadFileName, null))
                 Task.Run(() => { Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)); });

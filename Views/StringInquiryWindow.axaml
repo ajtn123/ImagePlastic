@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ImagePlastic.ViewModels"
+        x:DataType="vm:StringInquiryWindowViewModel"
+        mc:Ignorable="d" SizeToContent="WidthAndHeight"
+        x:Class="ImagePlastic.Views.StringInquiryWindow"
+        Title="{Binding Title}">
+    <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
+        <TextBlock Text="{Binding Message}" IsVisible="{Binding HasMessage}"/>
+        <TextBox Text="{Binding Result}" Grid.Row="1" Margin="5,5,0,5" Height="32"/>
+        <Button Command="{Binding DenyCommand}" Grid.Row="1" Grid.Column="1" Margin="5,5,0,5" Height="32">
+            <Image Source="{SvgImage /Assets/Deny.svg}"/>
+        </Button>
+        <Button Command="{Binding ConfirmCommand}" Grid.Row="1" Grid.Column="2" Margin="5" Height="32">
+            <Image Source="{SvgImage /Assets/Confirm.svg}"/>
+        </Button>
+    </Grid>
+</Window>

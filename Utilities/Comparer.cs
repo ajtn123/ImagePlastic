@@ -13,11 +13,11 @@ internal static class SafeNativeMethods
     internal static extern Int32 StrCmpLogicalW(string psz1, string psz2);
 }
 
-internal class IntuitiveStringComparer : IComparer<string>
+public class IntuitiveStringComparer : IComparer<string>
 {
     public int Compare(string? x, string? y)
     {
         if (x == null || y == null) return -1;
-        return SafeNativeMethods.StrCmpLogicalW(x, y);
+        else return SafeNativeMethods.StrCmpLogicalW(x, y);
     }
 }
