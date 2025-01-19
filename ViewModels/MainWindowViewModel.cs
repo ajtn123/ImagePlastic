@@ -8,6 +8,7 @@ using ImagePlastic.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -172,10 +173,13 @@ public partial class MainWindowViewModel : ViewModelBase
         if (ImageFile == null || !ImageFile.Exists) return;
         try
         {
-            var files = ImageFile.Directory!.EnumerateFiles().Where(a => config.Extensions.Contains(a.Extension.ToLower()));
-            var fileNames = files.Select(a => a.FullName);
-            currentDir = files; currentDirName = fileNames;
-            var currentIndex = fileNames.IndexOf(ImageFile.FullName);
+            var files = ImageFile.Directory!.EnumerateFiles()
+                                            .Where(a => config.Extensions.Contains(a.Extension.ToLower()))
+                                            .OrderBy(file => file.FullName, new IntuitiveStringComparer());
+            //.OrderBy(file => file.FullName);
+            //var fileNames = files.Select(a => a.FullName);
+            //currentDir = files; currentDirName = fileNames;
+            var currentIndex = files.IndexOf(ImageFile, EqualityComparer<FileInfo>.Create((a, b) => a.FullName.Equals(b.FullName, StringComparison.OrdinalIgnoreCase)));
             destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());
             var file = files.ElementAt((int)destination);
             ImageFile = file; Path = file.FullName;
@@ -185,8 +189,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Stats = new(Stats.Success, Stats) { EditCmd = GetProcessStartInfo(file, Stats.Format) };
 
-            if (config.Preload && file.FullName == Path)
-                _ = Task.Run(() => { PreloadImage(files, fileNames, file, (int)destination); });
+            //if (config.Preload && file.FullName == Path)
+            //    _ = Task.Run(() => { PreloadImage(files, fileNames, file, (int)destination); });
         }
         catch
         {
