@@ -43,7 +43,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(true, Stats);
             UIMessage = $"Opt: {Stats.DisplayName} {result}" + (result ? $"{beforeLength} => {Utils.ToReadable(Stats.File!.Length)}" : "");
         });
-        DeleteCommand = ReactiveCommand.Create(async () =>
+        DeleteCommand = ReactiveCommand.Create(() =>
         {
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
@@ -76,23 +76,15 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
-            var newName = await InquiryString.Handle(new("Renaming File", file.Name));
-            if (string.IsNullOrEmpty(newName) || newName == file.Name) return;
-
-            try
+            var newFileName = await InquiryString.Handle(new(file));
+            if (string.IsNullOrEmpty(newFileName)) return;
+            else
             {
-                FileSystem.RenameFile(file.FullName, newName);
-
-                var newFile = new FileInfo($@"{file.DirectoryName}\{newName}");
-                if (newFile.Exists)
-                {
-                    ImageFile = newFile;
-                    ShowLocalImage();
-                }
-            }
-            catch (Exception e)
-            {
-                UIMessage = e.Message;
+                var newFile = new FileInfo(newFileName);
+                if (!newFile.Exists) return;
+                ImageFile = newFile;
+                Select(0);
+                UIMessage = $"{file.FullName} => {newFile.Name}";
             }
         });
     }
@@ -142,7 +134,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand ShowInExplorerCommand { get; }
     public ICommand RenameCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
-    public Interaction<StringInquiryWindowViewModel, string> InquiryString { get; } = new();
+    public Interaction<RenameWindowViewModel, string> InquiryString { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };
@@ -188,7 +180,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var file = currentDir.ElementAt(destination);
         ImageFile = file;
         Path = file.FullName;
-        Stats = new(true) { FileIndex = destination, FileCount = currentDir.Count(), File = file, DisplayName = file.Name };
+        Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = currentDir.Count(), File = file, DisplayName = file.Name };
     }
     public FileInfo? SeekFile(int offset)
     {
