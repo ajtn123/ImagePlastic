@@ -23,6 +23,7 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
             if (string.IsNullOrEmpty(result)) return;
             else Close(result);
         });
+        StringInquiryView.InquiryBox.Focus();
     }
     private string? Rename(string? newName)
     {

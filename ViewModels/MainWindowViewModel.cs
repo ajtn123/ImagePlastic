@@ -83,7 +83,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var newFile = new FileInfo(newFileName);
             if (!newFile.Exists) return;
 
-            ImageFile = newFile;
+            Stats = new(true) { File = newFile };
             Select(offset: 0);
             UIMessage = $"{file.FullName} => {newFile.Name}";
         });
@@ -194,12 +194,12 @@ public partial class MainWindowViewModel : ViewModelBase
         var file = currentDirItems.ElementAt((int)destination);
         ImageFile = file;
         Path = file.FullName;
-        Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = currentDirItems.Count(), File = file, DisplayName = file.Name };
+        Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = currentDirItems!.Count(), File = file, DisplayName = file.Name };
     }
     public FileInfo? SeekFile(int offset = 0, int? destination = null)
     {
-        if (ImageFile == null || !ImageFile.Exists || Stats.IsWeb || currentDirItems == null) return null;
-        var currentIndex = Stats.FileIndex ?? currentDirItems.IndexOf(ImageFile, Utils.FileInfoComparer);
+        if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || currentDirItems == null) return null;
+        var currentIndex = currentDirItems.IndexOf(Stats.File, Utils.FileInfoComparer);
         destination ??= Utils.SeekIndex(currentIndex, offset, currentDirItems.Count());
         return currentDirItems.ElementAt((int)destination);
     }
@@ -232,7 +232,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
             using (var fs = file.OpenRead())
-                ShowImage(file.OpenRead(), file.FullName);
+                ShowImage(fs, file.FullName);
 
             Stats = new(Stats.Success, Stats) { EditCmd = GetProcessStartInfo(file, Stats.Format) };
 

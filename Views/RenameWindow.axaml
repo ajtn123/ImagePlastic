@@ -9,7 +9,7 @@
         x:Class="ImagePlastic.Views.RenameWindow"
         Title="RenameWindow">
     <StackPanel>
-        <view:StringInquiry DataContext="{Binding StringInquiry}"/>
+        <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}"/>
         <TextBlock x:Name="ErrorMessageTextBlock" Foreground="Red" Text="{Binding ErrorMessage}" TextWrapping="Wrap" Margin="5,0,5,5" IsVisible="False"/>
     </StackPanel>
 </Window>

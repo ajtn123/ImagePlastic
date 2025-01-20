@@ -86,7 +86,7 @@
         <Panel Grid.Row="1" VerticalAlignment="Bottom" ZIndex="10" Background="Transparent"
                PointerEntered="Panel_PointerEntered" x:Name="ProgressBarPanel"
                PointerExited="Panel_PointerExited" Height="40" IsVisible="{Binding !Stats.IsWeb}">
-            <ProgressBar Margin="5,10" VerticalAlignment="Bottom" x:Name="Progress"
+            <ProgressBar Margin="5,10" VerticalAlignment="Bottom" x:Name="Progress" IsVisible="False"
                          Value="{Binding Stats.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"
                          Maximum="{Binding Stats.FileCount,Mode=OneWay}"
                          PointerPressed="ProgressBar_PointerPressed"
