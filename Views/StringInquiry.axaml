@@ -4,9 +4,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:ImagePlastic.ViewModels"
         x:DataType="vm:StringInquiryViewModel"
-        mc:Ignorable="d"
+        mc:Ignorable="d" MaxWidth="600"
         x:Class="ImagePlastic.Views.StringInquiry">
-    <TextBox Text="{Binding Result}" Height="32" Watermark="{Binding Message}" x:Name="InquiryBox">
+    <TextBox Text="{Binding Result}" Watermark="{Binding Message}" x:Name="InquiryBox" TextWrapping="Wrap">
         <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal">
                 <Button IsDefault="True" Command="{Binding DenyCommand}" Height="26" Width="26" Padding="5" Background="#1FFF0000" BorderBrush="#7FFF7F7F">

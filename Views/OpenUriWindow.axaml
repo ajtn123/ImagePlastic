@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ImagePlastic.ViewModels"
+        xmlns:view="using:ImagePlastic.Views"
+        x:DataType="vm:OpenUriWindowViewModel"
+        mc:Ignorable="d" SizeToContent="WidthAndHeight" CanResize="False"
+        x:Class="ImagePlastic.Views.OpenUriWindow"
+        Title="Open Uri" Icon="/Assets/avalonia-logo.ico"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        Background="{Binding Config.BackgroundColor}"
+        TransparencyLevelHint="{Binding Config.Blur}"
+        WindowStartupLocation="CenterOwner">
+    <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}" Margin="5"/>
+</Window>

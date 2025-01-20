@@ -4,11 +4,14 @@ using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.Converters;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
+using System.Linq;
+using System.Reactive;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
@@ -34,8 +37,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public void Init()
     {
         if (ViewModel == null) return;
-        ViewModel!.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
-        ViewModel!.InquiryString.RegisterHandler(ShowInquiryWindow);
+        ViewModel.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
+        ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
+        ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
+        ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
         ViewModel.QuitCommand.Subscribe(q => Close());
         ViewModel.ErrorReport += ShowError;
         ViewModel.ChangeImageToPath();
@@ -239,6 +244,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         var renameWindow = new RenameWindow { DataContext = context.Input };
         var result = await renameWindow.ShowDialog<string?>(this);
         context.SetOutput(result);
+    }
+    private async Task ShowOpenUriWindow(IInteractionContext<Unit, string?> context)
+        => context.SetOutput(await new OpenUriWindow().ShowDialog<string?>(this));
+    private async Task ShowFilePickerAsync(IInteractionContext<Unit, Uri?> context)
+    {
+        //var topLevel = GetTopLevel(this);
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            AllowMultiple = false
+        });
+        if (files.Any())
+            context.SetOutput(files[0].Path);
+        else
+            context.SetOutput(null);
     }
 
     //ProgressBar.

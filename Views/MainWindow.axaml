@@ -103,8 +103,10 @@
             <ContextMenu>
                 <CheckBox IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}">Title Bar</CheckBox>
                 <CheckBox IsChecked="{Binding Recursive}" IsVisible="{Binding !Stats.IsWeb}">Recursive</CheckBox>
+                <MenuItem Header="Open" Command="{Binding OpenLocalCommand}"/>
+                <MenuItem Header="Open URI" Command="{Binding OpenUriCommand}"/>
                 <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
-                <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
+                <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}" HotKey="F2"/>
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
                 <MenuItem Header="Explorer" Command="{Binding ShowInExplorerCommand}" IsVisible="{Binding !Stats.IsWeb}"/>

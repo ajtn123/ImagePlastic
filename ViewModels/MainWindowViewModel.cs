@@ -78,7 +78,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
 
-            var newFileName = await InquiryString.Handle(new(file) { Config = Config });
+            var newFileName = await InquiryRenameString.Handle(new(file) { Config = Config });
 
             if (string.IsNullOrEmpty(newFileName)) return;
             var newFile = new FileInfo(newFileName);
@@ -89,6 +89,25 @@ public partial class MainWindowViewModel : ViewModelBase
             UIMessage = $"{file.FullName} => {newFile.Name}";
         });
         QuitCommand = ReactiveCommand.Create(() => { });
+        OpenLocalCommand = ReactiveCommand.Create(async () =>
+        {
+            var fileUri = await OpenFilePicker.Handle(new());
+            ImageFile = new(fileUri.LocalPath);
+            if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
+                ShowLocalImage();
+            else
+            {
+                Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
+                ErrorReport(Stats);
+            }
+        });
+        OpenUriCommand = ReactiveCommand.Create(async () =>
+        {
+            var uriString = await InquiryUriString.Handle(new());
+            //var uri = new Uri(uriString);
+            Path = uriString;
+            ChangeImageToPath();
+        });
     }
     //For previewer.
     public MainWindowViewModel()
@@ -101,6 +120,8 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowInExplorerCommand = ReactiveCommand.Create(() => { });
         RenameCommand = ReactiveCommand.Create(() => { });
         QuitCommand = ReactiveCommand.Create(() => { });
+        OpenLocalCommand = ReactiveCommand.Create(() => { });
+        OpenUriCommand = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -150,9 +171,13 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand EditCommand { get; }
     public ICommand ShowInExplorerCommand { get; }
     public ICommand RenameCommand { get; }
+    public ICommand OpenLocalCommand { get; }
+    public ICommand OpenUriCommand { get; }
     public ReactiveCommand<Unit, Unit> QuitCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
-    public Interaction<RenameWindowViewModel, string?> InquiryString { get; } = new();
+    public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
+    public Interaction<Unit, string?> InquiryUriString { get; } = new();
+    public Interaction<Unit, Uri?> OpenFilePicker { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };
@@ -172,11 +197,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             ImageFile = new FileInfo(Path);
             if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
-            {
-                Path = ImageFile.FullName;
                 ShowLocalImage();
-                return;
-            }//Exceptions.
             else
             {
                 Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
