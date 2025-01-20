@@ -60,8 +60,8 @@ public static class Utils
     public static bool Optimize(FileInfo file)
         => optimizer.LosslessCompress(file);
 
-    public static void SelectInExplorer(string path)
-        => Process.Start("explorer.exe", $@"/select,""{path}""");
+    public static void SelectInExplorer(FileInfo file)
+        => Process.Start("explorer.exe", $@"/select,""{file.FullName}""");
 
     public static void OpenInExplorer(string path)
         => Process.Start("explorer.exe", $@"""{path}""");

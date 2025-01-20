@@ -71,7 +71,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowInExplorerCommand = ReactiveCommand.Create(() =>
         {
             if (Stats != null && Stats.File != null)
-                Utils.SelectInExplorer(Stats.File.FullName);
+                Utils.SelectInExplorer(Stats.File);
         });
         RenameCommand = ReactiveCommand.Create(async () =>
         {
