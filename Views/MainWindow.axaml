@@ -20,6 +20,7 @@
     <Window.Resources>
         <cvt:StatsConverter x:Key="StatsConverter"/>
         <cvt:BoolConverter x:Key="BoolConverter"/>
+        <cvt:IntConverter x:Key="IntConverter"/>
     </Window.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -86,7 +87,7 @@
                PointerEntered="Panel_PointerEntered" x:Name="ProgressBarPanel"
                PointerExited="Panel_PointerExited" Height="40" IsVisible="{Binding !Stats.IsWeb}">
             <ProgressBar Margin="5,10" VerticalAlignment="Bottom" x:Name="Progress"
-                         Value="{Binding Stats.FileIndex,Mode=OneWay}"
+                         Value="{Binding Stats.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"
                          Maximum="{Binding Stats.FileCount,Mode=OneWay}"
                          PointerPressed="ProgressBar_PointerPressed"
                          PointerMoved="ProgressBar_PointerMoved"

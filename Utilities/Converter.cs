@@ -48,3 +48,15 @@ public class BoolConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+public class IntConverter : IValueConverter
+{
+    public static readonly BoolConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (!int.TryParse((string?)parameter, out int result) || (int?)value == null) return null;
+        else return (int)value + result;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
