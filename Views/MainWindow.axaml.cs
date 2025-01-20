@@ -233,9 +233,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private async Task ShowInquiryWindow(IInteractionContext<RenameWindowViewModel, string?> context)
     {
-        //var confirmationWindow = new StringInquiry { DataContext = context.Input, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-        //var answer = await confirmationWindow.ShowDialog<string>(this);
-        //context.SetOutput(answer);
         var renameWindow = new RenameWindow { DataContext = context.Input, WindowStartupLocation = WindowStartupLocation.CenterOwner };
         var result = await renameWindow.ShowDialog<string?>(this);
         context.SetOutput(result);

@@ -1,5 +1,5 @@
 ﻿using Avalonia.Controls.PanAndZoom;
-using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using DynamicData;
 using ExCSS;
 using ImageMagick;
@@ -76,16 +76,16 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
+
             var newFileName = await InquiryString.Handle(new(file));
+
             if (string.IsNullOrEmpty(newFileName)) return;
-            else
-            {
-                var newFile = new FileInfo(newFileName);
-                if (!newFile.Exists) return;
-                ImageFile = newFile;
-                Select(0);
-                UIMessage = $"{file.FullName} => {newFile.Name}";
-            }
+            var newFile = new FileInfo(newFileName);
+            if (!newFile.Exists) return;
+
+            ImageFile = newFile;
+            Select(0);
+            UIMessage = $"{file.FullName} => {newFile.Name}";
         });
     }
     //For previewer.
@@ -103,7 +103,7 @@ public partial class MainWindowViewModel : ViewModelBase
     //Generating a new default configuration every time.
     //A helper is needed to persist config, also a setting view.
     private Config config = new();
-    private IImage? bitmap;
+    private Bitmap? bitmap;
     private string path = "";
     private Stats stats = new(true) { DisplayName = "None" };
     private StretchMode stretch;
@@ -114,9 +114,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private string? svgPath;
 
     public string[]? Args { get; }
-    public Dictionary<string, IImage?> Preload { get; set; } = [];
+    public Dictionary<string, Bitmap?> Preload { get; set; } = [];
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
-    public IImage? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
+    public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
     public FileInfo? ImageFile { get; set; }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
@@ -134,7 +134,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand ShowInExplorerCommand { get; }
     public ICommand RenameCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
-    public Interaction<RenameWindowViewModel, string> InquiryString { get; } = new();
+    public Interaction<RenameWindowViewModel, string?> InquiryString { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };
@@ -233,7 +233,10 @@ public partial class MainWindowViewModel : ViewModelBase
             currentLoads.Remove(files.ElementAt(inRangeIndex).FullName);
         }
         foreach (var ItemForRemoval in currentLoads)
+        {
+            Preload[ItemForRemoval]?.Dispose();
             Preload.Remove(ItemForRemoval);
+        }
 
         //Preload Bitmaps.
         var additionOffset = leftRange - 1;
@@ -260,13 +263,14 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            IImage? bitmapTemp = null;
+            Bitmap? bitmapTemp = null;
             if (config.Preload)
                 Preload.TryGetValue(path, out bitmapTemp);
             bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(image); });
 
             if (path != Path) return;
-            else Bitmap = bitmapTemp;
+            Bitmap?.Dispose();
+            Bitmap = bitmapTemp;
 
             SvgPath = null;
             Stats = (Bitmap == null) ? new(false, Stats)
@@ -277,7 +281,6 @@ public partial class MainWindowViewModel : ViewModelBase
         stream.Dispose();
 
         //GC.Collect();
-        //UIMessage = $"Estimated bytes on heap: {GC.GetTotalMemory(false)}";
     }
     public async void ShowWebImage(string url)
     {

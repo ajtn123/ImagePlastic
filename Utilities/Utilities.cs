@@ -1,6 +1,5 @@
-﻿using Avalonia.Media;
+﻿using Avalonia.Media.Imaging;
 using ImageMagick;
-using SkiaSharp;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -19,22 +18,18 @@ public static class Utils
                                      : current + offset;
 
     //Convert any image to a Bitmap.
-    public static IImage? ConvertImage(Stream stream)
+    //Remember to dispose the input stream.
+    public static Bitmap? ConvertImage(Stream stream)
     {
-        try
-        {
-            return
-                new MagickImage(stream).ToBitmap().ConvertToAvaloniaBitmap() ??
-                SKBitmap.Decode(stream).ToAvaloniaImage();
-        }
+        try { return new MagickImage(stream).ToBitmap().ConvertToAvaloniaBitmap(); }
         catch { return null; }
     }
-    public static IImage? ConvertImage(FileInfo file)
+    public static Bitmap? ConvertImage(FileInfo file)
     {
         using var a = file.OpenRead();
         return ConvertImage(a);
     }
-    public static IImage? ConvertImage(MagickImage image)
+    public static Bitmap? ConvertImage(MagickImage image)
     {
         try { return image.ToBitmap().ConvertToAvaloniaBitmap(); }
         catch { return null; }
