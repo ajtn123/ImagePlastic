@@ -104,7 +104,7 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenUriCommand = ReactiveCommand.Create(async () =>
         {
             var uriString = await InquiryUriString.Handle(new());
-            //var uri = new Uri(uriString);
+            if (string.IsNullOrWhiteSpace(uriString)) return;
             Path = uriString;
             ChangeImageToPath();
         });
@@ -259,7 +259,7 @@ public partial class MainWindowViewModel : ViewModelBase
             using (var fs = file.OpenRead())
                 ShowImage(fs, file.FullName);
 
-            Stats = new(Stats.Success, Stats) { EditCmd = GetProcessStartInfo(file, Stats.Format) };
+            Stats = new(Stats.Success, Stats) { EditCmd = GetEditAppStartInfo(file, Stats.Format) };
 
             if (config.Preload && file.FullName == Path)
                 PreloadImage(files, file, (int)destination);
@@ -346,7 +346,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ErrorReport(Stats);
         Loading = false;
     }
-    public ProcessStartInfo? GetProcessStartInfo(FileInfo file, MagickFormat format)
+    public ProcessStartInfo? GetEditAppStartInfo(FileInfo file, MagickFormat format)
     {
         if (Config.EditApp.TryGetValue(format, out string? app))
             return app != "" ? new ProcessStartInfo
