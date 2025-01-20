@@ -7,7 +7,8 @@
         x:Class="ImagePlastic.Views.ConfirmationWindow"
         xmlns:vm="using:ImagePlastic.ViewModels"
         x:DataType="vm:ConfirmationWindowViewModel"
-        Title="{Binding Title}">
+        Title="{Binding Title}"
+        WindowStartupLocation="CenterOwner">
     <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto">
         <Image Source="{SvgImage /Assets/Info.svg}" Height="50" Margin="5" VerticalAlignment="Top"/>
         <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" Margin="5"/>

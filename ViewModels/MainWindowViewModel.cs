@@ -78,7 +78,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
 
-            var newFileName = await InquiryString.Handle(new(file));
+            var newFileName = await InquiryString.Handle(new(file) { Config = Config });
 
             if (string.IsNullOrEmpty(newFileName)) return;
             var newFile = new FileInfo(newFileName);

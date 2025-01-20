@@ -5,11 +5,16 @@
         xmlns:vm="using:ImagePlastic.ViewModels"
         xmlns:view="using:ImagePlastic.Views"
         x:DataType="vm:RenameWindowViewModel"
-        mc:Ignorable="d" SizeToContent="WidthAndHeight"
+        mc:Ignorable="d" SizeToContent="WidthAndHeight" CanResize="False"
         x:Class="ImagePlastic.Views.RenameWindow"
-        Title="RenameWindow">
+        Title="Rename" Icon="/Assets/avalonia-logo.ico"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        Background="{Binding Config.BackgroundColor}"
+        TransparencyLevelHint="{Binding Config.Blur}"
+        WindowStartupLocation="CenterOwner">
     <StackPanel>
-        <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}"/>
+        <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}" Margin="5"/>
         <TextBlock x:Name="ErrorMessageTextBlock" Foreground="Red" Text="{Binding ErrorMessage}" TextWrapping="Wrap" Margin="5,0,5,5" IsVisible="False"/>
     </StackPanel>
 </Window>

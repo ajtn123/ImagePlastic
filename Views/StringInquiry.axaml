@@ -6,13 +6,13 @@
         x:DataType="vm:StringInquiryViewModel"
         mc:Ignorable="d"
         x:Class="ImagePlastic.Views.StringInquiry">
-    <TextBox Text="{Binding Result}" Grid.Row="1" Margin="5" Height="32" Watermark="{Binding Message}" x:Name="InquiryBox">
+    <TextBox Text="{Binding Result}" Height="32" Watermark="{Binding Message}" x:Name="InquiryBox">
         <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal">
-                <Button IsDefault="True" Command="{Binding DenyCommand}" Grid.Row="1" Grid.Column="1" Margin="1,1,0,1" Height="28">
+                <Button IsDefault="True" Command="{Binding DenyCommand}" Height="26" Width="26" Padding="5" Background="#1FFF0000" BorderBrush="#7FFF7F7F">
                     <Image Source="{SvgImage /Assets/Deny.svg}"/>
                 </Button>
-                <Button IsDefault="True" Command="{Binding ConfirmCommand}" Grid.Row="1" Grid.Column="2" Margin="1" Height="28">
+                <Button IsDefault="True" Command="{Binding ConfirmCommand}" Margin="1,0,2,0" Height="26" Width="26" Padding="5" Background="#1F00FF00" BorderBrush="#7F7FFF7F">
                     <Image Source="{SvgImage /Assets/Confirm.svg}"/>
                 </Button>
             </StackPanel>

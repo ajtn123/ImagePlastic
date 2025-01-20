@@ -1,4 +1,3 @@
-using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using ImagePlastic.ViewModels;
 namespace ImagePlastic.Views;
