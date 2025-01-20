@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media.Imaging;
 using DynamicData;
-using ExCSS;
 using ImageMagick;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
@@ -31,6 +30,7 @@ public partial class MainWindowViewModel : ViewModelBase
         else
             Stats = new(true);
         Stretch = Config.Stretch;
+        Recursive = Config.RecursiveSearch;
         GoLeft = ReactiveCommand.Create(() => { ShowLocalImage(offset: -1); });
         GoRight = ReactiveCommand.Create(() => { ShowLocalImage(offset: 1); });
         OptCommand = ReactiveCommand.Create(async () =>
@@ -47,7 +47,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
-            var fallbackFile = SeekFile(-1);
+            var fallbackFile = SeekFile(offset: -1);
 
             try
             {
@@ -84,7 +84,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (!newFile.Exists) return;
 
             ImageFile = newFile;
-            Select(0);
+            Select(offset: 0);
             UIMessage = $"{file.FullName} => {newFile.Name}";
         });
     }
@@ -109,9 +109,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private StretchMode stretch;
     private string? uIMessage;
     private IEnumerable<FileInfo> currentDir = [];
+    private DirectoryInfo? recursiveDir = null;
     private bool pinned = false;
     public bool loading = false;
     private string? svgPath;
+    private bool recursive;
 
     public string[]? Args { get; }
     public Dictionary<string, Bitmap?> Preload { get; set; } = [];
@@ -125,6 +127,15 @@ public partial class MainWindowViewModel : ViewModelBase
     public string? UIMessage { get => uIMessage; set => this.RaiseAndSetIfChanged(ref uIMessage, value); }
     public bool Pinned { get => pinned; set => this.RaiseAndSetIfChanged(ref pinned, value); }
     public string? SvgPath { get => svgPath; set => this.RaiseAndSetIfChanged(ref svgPath, value); }
+    public bool Recursive
+    {
+        get => recursive; set
+        {
+            this.RaiseAndSetIfChanged(ref recursive, value);
+            if (value && ImageFile != null)
+                recursiveDir = ImageFile.Directory;
+        }
+    }
 
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
@@ -172,22 +183,22 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public void Select(int offset)
+    public void Select(int offset = 0, int? destination = null)
     {
         if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb) return;
         var currentIndex = currentDir.IndexOf(Stats.File, Utils.FileInfoComparer);
-        var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
-        var file = currentDir.ElementAt(destination);
+        destination ??= Utils.SeekIndex(currentIndex, offset, currentDir.Count());
+        var file = currentDir.ElementAt((int)destination);
         ImageFile = file;
         Path = file.FullName;
         Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = currentDir.Count(), File = file, DisplayName = file.Name };
     }
-    public FileInfo? SeekFile(int offset)
+    public FileInfo? SeekFile(int offset = 0, int? destination = null)
     {
         if (ImageFile == null || !ImageFile.Exists || Stats.IsWeb) return null;
         var currentIndex = Stats.FileIndex ?? currentDir.IndexOf(ImageFile, Utils.FileInfoComparer);
-        var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
-        return currentDir.ElementAt(destination);
+        destination ??= Utils.SeekIndex(currentIndex, offset, currentDir.Count());
+        return currentDir.ElementAt((int)destination);
     }
     //Scan the path directory and show the image.
     public void ShowLocalImage(int offset = 0, int? destination = null)
@@ -195,9 +206,21 @@ public partial class MainWindowViewModel : ViewModelBase
         if (ImageFile == null || !ImageFile.Exists) return;
         try
         {
-            var files = ImageFile.Directory!.EnumerateFiles()
-                                            .Where(file => config.Extensions.Contains(file.Extension.ToLower()))
+            IOrderedEnumerable<FileInfo>? files;
+            if (Recursive)
+            {
+                recursiveDir ??= ImageFile.Directory;
+                files = recursiveDir!.EnumerateFiles("", System.IO.SearchOption.AllDirectories)
+                                     .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
+                                     .OrderBy(file => file.FullName, new IntuitiveStringComparer());
+            }
+            else
+            {
+                files = ImageFile.Directory!.EnumerateFiles("", System.IO.SearchOption.TopDirectoryOnly)
+                                            .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
                                             .OrderBy(file => file.FullName, new IntuitiveStringComparer());
+            }
+
             currentDir = files;
             var currentIndex = files.IndexOf(ImageFile, Utils.FileInfoComparer);
             destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());

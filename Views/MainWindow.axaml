@@ -82,8 +82,23 @@
         
         <view:Error Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="ErrorView"/>
 
+        <Panel Grid.Row="1" VerticalAlignment="Bottom" ZIndex="10" Background="Transparent"
+               PointerEntered="Panel_PointerEntered" x:Name="ProgressBarPanel"
+               PointerExited="Panel_PointerExited" Height="40" IsVisible="{Binding !Stats.IsWeb}">
+            <ProgressBar Margin="5,10" VerticalAlignment="Bottom" x:Name="Progress" Height="5"
+                         Value="{Binding Stats.FileIndex,Mode=OneWay}"
+                         Maximum="{Binding Stats.FileCount,Mode=OneWay}"
+                         PointerPressed="ProgressBar_PointerPressed"
+                         PointerMoved="ProgressBar_PointerMoved"
+                         PointerReleased="ProgressBar_PointerReleased"
+                         PointerEntered="ProgressBar_PointerEntered"
+                         PointerExited="ProgressBar_PointerExited"/>
+        </Panel>
+        
         <Grid.ContextMenu>
             <ContextMenu>
+                <CheckBox IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}">Title Bar</CheckBox>
+                <CheckBox IsChecked="{Binding Recursive}" IsVisible="{Binding !Stats.IsWeb}">Recursive</CheckBox>
                 <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
                 <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
