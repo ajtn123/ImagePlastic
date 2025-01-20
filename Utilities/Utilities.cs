@@ -1,6 +1,7 @@
 ﻿using Avalonia.Media.Imaging;
 using ImageMagick;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -12,16 +13,20 @@ public static class Utils
 {
     private static readonly HttpClient client = new();
     private static readonly ImageOptimizer optimizer = new() { IgnoreUnsupportedFormats = true };
+    public static EqualityComparer<FileInfo> FileInfoComparer { get; } = EqualityComparer<FileInfo>.Create((a, b) => a.FullName.Equals(b.FullName, StringComparison.OrdinalIgnoreCase));
     public static int SeekIndex(int current, int offset, int total)
         => current + offset >= total ? current + offset - total
               : current + offset < 0 ? current + offset + total
                                      : current + offset;
 
     //Convert any image to a Bitmap.
-    //Remember to dispose the input stream.
     public static Bitmap? ConvertImage(Stream stream)
     {
-        try { return new MagickImage(stream).ToBitmap().ConvertToAvaloniaBitmap(); }
+        try
+        {
+            using var mi = new MagickImage(stream);
+            return mi.ToBitmap().ConvertToAvaloniaBitmap();
+        }
         catch { return null; }
     }
     public static Bitmap? ConvertImage(FileInfo file)

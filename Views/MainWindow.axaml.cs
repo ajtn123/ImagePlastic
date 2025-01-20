@@ -168,6 +168,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ErrorView.IsVisible = !errorStats.Success;
         if (errorStats.File != null)
             ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}";
+        else if (errorStats.IsWeb)
+            ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.Url}";
         ViewModel!.Stretch = StretchMode.Uniform;
     }
 

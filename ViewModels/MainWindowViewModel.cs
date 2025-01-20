@@ -174,8 +174,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void Select(int offset)
     {
-        if (ImageFile == null || !ImageFile.Exists || Stats.IsWeb) return;
-        var currentIndex = Stats.FileIndex ?? currentDir.IndexOf(ImageFile, EqualityComparer<FileInfo>.Create((a, b) => a!.FullName.Equals(b!.FullName, StringComparison.OrdinalIgnoreCase)));
+        if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb) return;
+        var currentIndex = currentDir.IndexOf(Stats.File, Utils.FileInfoComparer);
         var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
         var file = currentDir.ElementAt(destination);
         ImageFile = file;
@@ -185,7 +185,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public FileInfo? SeekFile(int offset)
     {
         if (ImageFile == null || !ImageFile.Exists || Stats.IsWeb) return null;
-        var currentIndex = Stats.FileIndex ?? currentDir.IndexOf(ImageFile, EqualityComparer<FileInfo>.Create((a, b) => a!.FullName.Equals(b!.FullName, StringComparison.OrdinalIgnoreCase)));
+        var currentIndex = Stats.FileIndex ?? currentDir.IndexOf(ImageFile, Utils.FileInfoComparer);
         var destination = Utils.SeekIndex(currentIndex, offset, currentDir.Count());
         return currentDir.ElementAt(destination);
     }
@@ -199,18 +199,19 @@ public partial class MainWindowViewModel : ViewModelBase
                                             .Where(file => config.Extensions.Contains(file.Extension.ToLower()))
                                             .OrderBy(file => file.FullName, new IntuitiveStringComparer());
             currentDir = files;
-            var currentIndex = files.IndexOf(ImageFile, EqualityComparer<FileInfo>.Create((a, b) => a!.FullName.Equals(b!.FullName, StringComparison.OrdinalIgnoreCase)));
+            var currentIndex = files.IndexOf(ImageFile, Utils.FileInfoComparer);
             destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());
             var file = files.ElementAt((int)destination);
             ImageFile = file; Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
-            ShowImage(file.OpenRead(), file.FullName);
+            using (var fs = file.OpenRead())
+                ShowImage(file.OpenRead(), file.FullName);
 
             Stats = new(Stats.Success, Stats) { EditCmd = GetProcessStartInfo(file, Stats.Format) };
 
             if (config.Preload && file.FullName == Path)
-                _ = Task.Run(() => { PreloadImage(files, file, (int)destination); });
+                PreloadImage(files, file, (int)destination);
         }
         catch
         {
@@ -233,10 +234,7 @@ public partial class MainWindowViewModel : ViewModelBase
             currentLoads.Remove(files.ElementAt(inRangeIndex).FullName);
         }
         foreach (var ItemForRemoval in currentLoads)
-        {
-            Preload[ItemForRemoval]?.Dispose();
             Preload.Remove(ItemForRemoval);
-        }
 
         //Preload Bitmaps.
         var additionOffset = leftRange - 1;
@@ -269,7 +267,6 @@ public partial class MainWindowViewModel : ViewModelBase
             bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(image); });
 
             if (path != Path) return;
-            Bitmap?.Dispose();
             Bitmap = bitmapTemp;
 
             SvgPath = null;
@@ -278,20 +275,24 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         ErrorReport(Stats);
         Loading = false;
-        stream.Dispose();
 
         //GC.Collect();
     }
     public async void ShowWebImage(string url)
     {
         Loading = true; ImageFile = null;
-        var webStream = await Utils.GetStreamFromWeb(url);
-        if (webStream == null) return;
-        Stats = new(true) { IsWeb = true };
-        ShowImage(webStream, url);
-        Stats = new(Stats.Success, Stats) { DisplayName = url.Split('/')[^1], Url = url };
+        using var webStream = await Utils.GetStreamFromWeb(url);
+        if (webStream == null)
+        {
+            Stats = new(false) { IsWeb = true, Url = url };
+        }
+        else
+        {
+            Stats = new(true) { IsWeb = true, Url = url };
+            ShowImage(webStream, url);
+            Stats = new(Stats.Success, Stats) { DisplayName = url.Split('/')[^1] };
+        }
         ErrorReport(Stats);
-        webStream.Dispose();
         Loading = false;
     }
     public ProcessStartInfo? GetProcessStartInfo(FileInfo file, MagickFormat format)
