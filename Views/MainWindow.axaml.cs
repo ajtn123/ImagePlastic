@@ -9,7 +9,6 @@ using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
@@ -19,8 +18,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public MainWindow()
     {
         InitializeComponent();
-        this.WhenActivated(a => ViewModel!.RequireConfirmation.RegisterHandler(ShowConfirmationWindow));
-        this.WhenActivated(a => ViewModel!.InquiryString.RegisterHandler(ShowInquiryWindow));
         this.WhenActivated(a => Init());
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
@@ -37,6 +34,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public void Init()
     {
         if (ViewModel == null) return;
+        ViewModel!.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
+        ViewModel!.InquiryString.RegisterHandler(ShowInquiryWindow);
+        ViewModel.QuitCommand.Subscribe(q => Close());
         ViewModel.ErrorReport += ShowError;
         ViewModel.ChangeImageToPath();
         if (ViewModel.Config.SystemAccentColor)

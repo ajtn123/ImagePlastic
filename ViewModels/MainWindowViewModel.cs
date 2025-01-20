@@ -12,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -87,6 +88,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Select(offset: 0);
             UIMessage = $"{file.FullName} => {newFile.Name}";
         });
+        QuitCommand = ReactiveCommand.Create(() => { });
     }
     //For previewer.
     public MainWindowViewModel()
@@ -98,6 +100,7 @@ public partial class MainWindowViewModel : ViewModelBase
         EditCommand = ReactiveCommand.Create(() => { });
         ShowInExplorerCommand = ReactiveCommand.Create(() => { });
         RenameCommand = ReactiveCommand.Create(() => { });
+        QuitCommand = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -147,6 +150,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand EditCommand { get; }
     public ICommand ShowInExplorerCommand { get; }
     public ICommand RenameCommand { get; }
+    public ReactiveCommand<Unit, Unit> QuitCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryString { get; } = new();
 

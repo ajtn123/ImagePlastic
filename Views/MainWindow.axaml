@@ -74,6 +74,9 @@
                 <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="BitmapImage" IsVisible="{Binding Bitmap,Converter={StaticResource BoolConverter}}"/>
                 <Svg Path="{Binding SvgPath}" x:Name="SvgImage" IsVisible="{Binding SvgPath,Converter={StaticResource BoolConverter}}"/>
             </Panel>
+            <ZoomBorder.KeyBindings>
+                <KeyBinding Gesture="Escape" Command="{Binding QuitCommand}"/>
+            </ZoomBorder.KeyBindings>
         </ZoomBorder>
 
         <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
@@ -105,6 +108,7 @@
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
                 <MenuItem Header="Explorer" Command="{Binding ShowInExplorerCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
+                <MenuItem Header="QUIT" Command="{Binding QuitCommand}" Background="#3FFF0000"/>
             </ContextMenu>
         </Grid.ContextMenu>
     </Grid>
