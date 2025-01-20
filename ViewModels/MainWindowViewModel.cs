@@ -133,7 +133,10 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref recursive, value);
             if (value && ImageFile != null)
+            {
                 recursiveDir = ImageFile.Directory;
+                ShowLocalImage();
+            }
         }
     }
 

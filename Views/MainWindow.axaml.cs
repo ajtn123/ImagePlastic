@@ -9,6 +9,7 @@ using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
@@ -241,34 +242,40 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     //ProgressBar.
-    private void Panel_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void Panel_PointerEntered(object? sender, PointerEventArgs e)
         => Progress.IsVisible = true;
-    private void Panel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void Panel_PointerExited(object? sender, PointerEventArgs e)
         => Progress.IsVisible = false;
-    private bool ProgressBarPressed = false;
-    private void ProgressBar_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void ProgressBar_PointerEntered(object? sender, PointerEventArgs e)
+        => Progress.Height = 10;
+    private void ProgressBar_PointerExited(object? sender, PointerEventArgs e)
+        => Progress.Height = double.NaN;
+    private bool _progressBarPressed = false;
+    private void ProgressBar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        Progress.Height = 12;
         if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
         SwitchBar(true);
-        ProgressBarPressed = true;
+        _progressBarPressed = true;
         var progressRatio = e.GetPosition((Visual?)sender).X / Progress.Bounds.Width;
         var imageIndex = (int)double.Round(progressRatio * (int)ViewModel!.Stats.FileCount - 1);
         if (imageIndex < 0) imageIndex = 0;
         if (imageIndex >= ViewModel!.Stats.FileCount) imageIndex = (int)ViewModel!.Stats.FileCount - 1;
         ViewModel.Select(destination: imageIndex);
     }
-    private void ProgressBar_PointerMoved(object? sender, Avalonia.Input.PointerEventArgs e)
+    private void ProgressBar_PointerMoved(object? sender, PointerEventArgs e)
     {
-        if (!ProgressBarPressed || ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
+        if (!_progressBarPressed || ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
         var progressRatio = e.GetPosition((Visual?)sender).X / Progress.Bounds.Width;
         var imageIndex = (int)double.Round(progressRatio * (int)ViewModel!.Stats.FileCount - 1);
         if (imageIndex < 0) imageIndex = 0;
         if (imageIndex >= ViewModel!.Stats.FileCount) imageIndex = (int)ViewModel!.Stats.FileCount - 1;
         ViewModel.Select(destination: imageIndex);
     }
-    private void ProgressBar_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+    private void ProgressBar_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        ProgressBarPressed = false;
+        Progress.Height = 10;
+        _progressBarPressed = false;
         if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
         var progressRatio = e.GetPosition((Visual?)sender).X / Progress.Bounds.Width;
         var imageIndex = (int)double.Round(progressRatio * (int)ViewModel!.Stats.FileCount - 1);
@@ -276,9 +283,4 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (imageIndex >= ViewModel!.Stats.FileCount) imageIndex = (int)ViewModel!.Stats.FileCount - 1;
         ViewModel.ShowLocalImage(destination: imageIndex);
     }
-
-    private void ProgressBar_PointerEntered(object? sender, Avalonia.Input.PointerEventArgs e)
-        => Progress.Height = 10;
-    private void ProgressBar_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
-        => Progress.Height = 5;
 }
