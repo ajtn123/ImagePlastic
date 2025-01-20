@@ -108,7 +108,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private Stats stats = new(true) { DisplayName = "None" };
     private StretchMode stretch;
     private string? uIMessage;
-    private IEnumerable<FileInfo> currentDir = [];
+    private IOrderedEnumerable<FileInfo>? currentDirItems;
     private DirectoryInfo? recursiveDir = null;
     private bool pinned = false;
     public bool loading = false;
@@ -188,20 +188,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public void Select(int offset = 0, int? destination = null)
     {
-        if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb) return;
-        var currentIndex = currentDir.IndexOf(Stats.File, Utils.FileInfoComparer);
-        destination ??= Utils.SeekIndex(currentIndex, offset, currentDir.Count());
-        var file = currentDir.ElementAt((int)destination);
+        if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || currentDirItems == null) return;
+        var currentIndex = currentDirItems.IndexOf(Stats.File, Utils.FileInfoComparer);
+        destination ??= Utils.SeekIndex(currentIndex, offset, currentDirItems.Count());
+        var file = currentDirItems.ElementAt((int)destination);
         ImageFile = file;
         Path = file.FullName;
-        Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = currentDir.Count(), File = file, DisplayName = file.Name };
+        Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = currentDirItems.Count(), File = file, DisplayName = file.Name };
     }
     public FileInfo? SeekFile(int offset = 0, int? destination = null)
     {
-        if (ImageFile == null || !ImageFile.Exists || Stats.IsWeb) return null;
-        var currentIndex = Stats.FileIndex ?? currentDir.IndexOf(ImageFile, Utils.FileInfoComparer);
-        destination ??= Utils.SeekIndex(currentIndex, offset, currentDir.Count());
-        return currentDir.ElementAt((int)destination);
+        if (ImageFile == null || !ImageFile.Exists || Stats.IsWeb || currentDirItems == null) return null;
+        var currentIndex = Stats.FileIndex ?? currentDirItems.IndexOf(ImageFile, Utils.FileInfoComparer);
+        destination ??= Utils.SeekIndex(currentIndex, offset, currentDirItems.Count());
+        return currentDirItems.ElementAt((int)destination);
     }
     //Scan the path directory and show the image.
     public void ShowLocalImage(int offset = 0, int? destination = null)
@@ -224,7 +224,7 @@ public partial class MainWindowViewModel : ViewModelBase
                                             .OrderBy(file => file.FullName, new IntuitiveStringComparer());
             }
 
-            currentDir = files;
+            currentDirItems = files;
             var currentIndex = files.IndexOf(ImageFile, Utils.FileInfoComparer);
             destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());
             var file = files.ElementAt((int)destination);
