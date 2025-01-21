@@ -24,6 +24,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         InitializeComponent();
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
+        this.GetObservable(WindowStateProperty).Subscribe(SetWindowStateUI); ;
         this.WhenActivated(a =>
         {
             ViewModel ??= new();
@@ -289,32 +290,21 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void MaximizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (WindowState == WindowState.Maximized)
-            SetWindowState(WindowState.Normal);
-        else
-            SetWindowState(WindowState.Maximized);
+            WindowState = WindowState.Normal;
+        else WindowState = WindowState.Maximized;
     }
     private void FullscreenButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (WindowState == WindowState.FullScreen)
-            SetWindowState(WindowState.Normal);
-        else
-            SetWindowState(WindowState.FullScreen);
+            WindowState = WindowState.Normal;
+        else WindowState = WindowState.FullScreen;
     }
     private void ExitButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => Close();
-    private void SetWindowState(WindowState state)
+    private void SetWindowStateUI(WindowState state)
     {
-        if (state == WindowState.Normal)
+        if (state == WindowState.FullScreen)
         {
-            WindowState = WindowState.Normal;
-            FullscreenIcon.IsVisible = true;
-            FullscreenExitIcon.IsVisible = false;
-            MaximizeIcon.IsVisible = true;
-            MaximizeExitIcon.IsVisible = false;
-        }
-        else if (state == WindowState.FullScreen)
-        {
-            WindowState = WindowState.FullScreen;
             FullscreenIcon.IsVisible = false;
             FullscreenExitIcon.IsVisible = true;
             MaximizeIcon.IsVisible = true;
@@ -322,11 +312,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         else if (state == WindowState.Maximized)
         {
-            WindowState = WindowState.Maximized;
             MaximizeIcon.IsVisible = false;
             MaximizeExitIcon.IsVisible = true;
             FullscreenIcon.IsVisible = true;
             FullscreenExitIcon.IsVisible = false;
+        }
+        else
+        {
+            FullscreenIcon.IsVisible = true;
+            FullscreenExitIcon.IsVisible = false;
+            MaximizeIcon.IsVisible = true;
+            MaximizeExitIcon.IsVisible = false;
         }
     }
 }
