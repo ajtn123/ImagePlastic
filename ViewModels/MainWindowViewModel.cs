@@ -7,6 +7,7 @@ using ImagePlastic.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -283,41 +285,12 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(Stats.Success, Stats) { EditCmd = GetEditAppStartInfo(file, Stats.Format) };
 
             if (config.Preload && file.FullName == Path)
-                PreloadImage(files, file, (int)destination);
+                PreloadImage(files, (int)destination);
         }
         catch
         {
             Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
             ErrorReport(Stats);
-        }
-    }
-    public void PreloadImage(IEnumerable<FileInfo> files, FileInfo file, int index)
-    {
-        var leftRange = (-config.PreloadLeft < files.Count()) ? config.PreloadLeft : -(files.Count() - 1);
-        var rightRange = (config.PreloadRight < files.Count()) ? config.PreloadRight : (files.Count() - 1);
-
-        //Remove bitmap from preload if the image is out of preload range.
-        //It seems to be fine, hope no bugs to be discovered.
-        var currentLoads = Preload.Keys.ToList();
-        var removalOffset = leftRange - 1;
-        while (++removalOffset <= rightRange && file.FullName == Path)
-        {
-            var inRangeIndex = Utils.SeekIndex(index, removalOffset, files.Count());
-            currentLoads.Remove(files.ElementAt(inRangeIndex).FullName);
-        }
-        foreach (var ItemForRemoval in currentLoads)
-            Preload.Remove(ItemForRemoval);
-
-        //Preload Bitmaps.
-        var additionOffset = leftRange - 1;
-        while (++additionOffset <= rightRange && file.FullName == Path)
-        {
-            if (additionOffset == 0) continue;
-            var preloadIndex = Utils.SeekIndex(index, additionOffset, files.Count());
-            var preloadFileName = files.ElementAt(preloadIndex).FullName;
-            if (Preload.ContainsKey(preloadFileName)) continue;
-            if (Preload.TryAdd(preloadFileName, null))
-                Task.Run(() => { Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)); });
         }
     }
     //Show image from the string, use path as identifier.
@@ -383,5 +356,59 @@ public partial class MainWindowViewModel : ViewModelBase
         else
             return new ProcessStartInfo
             { FileName = Config.EditApp[default], Arguments = $"\"{file.FullName}\"" };
+    }
+
+    private CancellationTokenSource? preloadCTS = null;
+    private readonly Lock preloadLock = new();
+    public void PreloadImage(IEnumerable<FileInfo> files, int index)
+    {
+        // Cancel previous preloading tasks
+        lock (preloadLock)
+        {
+            preloadCTS?.Cancel();
+            preloadCTS = new CancellationTokenSource();
+        }
+
+        var token = preloadCTS.Token;
+        var preloadTasks = new ConcurrentDictionary<string, Task>();
+
+        // Define preload range
+        int leftRange = Math.Max(-config.PreloadLeft, -(files.Count() - 1));
+        int rightRange = Math.Min(config.PreloadRight, files.Count() - 1);
+
+        // Identify files to preload
+        var newPreloadSet = new HashSet<string>();
+        foreach (var offset in Enumerable.Range(leftRange, rightRange - leftRange + 1))
+        {
+            if (offset == 0) continue;
+
+            int preloadIndex = Utils.SeekIndex(index, offset, files.Count());
+            var preloadFileName = files.ElementAt(preloadIndex).FullName;
+            newPreloadSet.Add(preloadFileName);
+
+            if (!Preload.ContainsKey(preloadFileName))
+            {
+                Preload.TryAdd(preloadFileName, null);
+                preloadTasks.TryAdd(preloadFileName, Task.Run(() =>
+                {
+                    if (token.IsCancellationRequested) return;
+                    var bitmap = Utils.ConvertImage(files.ElementAt(preloadIndex));
+                    if (!token.IsCancellationRequested)
+                        Preload[preloadFileName] = bitmap;
+                }, token));
+            }
+        }
+
+        // Remove preloads outside the range
+        var keysToRemove = Preload.Keys.Where(key => !newPreloadSet.Contains(key)).ToList();
+        foreach (var key in keysToRemove)
+            Preload.Remove(key, out _);
+
+        // Wait for tasks to complete (optional, for debugging)
+        Task.WhenAll(preloadTasks.Values).ContinueWith(_ =>
+        {
+            if (!token.IsCancellationRequested)
+                GC.Collect();
+        }, TaskScheduler.Default);
     }
 }
