@@ -24,14 +24,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         this.WhenActivated(a => Init());
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
-        ScalingChanged += ScalingChangedHandler;
-        Scaling = Screens.ScreenFromWindow(this)!.Scaling;
     }
 
     public IBrush? AccentBrush { get; set; } = Brushes.Aquamarine;
     public bool ErrorState => ViewModel != null && ViewModel.Stats != null && !ViewModel.Stats.Success;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
-    public double Scaling { get; set; } = 1;
+    public double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
     public int HoldingOffset { get; set; } = 0;
 
     public void Init()
@@ -188,8 +186,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => RefreshZoomDisplay();
     private void ZoomBorder_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
         => ViewModel!.Stretch = StretchMode.None;
-    private void ScalingChangedHandler(object? sender, EventArgs e)
-        => Scaling = Screens.ScreenFromWindow(this)!.Scaling;
     private void TextBox_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter || string.IsNullOrEmpty(ZoomText.Text)) return;
@@ -233,20 +229,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => ViewModel!.UIMessage = null;
 
     //Show child window.
-    private async Task ShowConfirmationWindow(IInteractionContext<ConfirmationWindowViewModel, bool> context)
-    {
-        var confirmationWindow = new ConfirmationWindow { DataContext = context.Input };
-        var isConfirmed = await confirmationWindow.ShowDialog<bool>(this);
-        context.SetOutput(isConfirmed);
-    }
+    private async Task ShowConfirmationWindow(IInteractionContext<ConfirmationWindowViewModel, bool?> context)
+        => context.SetOutput(await new ConfirmationWindow { DataContext = context.Input }.ShowDialog<bool?>(this));
     private async Task ShowInquiryWindow(IInteractionContext<RenameWindowViewModel, string?> context)
-    {
-        var renameWindow = new RenameWindow { DataContext = context.Input };
-        var result = await renameWindow.ShowDialog<string?>(this);
-        context.SetOutput(result);
-    }
-    private async Task ShowOpenUriWindow(IInteractionContext<Unit, string?> context)
-        => context.SetOutput(await new OpenUriWindow().ShowDialog<string?>(this));
+        => context.SetOutput(await new RenameWindow { DataContext = context.Input }.ShowDialog<string?>(this));
+    private async Task ShowOpenUriWindow(IInteractionContext<OpenUriWindowViewModel, string?> context)
+        => context.SetOutput(await new OpenUriWindow { DataContext = context.Input }.ShowDialog<string?>(this));
     private async Task ShowFilePickerAsync(IInteractionContext<Unit, Uri?> context)
     {
         //var topLevel = GetTopLevel(this);

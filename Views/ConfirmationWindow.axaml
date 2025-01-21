@@ -2,23 +2,33 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" SizeToContent="Height" Width="300"
+        mc:Ignorable="d" SizeToContent="Height" Width="400" 
         Icon="/Assets/avalonia-logo.ico"
         x:Class="ImagePlastic.Views.ConfirmationWindow"
         xmlns:vm="using:ImagePlastic.ViewModels"
         x:DataType="vm:ConfirmationWindowViewModel"
         Title="{Binding Title}"
+        PointerMoved="Window_PointerMoved"
+        PointerPressed="Window_PointerPressed"
+        PointerReleased="Window_PointerReleased"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        Background="{Binding Config.BackgroundColor}"
+        TransparencyLevelHint="{Binding Config.Blur}"
         WindowStartupLocation="CenterOwner">
     <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto">
-        <Image Source="{SvgImage /Assets/Info.svg}" Height="50" Margin="5" VerticalAlignment="Top"/>
+        <Image Source="{SvgImage /Assets/Info.svg}" Height="50" Margin="5,5,0,0" VerticalAlignment="Top" Grid.RowSpan="2"/>
         <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" Margin="5"/>
-        <StackPanel HorizontalAlignment="Right" Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
-            <Button Command="{Binding DenyCommand}" Margin="5,5,0,5">
+        <StackPanel HorizontalAlignment="Right" Margin="0,0,5,5" Spacing="5" Grid.Column="1" Grid.Row="1" Orientation="Horizontal">
+            <Button Command="{Binding DenyCommand}" Height="26" Width="26" Padding="5" Background="#1FFF0000" BorderBrush="#7FFF7F7F">
                 <Image Source="{SvgImage /Assets/Deny.svg}"/>
             </Button>
-            <Button Command="{Binding ConfirmCommand}" Margin="5">
+            <Button IsDefault="True" Command="{Binding ConfirmCommand}" Height="26" Width="26" Padding="5" Background="#1F00FF00" BorderBrush="#7F7FFF7F">
                 <Image Source="{SvgImage /Assets/Confirm.svg}"/>
             </Button>
         </StackPanel>
     </Grid>
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding DenyCommand}"/>
+    </Window.KeyBindings>
 </Window>

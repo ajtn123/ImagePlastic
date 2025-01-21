@@ -12,7 +12,11 @@
         ExtendClientAreaChromeHints="NoChrome"
         Background="{Binding Config.BackgroundColor}"
         TransparencyLevelHint="{Binding Config.Blur}"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        PointerMoved="Window_PointerMoved"
+        PointerPressed="Window_PointerPressed"
+        PointerReleased="Window_PointerReleased"
+        SizeChanged="Window_SizeChanged">
     <StackPanel>
         <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}" Margin="5"/>
         <TextBlock x:Name="ErrorMessageTextBlock" Foreground="Red" Text="{Binding ErrorMessage}" TextWrapping="Wrap" Margin="5,0,5,5" IsVisible="False"/>

@@ -12,6 +12,7 @@
         ExtendClientAreaChromeHints="NoChrome"
         Background="{Binding Config.BackgroundColor}"
         TransparencyLevelHint="{Binding Config.Blur}"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        SizeChanged="Window_SizeChanged">
     <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}" Margin="5"/>
 </Window>

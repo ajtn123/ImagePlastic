@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using ImagePlastic.Models;
+using ReactiveUI;
 using System.Reactive;
 
 namespace ImagePlastic.ViewModels;
@@ -7,6 +8,7 @@ public class ConfirmationWindowViewModel : ViewModelBase
 {
     public string Title { get; set; }
     public string Message { get; set; }
+    public Config Config { get; set; }
 
     public ReactiveCommand<Unit, bool> ConfirmCommand { get; set; }
     public ReactiveCommand<Unit, bool> DenyCommand { get; set; }
@@ -15,7 +17,8 @@ public class ConfirmationWindowViewModel : ViewModelBase
     {
         Title = title;
         Message = message;
-        ConfirmCommand = ReactiveCommand.Create(() => { return true; });
-        DenyCommand = ReactiveCommand.Create(() => { return false; });
+        Config ??= new Config();
+        ConfirmCommand = ReactiveCommand.Create(() => true);
+        DenyCommand = ReactiveCommand.Create(() => false);
     }
 }

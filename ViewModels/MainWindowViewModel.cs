@@ -7,7 +7,6 @@ using ImagePlastic.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -46,7 +45,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(true, Stats);
             UIMessage = $"Opt: {Stats.DisplayName} {result}" + (result ? $"{beforeLength} => {Utils.ToReadable(Stats.File!.Length)}" : "");
         });
-        DeleteCommand = ReactiveCommand.Create(() =>
+        DeleteCommand = ReactiveCommand.Create(async () =>
         {
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
@@ -99,13 +98,14 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         OpenUriCommand = ReactiveCommand.Create(async () =>
         {
-            var uriString = await InquiryUriString.Handle(new());
+            var uriString = await InquiryUriString.Handle(new() { Config = Config });
             if (string.IsNullOrWhiteSpace(uriString)) return;
             Path = uriString;
             ChangeImageToPath();
         });
         ReloadDirCommand = ReactiveCommand.Create(() =>
         {
+            Preload.Clear();
             if (!Stats.IsWeb && Stats.File != null)
                 LoadFile(Stats.File);
             else if (Stats.IsWeb && Stats.Url != null)
@@ -183,9 +183,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenUriCommand { get; }
     public ICommand ReloadDirCommand { get; }
     public ReactiveCommand<Unit, Unit> QuitCommand { get; }
-    public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
+    public Interaction<ConfirmationWindowViewModel, bool?> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
-    public Interaction<Unit, string?> InquiryUriString { get; } = new();
+    public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
     public Interaction<Unit, Uri?> OpenFilePicker { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
