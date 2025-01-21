@@ -23,12 +23,13 @@
             <Button Command="{Binding DenyCommand}" Height="26" Width="26" Padding="5" Background="#1FFF0000" BorderBrush="#7FFF7F7F">
                 <Image Source="{SvgImage /Assets/Deny.svg}"/>
             </Button>
-            <Button IsDefault="True" Command="{Binding ConfirmCommand}" Height="26" Width="26" Padding="5" Background="#1F00FF00" BorderBrush="#7F7FFF7F">
+            <Button Command="{Binding ConfirmCommand}" Height="26" Width="26" Padding="5" Background="#1F00FF00" BorderBrush="#7F7FFF7F">
                 <Image Source="{SvgImage /Assets/Confirm.svg}"/>
             </Button>
         </StackPanel>
     </Grid>
     <Window.KeyBindings>
         <KeyBinding Gesture="Escape" Command="{Binding DenyCommand}"/>
+        <KeyBinding Gesture="Enter" Command="{Binding ConfirmCommand}"/>
     </Window.KeyBindings>
 </Window>

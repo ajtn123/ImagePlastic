@@ -33,10 +33,14 @@
                PointerPressed="Window_PointerPressed"
                PointerReleased="Window_PointerReleased">
             <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar">
-                <TextBox Name="PathBox" Text="{Binding Path}" KeyDown="PathBox_KeyDown"
+                <TextBox Name="PathBox" Text="{Binding Path}" 
                          FontSize="14" Padding="0" MinHeight="10" MinWidth="50"
                          VerticalAlignment="Center" IsVisible="False"
-                         LostFocus="TextBox_LostFocus"/>
+                         LostFocus="TextBox_LostFocus">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding GoPath}"/>
+                    </TextBox.KeyBindings>
+                </TextBox>
                 <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center"

@@ -21,9 +21,38 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public MainWindow()
     {
         InitializeComponent();
-        this.WhenActivated(a => Init());
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
+        this.WhenActivated(a =>
+        {
+            ViewModel ??= new();
+            ViewModel.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
+            ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
+            ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
+            ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
+            ViewModel.QuitCommand.Subscribe(q => Close());
+            ViewModel.ErrorReport += ShowError;
+            if (ViewModel.Config.SystemAccentColor)
+            {
+                Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
+                var accentColor = (Color?)accentObject ?? ViewModel.Config.CustomAccentColor;
+                accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
+                AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
+            }
+            else
+                AccentBrush = (IBrush?)ColorToBrushConverter.Convert(ViewModel.Config.CustomAccentColor, typeof(IBrush));
+            SwitchBar(!ViewModel.Config.ExtendImageToTitleBar);
+            Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
+            if (string.IsNullOrEmpty(ViewModel.Path))
+            {
+                SwitchBar(true);
+                PathBox.IsVisible = true;
+                FileName.IsVisible = false;
+                PathBox.Focus();
+                ZoomText.IsVisible = false;
+            }
+            RenderOptions.SetBitmapInterpolationMode(BitmapImage, ViewModel.Config.InterpolationMode);
+        });
     }
 
     public IBrush? AccentBrush { get; set; } = Brushes.Aquamarine;
@@ -31,38 +60,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
     public int HoldingOffset { get; set; } = 0;
-
-    public void Init()
-    {
-        if (ViewModel == null) return;
-        ViewModel.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
-        ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
-        ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
-        ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
-        ViewModel.QuitCommand.Subscribe(q => Close());
-        ViewModel.ErrorReport += ShowError;
-        ViewModel.ChangeImageToPath();
-        if (ViewModel.Config.SystemAccentColor)
-        {
-            Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
-            var accentColor = (Color?)accentObject ?? ViewModel.Config.CustomAccentColor;
-            accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
-            AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
-        }
-        else
-            AccentBrush = (IBrush?)ColorToBrushConverter.Convert(ViewModel.Config.CustomAccentColor, typeof(IBrush));
-        SwitchBar(!ViewModel.Config.ExtendImageToTitleBar);
-        Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
-        if (string.IsNullOrEmpty(ViewModel.Path))
-        {
-            SwitchBar(true);
-            PathBox.IsVisible = true;
-            FileName.IsVisible = false;
-            PathBox.Focus();
-            ZoomText.IsVisible = false;
-        }
-        RenderOptions.SetBitmapInterpolationMode(BitmapImage, ViewModel.Config.InterpolationMode);
-    }
 
     //Hotkeys
     private void KeyDownHandler(object? sender, KeyEventArgs e)
@@ -129,12 +126,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void Window_PointerReleased(object? sender, PointerReleasedEventArgs e)
         => _mouseDownForWindowMoving = false;
-
-    private void PathBox_KeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key != Key.Enter || string.IsNullOrEmpty(PathBox.Text)) return;
-        else ViewModel!.ChangeImageToPath();
-    }
 
     //Auto resize Title Bar.
     private void Window_SizeChanged(object? sender, SizeChangedEventArgs e)

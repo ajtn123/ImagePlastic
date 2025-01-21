@@ -22,17 +22,15 @@ namespace ImagePlastic.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    public MainWindowViewModel(string[]? args)
+    public MainWindowViewModel()
     {
-        Args = args;
         if (Config.DefaultFile != null)
             Path = Config.DefaultFile.FullName;
-        if (args != null && args.Length > 0)
-            Path = args[0];
         else
             Stats = new(true);
         Stretch = Config.Stretch;
         Recursive = Config.RecursiveSearch;
+        GoPath = ReactiveCommand.Create(ChangeImageToPath);
         GoLeft = ReactiveCommand.Create(() => { ShowLocalImage(offset: -1); });
         GoRight = ReactiveCommand.Create(() => { ShowLocalImage(offset: 1); });
         OptCommand = ReactiveCommand.Create(async () =>
@@ -112,24 +110,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 ShowWebImage(Stats.Url);
         });
     }
-    //For previewer.
-    public MainWindowViewModel()
-    {
-        GoLeft = ReactiveCommand.Create(() => { });
-        GoRight = ReactiveCommand.Create(() => { });
-        OptCommand = ReactiveCommand.Create(() => { });
-        DeleteCommand = ReactiveCommand.Create(() => { });
-        EditCommand = ReactiveCommand.Create(() => { });
-        ShowInExplorerCommand = ReactiveCommand.Create(() => { });
-        RenameCommand = ReactiveCommand.Create(() => { });
-        QuitCommand = ReactiveCommand.Create(() => { });
-        OpenLocalCommand = ReactiveCommand.Create(() => { });
-        OpenUriCommand = ReactiveCommand.Create(() => { });
-        ReloadDirCommand = ReactiveCommand.Create(() => { });
-    }
 
     //Generating a new default configuration every time.
     //A helper is needed to persist config, also a setting view.
+    private string[]? args;
     private Config config = new();
     private Bitmap? bitmap;
     private string path = "";
@@ -143,7 +127,15 @@ public partial class MainWindowViewModel : ViewModelBase
     private string? svgPath;
     private bool recursive;
 
-    public string[]? Args { get; }
+    public string[]? Args
+    {
+        get => args; set
+        {
+            args = value;
+            if (Args == null || Args.Length == 0) return;
+            Path = Args[0]; ChangeImageToPath();
+        }
+    }
     public Dictionary<string, Bitmap?> Preload { get; set; } = [];
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
     public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
@@ -172,6 +164,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    public ICommand GoPath { get; }
     public ICommand GoLeft { get; }
     public ICommand GoRight { get; }
     public ICommand OptCommand { get; }
@@ -194,7 +187,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public void ChangeImageToPath()
     {
         Path = Path.Trim('"');
-        if (string.IsNullOrEmpty(Path)) return;
+        if (string.IsNullOrWhiteSpace(Path)) return;
         //Using index of current dir.
         else if (int.TryParse(Path, out int des))
             ShowLocalImage(destination: des - 1);

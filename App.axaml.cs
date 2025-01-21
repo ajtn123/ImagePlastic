@@ -14,7 +14,7 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            desktop.MainWindow = new MainWindow { DataContext = new MainWindowViewModel(desktop.Args) };
+            desktop.MainWindow = new MainWindow { DataContext = new MainWindowViewModel() { Args = desktop.Args } };
 
         base.OnFrameworkInitializationCompleted();
     }
