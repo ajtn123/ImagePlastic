@@ -13,6 +13,6 @@
         Background="{Binding Config.BackgroundColor}"
         TransparencyLevelHint="{Binding Config.Blur}"
         WindowStartupLocation="CenterOwner"
-        SizeChanged="Window_SizeChanged">
+        SizeChanged="Window_SizeChanged" MaxWidth="600">
     <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}" Margin="5"/>
 </Window>

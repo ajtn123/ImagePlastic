@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:ImagePlastic.ViewModels"
         x:DataType="vm:StringInquiryViewModel"
-        mc:Ignorable="d" MaxWidth="600"
+        mc:Ignorable="d"
         x:Class="ImagePlastic.Views.StringInquiry">
     <TextBox Text="{Binding Result}" Watermark="{Binding Message}" x:Name="InquiryBox" TextWrapping="Wrap">
         <TextBox.InnerRightContent>
