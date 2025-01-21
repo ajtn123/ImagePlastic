@@ -13,7 +13,7 @@ public static class Utils
 {
     private static readonly HttpClient client = new();
     private static readonly ImageOptimizer optimizer = new() { IgnoreUnsupportedFormats = true };
-    public static EqualityComparer<FileInfo> FileInfoComparer { get; } = EqualityComparer<FileInfo>.Create((a, b) =>
+    public static EqualityComparer<FileInfo?> FileInfoComparer { get; } = EqualityComparer<FileInfo?>.Create((a, b) =>
     {
         if (a == null || b == null) return false;
         else return a.FullName.Equals(b.FullName, StringComparison.OrdinalIgnoreCase);

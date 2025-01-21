@@ -92,14 +92,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OpenLocalCommand = ReactiveCommand.Create(async () =>
         {
             var fileUri = await OpenFilePicker.Handle(new());
-            ImageFile = new(fileUri.LocalPath);
-            if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
-                ShowLocalImage();
-            else
-            {
-                Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
-                ErrorReport(Stats);
-            }
+            recursiveDir = null;
+            LoadFile(new(fileUri.LocalPath));
         });
         OpenUriCommand = ReactiveCommand.Create(async () =>
         {
@@ -107,6 +101,13 @@ public partial class MainWindowViewModel : ViewModelBase
             if (string.IsNullOrWhiteSpace(uriString)) return;
             Path = uriString;
             ChangeImageToPath();
+        });
+        ReloadDirCommand = ReactiveCommand.Create(() =>
+        {
+            if (!Stats.IsWeb && ImageFile != null)
+                LoadFile(ImageFile);
+            else if (Stats.IsWeb && Stats.Url != null)
+                ShowWebImage(Stats.Url);
         });
     }
     //For previewer.
@@ -122,6 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
         QuitCommand = ReactiveCommand.Create(() => { });
         OpenLocalCommand = ReactiveCommand.Create(() => { });
         OpenUriCommand = ReactiveCommand.Create(() => { });
+        ReloadDirCommand = ReactiveCommand.Create(() => { });
     }
 
     //Generating a new default configuration every time.
@@ -132,7 +134,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private Stats stats = new(true) { DisplayName = "None" };
     private StretchMode stretch;
     private string? uIMessage;
-    private IOrderedEnumerable<FileInfo>? currentDirItems;
+    private DirectoryInfo? currentDir;
     private DirectoryInfo? recursiveDir = null;
     private bool pinned = false;
     public bool loading = false;
@@ -144,6 +146,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
     public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
     public FileInfo? ImageFile { get; set; }
+    public IOrderedEnumerable<FileInfo>? CurrentDirItems { get; set; }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
     public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
@@ -151,16 +154,19 @@ public partial class MainWindowViewModel : ViewModelBase
     public string? UIMessage { get => uIMessage; set => this.RaiseAndSetIfChanged(ref uIMessage, value); }
     public bool Pinned { get => pinned; set => this.RaiseAndSetIfChanged(ref pinned, value); }
     public string? SvgPath { get => svgPath; set => this.RaiseAndSetIfChanged(ref svgPath, value); }
+    //Re-scan dir when Recursive property changed.
     public bool Recursive
     {
         get => recursive; set
         {
             this.RaiseAndSetIfChanged(ref recursive, value);
             if (value && ImageFile != null)
-            {
                 recursiveDir = ImageFile.Directory;
-                ShowLocalImage();
-            }
+            else if (!value)
+                recursiveDir = null;
+            CurrentDirItems = null;
+            if (ImageFile != null)
+                LoadFile(ImageFile);
         }
     }
 
@@ -173,6 +179,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand RenameCommand { get; }
     public ICommand OpenLocalCommand { get; }
     public ICommand OpenUriCommand { get; }
+    public ICommand ReloadDirCommand { get; }
     public ReactiveCommand<Unit, Unit> QuitCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
@@ -195,14 +202,8 @@ public partial class MainWindowViewModel : ViewModelBase
         //Using file path.
         else if (new FileInfo(Path).Exists)
         {
-            ImageFile = new FileInfo(Path);
-            if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
-                ShowLocalImage();
-            else
-            {
-                Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
-                ErrorReport(Stats);
-            }
+            recursiveDir = null;
+            LoadFile(new(Path));
         }
         else
         {
@@ -210,54 +211,74 @@ public partial class MainWindowViewModel : ViewModelBase
             ErrorReport(Stats);
         }
     }
-
+    //Set ImageFile and load its directory.
+    public void LoadFile(FileInfo file)
+    {
+        ImageFile = file;
+        if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
+        {
+            if (Recursive && (recursiveDir != null || ImageFile.Directory != null))
+            {
+                recursiveDir ??= ImageFile.Directory;
+                LoadDir(recursiveDir!);
+            }
+            else if (ImageFile.Directory != null)
+                LoadDir(ImageFile.Directory);
+            else
+            {
+                IEnumerable<FileInfo> a = [ImageFile];
+                CurrentDirItems = a.OrderBy(_ => 1);
+            }
+            ShowLocalImage();
+        }
+        else
+        {
+            Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
+            ErrorReport(Stats);
+        }
+    }
+    //Load when dir changed.
+    public void LoadDir(DirectoryInfo dir)
+    {
+        if (CurrentDirItems != null && currentDir != null && currentDir.FullName == dir.FullName) return;
+        currentDir = dir;
+        CurrentDirItems = dir!.EnumerateFiles("", Recursive ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly)
+                              .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
+                              .OrderBy(file => file.FullName, new IntuitiveStringComparer());
+    }
+    //Load and show info of ImageFile or its neighbor without decode or rendering.
     public void Select(int offset = 0, int? destination = null)
     {
-        if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || currentDirItems == null) return;
-        var currentIndex = currentDirItems.IndexOf(Stats.File, Utils.FileInfoComparer);
-        destination ??= Utils.SeekIndex(currentIndex, offset, currentDirItems.Count());
-        var file = currentDirItems.ElementAt((int)destination);
+        if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || CurrentDirItems == null) return;
+        destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
+        var file = CurrentDirItems.ElementAt((int)destination);
         ImageFile = file;
         Path = file.FullName;
-        Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = currentDirItems!.Count(), File = file, DisplayName = file.Name };
+        Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name };
     }
+    //Return FileInfo of ImageFile or its neighbor.
     public FileInfo? SeekFile(int offset = 0, int? destination = null)
     {
-        if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || currentDirItems == null) return null;
-        var currentIndex = currentDirItems.IndexOf(Stats.File, Utils.FileInfoComparer);
-        destination ??= Utils.SeekIndex(currentIndex, offset, currentDirItems.Count());
-        return currentDirItems.ElementAt((int)destination);
+        if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || CurrentDirItems == null) return null;
+        destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
+        return CurrentDirItems.ElementAt((int)destination);
     }
-    //Scan the path directory and show the image.
-    public void ShowLocalImage(int offset = 0, int? destination = null)
+    //Show ImageFile or its neighbor.
+    public async void ShowLocalImage(int offset = 0, int? destination = null)
     {
         if (ImageFile == null || !ImageFile.Exists) return;
         try
         {
-            IOrderedEnumerable<FileInfo>? files;
-            if (Recursive)
-            {
-                recursiveDir ??= ImageFile.Directory;
-                files = recursiveDir!.EnumerateFiles("", System.IO.SearchOption.AllDirectories)
-                                     .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
-                                     .OrderBy(file => file.FullName, new IntuitiveStringComparer());
-            }
-            else
-            {
-                files = ImageFile.Directory!.EnumerateFiles("", System.IO.SearchOption.TopDirectoryOnly)
-                                            .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
-                                            .OrderBy(file => file.FullName, new IntuitiveStringComparer());
-            }
+            var files = CurrentDirItems;
+            if (files == null || !files.Any()) return;
 
-            currentDirItems = files;
-            var currentIndex = files.IndexOf(ImageFile, Utils.FileInfoComparer);
-            destination ??= Utils.SeekIndex(currentIndex, offset, files.Count());
+            destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
             var file = files.ElementAt((int)destination);
             ImageFile = file; Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
             using (var fs = file.OpenRead())
-                ShowImage(fs, file.FullName);
+                await ShowImage(fs, file.FullName);
 
             Stats = new(Stats.Success, Stats) { EditCmd = GetEditAppStartInfo(file, Stats.Format) };
 
@@ -299,7 +320,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 Task.Run(() => { Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)); });
         }
     }
-    public async void ShowImage(Stream stream, string path)
+    //Show image from the string, use path as identifier.
+    public async Task ShowImage(Stream stream, string path)
     {
         Loading = true;
         using MagickImage image = new(stream);
@@ -340,11 +362,18 @@ public partial class MainWindowViewModel : ViewModelBase
         else
         {
             Stats = new(true) { IsWeb = true, Url = url };
-            ShowImage(webStream, url);
-            Stats = new(Stats.Success, Stats) { DisplayName = url.Split('/')[^1] };
+            await ShowImage(webStream, url);
         }
+        Stats = new(Stats.Success, Stats) { DisplayName = url.Split('/')[^1] };
         ErrorReport(Stats);
         Loading = false;
+    }
+    //Get index of current file.
+    public int GetCurrentIndex()
+    {
+        if (Stats.FileCount == CurrentDirItems!.Count() && Stats.FileIndex != null)
+            return (int)Stats.FileIndex;
+        else return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
     }
     public ProcessStartInfo? GetEditAppStartInfo(FileInfo file, MagickFormat format)
     {

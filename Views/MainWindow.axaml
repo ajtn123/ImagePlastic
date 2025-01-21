@@ -110,6 +110,7 @@
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
                 <MenuItem Header="Explorer" Command="{Binding ShowInExplorerCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
+                <MenuItem Header="Refresh" Command="{Binding ReloadDirCommand}"/>
                 <MenuItem Header="QUIT" Command="{Binding QuitCommand}" Background="#3FFF0000"/>
             </ContextMenu>
         </Grid.ContextMenu>
