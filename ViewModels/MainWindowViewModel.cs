@@ -45,7 +45,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(true, Stats);
             UIMessage = $"Opt: {Stats.DisplayName} {result}" + (result ? $"{beforeLength} => {Utils.ToReadable(Stats.File!.Length)}" : "");
         });
-        DeleteCommand = ReactiveCommand.Create(async () =>
+        DeleteCommand = ReactiveCommand.Create(() =>
         {
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;

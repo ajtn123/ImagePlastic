@@ -44,14 +44,10 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
         }
         catch (Exception e)
         {
-            ShowError(ViewModel!.ErrorMessage = e.Message);
+            ViewModel!.ErrorMessage = e.Message;
+            ErrorMessageTextBlock.IsVisible = true;
             return null;
         }
-    }
-    private void ShowError(string message)
-    {
-        ViewModel!.ErrorMessage = message;
-        ErrorMessageTextBlock.IsVisible = true;
     }
     //Make entire window draggable.
     //https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
