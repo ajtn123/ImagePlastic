@@ -12,6 +12,7 @@ using ReactiveUI;
 using System;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
@@ -30,7 +31,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
             ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
-            ViewModel.QuitCommand.Subscribe(q => Close());
+            ViewModel.QuitCommand.Subscribe(q => Close()).DisposeWith(a);
             ViewModel.ErrorReport += ShowError;
             if (ViewModel.Config.SystemAccentColor)
             {
@@ -138,6 +139,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void SwitchBar(bool visible)
     {
         visible = visible || (ErrorState || PathBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned);
+        WindowControls.IsVisible = visible;
         TitleBar.IsVisible = visible;
         TitleArea.Background = ErrorState ? Brushes.Red
                                 : visible ? AccentBrush
@@ -280,5 +282,51 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (imageIndex < 0) imageIndex = 0;
         if (imageIndex >= ViewModel!.Stats.FileCount) imageIndex = (int)ViewModel!.Stats.FileCount - 1;
         ViewModel.ShowLocalImage(destination: imageIndex);
+    }
+
+    private void MinimizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => WindowState = WindowState.Minimized;
+    private void MaximizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (WindowState == WindowState.Maximized)
+            SetWindowState(WindowState.Normal);
+        else
+            SetWindowState(WindowState.Maximized);
+    }
+    private void FullscreenButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (WindowState == WindowState.FullScreen)
+            SetWindowState(WindowState.Normal);
+        else
+            SetWindowState(WindowState.FullScreen);
+    }
+    private void ExitButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Close();
+    private void SetWindowState(WindowState state)
+    {
+        if (state == WindowState.Normal)
+        {
+            WindowState = WindowState.Normal;
+            FullscreenIcon.IsVisible = true;
+            FullscreenExitIcon.IsVisible = false;
+            MaximizeIcon.IsVisible = true;
+            MaximizeExitIcon.IsVisible = false;
+        }
+        else if (state == WindowState.FullScreen)
+        {
+            WindowState = WindowState.FullScreen;
+            FullscreenIcon.IsVisible = false;
+            FullscreenExitIcon.IsVisible = true;
+            MaximizeIcon.IsVisible = true;
+            MaximizeExitIcon.IsVisible = false;
+        }
+        else if (state == WindowState.Maximized)
+        {
+            WindowState = WindowState.Maximized;
+            MaximizeIcon.IsVisible = false;
+            MaximizeExitIcon.IsVisible = true;
+            FullscreenIcon.IsVisible = true;
+            FullscreenExitIcon.IsVisible = false;
+        }
     }
 }

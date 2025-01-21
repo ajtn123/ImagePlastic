@@ -13,7 +13,8 @@
         Background="{Binding Config.BackgroundColor}"
         ExtendClientAreaToDecorationsHint="True"
         SizeChanged="Window_SizeChanged"
-        TransparencyLevelHint="{Binding Config.Blur}">
+        TransparencyLevelHint="{Binding Config.Blur}"
+        ExtendClientAreaChromeHints="NoChrome">
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
@@ -47,13 +48,33 @@
                            FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
                          FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
-                <Button FontSize="14" Padding="0" Click="Button_Click_1" HotKey="OemPlus">
+                <Button FontSize="14" Padding="0" Click="Button_Click_1" HotKey="OemPlus" Background="Transparent">
                     <Image Source="{SvgImage /Assets/ViewRealSize.svg}"/>
                 </Button>
-                <Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus">
+                <Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus"  Background="Transparent">
                     <Image Source="{SvgImage /Assets/AspectRatio.svg}"/>
                 </Button>
                 <CheckBox FontSize="14" Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" x:Name="WindowControls">
+                <Button Background="Transparent" Click="MinimizeButton_Click">
+                    <Image Source="{SvgImage /Assets/Minimize.svg}"/>
+                </Button>
+                <Button Background="Transparent" Click="MaximizeButton_Click">
+                    <Panel>
+                        <Image Source="{SvgImage /Assets/Maximize.svg}" x:Name="MaximizeIcon"/>
+                        <Image Source="{SvgImage /Assets/MaximizeExit.svg}" x:Name="MaximizeExitIcon" IsVisible="False"/>
+                    </Panel>
+                </Button>
+                <Button Background="Transparent" Click="FullscreenButton_Click">
+                    <Panel>
+                        <Image Source="{SvgImage /Assets/Fullscreen.svg}" x:Name="FullscreenIcon"/>
+                        <Image Source="{SvgImage /Assets/FullscreenExit.svg}" x:Name="FullscreenExitIcon" IsVisible="False"/>
+                    </Panel>
+                </Button>
+                <Button Background="Transparent" Click="ExitButton_Click">
+                    <Image Source="{SvgImage /Assets/Exit.svg}"/>
+                </Button>
             </StackPanel>
         </Panel>
 
