@@ -106,8 +106,8 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         ReloadDirCommand = ReactiveCommand.Create(() =>
         {
-            if (!Stats.IsWeb && ImageFile != null)
-                LoadFile(ImageFile);
+            if (!Stats.IsWeb && Stats.File != null)
+                LoadFile(Stats.File);
             else if (Stats.IsWeb && Stats.Url != null)
                 ShowWebImage(Stats.Url);
         });
@@ -358,10 +358,13 @@ public partial class MainWindowViewModel : ViewModelBase
             { FileName = Config.EditApp[default], Arguments = $"\"{file.FullName}\"" };
     }
 
+    //😋 https://chatgpt.com/
     private CancellationTokenSource? preloadCTS = null;
     private readonly Lock preloadLock = new();
     public void PreloadImage(IEnumerable<FileInfo> files, int index)
     {
+        if (!files.Any()) return;
+
         // Cancel previous preloading tasks
         lock (preloadLock)
         {
@@ -370,7 +373,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         var token = preloadCTS.Token;
-        var preloadTasks = new ConcurrentDictionary<string, Task>();
+        var preloadTasks = new List<Task>();
 
         // Define preload range
         int leftRange = Math.Max(-config.PreloadLeft, -(files.Count() - 1));
@@ -380,16 +383,23 @@ public partial class MainWindowViewModel : ViewModelBase
         var newPreloadSet = new HashSet<string>();
         foreach (var offset in Enumerable.Range(leftRange, rightRange - leftRange + 1))
         {
-            if (offset == 0) continue;
+            if (token.IsCancellationRequested) break;
 
             int preloadIndex = Utils.SeekIndex(index, offset, files.Count());
             var preloadFileName = files.ElementAt(preloadIndex).FullName;
             newPreloadSet.Add(preloadFileName);
 
+            if (offset == 0)
+            {
+                if (Bitmap != null)
+                    Preload.TryAdd(preloadFileName, Bitmap);
+                continue;
+            }
+
             if (!Preload.ContainsKey(preloadFileName))
             {
                 Preload.TryAdd(preloadFileName, null);
-                preloadTasks.TryAdd(preloadFileName, Task.Run(() =>
+                preloadTasks.Add(Task.Run(() =>
                 {
                     if (token.IsCancellationRequested) return;
                     var bitmap = Utils.ConvertImage(files.ElementAt(preloadIndex));
@@ -405,7 +415,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Preload.Remove(key, out _);
 
         // Wait for tasks to complete (optional, for debugging)
-        Task.WhenAll(preloadTasks.Values).ContinueWith(_ =>
+        Task.WhenAll(preloadTasks).ContinueWith(_ =>
         {
             if (!token.IsCancellationRequested)
                 GC.Collect();
