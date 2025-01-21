@@ -43,11 +43,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             }
             else
                 AccentBrush = (IBrush?)ColorToBrushConverter.Convert(ViewModel.Config.CustomAccentColor, typeof(IBrush));
-            SwitchBar(!ViewModel.Config.ExtendImageToTitleBar);
+            UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
             Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
             if (string.IsNullOrEmpty(ViewModel.Path))
             {
-                SwitchBar(true);
+                UpdateTitleBarVisibility(true);
                 PathBox.IsVisible = true;
                 FileName.IsVisible = false;
                 PathBox.Focus();
@@ -61,51 +61,38 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public bool ErrorState => ViewModel != null && ViewModel.Stats != null && !ViewModel.Stats.Success;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
-    public int HoldingOffset { get; set; } = 0;
+    public int ImageNavigationOffset { get; set; } = 0;
 
     //Hotkeys
     private void KeyDownHandler(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Left && !ViewModel!.Stats.IsWeb)
-            if (e.KeyModifiers == KeyModifiers.Control)
-                if (!ViewModel!.loading) ViewModel!.ShowLocalImage(offset: -1); else return;
-            else
-            {
-                if (HoldingOffset == 0)
-                    ViewModel!.ShowLocalImage(offset: -1);
-                else
-                {
-                    ViewModel!.Select(offset: -1);
-                    SwitchBar(true);
-                }
-                HoldingOffset -= 1;
-            }
-        else if (e.Key == Key.Right && !ViewModel!.Stats.IsWeb)
-            if (e.KeyModifiers == KeyModifiers.Control)
-                if (!ViewModel!.loading) ViewModel!.ShowLocalImage(offset: 1); else return;
-            else
-            {
-                if (HoldingOffset == 0)
-                    ViewModel!.ShowLocalImage(offset: 1);
-                else
-                {
-                    ViewModel!.Select(offset: 1);
-                    SwitchBar(true);
-                }
-                HoldingOffset += 1;
-            }
-        //ViewModel!.UIMessage = "KeyDown:" + e.Key.ToString();
+        if (e.Key == Key.Left)
+            NavigateImage(-1, e.KeyModifiers == KeyModifiers.Control);
+        else if (e.Key == Key.Right)
+            NavigateImage(1, e.KeyModifiers == KeyModifiers.Control);
     }
     private void KeyUpHandler(object? sender, KeyEventArgs e)
     {
-        if (e.Key is Key.Left or Key.Right && !ViewModel!.Stats.IsWeb)
+        if ((ViewModel?.Stats) != null && !ViewModel.Stats.IsWeb && e.Key is Key.Left or Key.Right)
         {
-            if (HoldingOffset >= 2 || HoldingOffset <= -2)
+            if (ImageNavigationOffset >= 2 || ImageNavigationOffset <= -2)
                 ViewModel!.ShowLocalImage();
-            HoldingOffset = 0;
+            ImageNavigationOffset = 0;
         }
-        //ViewModel!.UIMessage = "KeyUp:" + e.Key.ToString();
     }
+    //Render every image without skipping if pressing control.
+    private void NavigateImage(int offset, bool waitLast = false)
+    {
+        if (ViewModel?.Stats == null || ViewModel.Stats.IsWeb) return;
+        if (ImageNavigationOffset != 0 && !waitLast)
+            ViewModel!.Select(offset: offset);
+        else if (!ViewModel!.loading || !waitLast)
+            ViewModel!.ShowLocalImage(offset: offset);
+        if (ImageNavigationOffset != 0)
+            UpdateTitleBarVisibility(true);
+        ImageNavigationOffset += offset;
+    }
+
 
     //Make entire window draggable.
     //https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
@@ -137,7 +124,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     //Auto hide Title Bar.
-    private void SwitchBar(bool visible)
+    private void UpdateTitleBarVisibility(bool visible)
     {
         visible = visible || (ErrorState || PathBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned);
         WindowControls.IsVisible = visible;
@@ -147,9 +134,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                           : Brushes.Transparent;
     }
     private void StackPanel_PointerEntered(object? sender, PointerEventArgs e)
-        => SwitchBar(true);
+        => UpdateTitleBarVisibility(true);
     private void StackPanel_PointerExited(object? sender, PointerEventArgs e)
-        => SwitchBar(false);
+        => UpdateTitleBarVisibility(false);
 
     //Auto hide left and right Buttons.
     private void Button_PointerEntered(object? sender, PointerEventArgs e)
@@ -160,14 +147,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     //Show Error View and make other ui changes.
     private void ShowError(Stats errorStats)
     {
-        SwitchBar(!errorStats.Success);
+        UpdateTitleBarVisibility(!errorStats.Success);
         ZoomText.IsVisible = errorStats.Success;
         Zoomer.IsVisible = errorStats.Success;
         ErrorView.IsVisible = !errorStats.Success;
-        if (errorStats.File != null)
-            ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File.FullName}";
-        else if (errorStats.IsWeb)
-            ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.Url}";
+        ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File?.FullName ?? errorStats.Url}";
         ViewModel!.Stretch = StretchMode.Uniform;
     }
 
@@ -231,15 +215,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => context.SetOutput(await new OpenUriWindow { DataContext = context.Input }.ShowDialog<string?>(this));
     private async Task ShowFilePickerAsync(IInteractionContext<Unit, Uri?> context)
     {
-        //var topLevel = GetTopLevel(this);
-        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        try
         {
-            AllowMultiple = false
-        });
-        if (files.Any())
-            context.SetOutput(files[0].Path);
-        else
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { AllowMultiple = false });
+            context.SetOutput(files.Any() ? files[0].Path : null);
+        }
+        catch
+        {
             context.SetOutput(null);
+        }
     }
 
     //ProgressBar.
@@ -256,7 +240,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         Progress.Height = 12;
         if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
-        SwitchBar(true);
+        UpdateTitleBarVisibility(true);
         _progressBarPressed = true;
         var progressRatio = e.GetPosition((Visual?)sender).X / Progress.Bounds.Width;
         var imageIndex = (int)double.Round(progressRatio * (int)ViewModel!.Stats.FileCount - 1);
@@ -312,10 +296,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         else if (state == WindowState.Maximized)
         {
-            MaximizeIcon.IsVisible = false;
-            MaximizeExitIcon.IsVisible = true;
             FullscreenIcon.IsVisible = true;
             FullscreenExitIcon.IsVisible = false;
+            MaximizeIcon.IsVisible = false;
+            MaximizeExitIcon.IsVisible = true;
         }
         else
         {

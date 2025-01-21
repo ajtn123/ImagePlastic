@@ -262,6 +262,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public async void ShowLocalImage(int offset = 0, int? destination = null)
     {
         if (ImageFile == null || !ImageFile.Exists) return;
+        Loading = true;
         try
         {
             var files = CurrentDirItems;
