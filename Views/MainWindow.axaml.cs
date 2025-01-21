@@ -229,8 +229,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => ViewModel!.UIMessage = null;
 
     //Show child window.
-    private async Task ShowConfirmationWindow(IInteractionContext<ConfirmationWindowViewModel, bool?> context)
-        => context.SetOutput(await new ConfirmationWindow { DataContext = context.Input }.ShowDialog<bool?>(this));
+    private async Task ShowConfirmationWindow(IInteractionContext<ConfirmationWindowViewModel, bool> context)
+        => context.SetOutput(await new ConfirmationWindow { DataContext = context.Input }.ShowDialog<bool>(this));
     private async Task ShowInquiryWindow(IInteractionContext<RenameWindowViewModel, string?> context)
         => context.SetOutput(await new RenameWindow { DataContext = context.Input }.ShowDialog<string?>(this));
     private async Task ShowOpenUriWindow(IInteractionContext<OpenUriWindowViewModel, string?> context)

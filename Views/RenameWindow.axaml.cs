@@ -7,6 +7,7 @@ using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using System;
 using System.Reactive.Disposables;
+using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
 
@@ -19,9 +20,9 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
         {
             ViewModel ??= new(new(@"C:\a.png"));
             ViewModel.StringInquiry.DenyCommand.Subscribe(Close).DisposeWith(disposables);
-            ViewModel.StringInquiry.ConfirmCommand.Subscribe(newName =>
+            ViewModel.StringInquiry.ConfirmCommand.Subscribe(async newName =>
             {
-                var newPath = Rename(newName);
+                var newPath = await Rename(newName);
                 if (newPath == null) return;
                 else Close(newPath);
             }).DisposeWith(disposables);
@@ -35,11 +36,12 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
         Position = new PixelPoint(Position.X + (int)x, Position.Y + (int)y);
     }
     private double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
-    private string? Rename(string? newName)
+    private async Task<string?> Rename(string? newName)
     {
+        if (ViewModel!.Config.RenameConfirmation && !await new ConfirmationWindow { DataContext = new ConfirmationWindowViewModel("Rename Confirmation", $"Renaming file {ViewModel!.RenamingFile.FullName} to {newName}") { Config = ViewModel.Config } }.ShowDialog<bool>(this)) return null;
         try
         {
-            FileSystem.RenameFile(ViewModel!.RenamingFile.FullName, newName!);
+            FileSystem.RenameFile(ViewModel.RenamingFile.FullName, newName!);
             return $@"{ViewModel.RenamingFile.DirectoryName}\{newName}";
         }
         catch (Exception e)

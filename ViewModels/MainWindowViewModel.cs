@@ -85,7 +85,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var newFile = new FileInfo(newFileName);
             if (!newFile.Exists) return;
 
-            Stats = new(true) { File = newFile };
+            ImageFile = newFile;
             Select(offset: 0);
             UIMessage = $"{file.FullName} => {newFile.Name}";
         });
@@ -183,7 +183,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenUriCommand { get; }
     public ICommand ReloadDirCommand { get; }
     public ReactiveCommand<Unit, Unit> QuitCommand { get; }
-    public Interaction<ConfirmationWindowViewModel, bool?> RequireConfirmation { get; } = new();
+    public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
     public Interaction<Unit, Uri?> OpenFilePicker { get; } = new();
