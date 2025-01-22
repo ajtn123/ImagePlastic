@@ -259,14 +259,14 @@ public partial class MainWindowViewModel : ViewModelBase
         return CurrentDirItems.ElementAt((int)destination);
     }
     //Show ImageFile or its neighbor.
-    public async void ShowLocalImage(int offset = 0, int? destination = null)
+    public async void ShowLocalImage(int offset = 0, int? destination = null, bool doPreload = true)
     {
         if (ImageFile == null || !ImageFile.Exists) return;
-        Loading = true;
         try
         {
             var files = CurrentDirItems;
             if (files == null || !files.Any()) return;
+            Loading = true;
 
             destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
             var file = files.ElementAt((int)destination);
@@ -278,7 +278,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Stats = new(Stats.Success, Stats) { EditCmd = GetEditAppStartInfo(file, Stats.Format) };
 
-            if (config.Preload && file.FullName == Path)
+            if (config.Preload && doPreload && file.FullName == Path)
                 PreloadImage(files, (int)destination);
         }
         catch
@@ -286,6 +286,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
             ErrorReport(Stats);
         }
+        Loading = false;
     }
     //Show image from the string, use path as identifier.
     public async Task ShowImage(Stream stream, string path)
@@ -384,13 +385,10 @@ public partial class MainWindowViewModel : ViewModelBase
             newPreloadSet.Add(preloadFileName);
 
             if (offset == 0)
-            {
                 if (Bitmap != null)
                     Preload.TryAdd(preloadFileName, Bitmap);
-                continue;
-            }
-
-            if (!Preload.ContainsKey(preloadFileName))
+                else continue;
+            else if (!Preload.ContainsKey(preloadFileName))
             {
                 Preload.TryAdd(preloadFileName, null);
                 preloadTasks.Add(Task.Run(() =>
