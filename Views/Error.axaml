@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="ImagePlastic.Views.Error">
+             x:Class="ImagePlastic.Views.Error" Background="Transparent">
     <StackPanel VerticalAlignment="Center">
         <Image Source="{SvgImage /Assets/BrokenImage.svg}" Height="100"/>
         <TextBlock HorizontalAlignment="Center" x:Name="ErrorMsg" Margin="50,5"
