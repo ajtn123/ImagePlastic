@@ -44,7 +44,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             else
                 AccentBrush = (IBrush?)ColorToBrushConverter.Convert(ViewModel.Config.CustomAccentColor, typeof(IBrush));
             UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
-            Grid.SetRow(TitleArea, ViewModel.Config.ExtendImageToTitleBar ? 1 : 0);
             if (string.IsNullOrEmpty(ViewModel.Path))
             {
                 UpdateTitleBarVisibility(true);
@@ -240,35 +239,29 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private bool _progressBarPressed = false;
     private void ProgressBar_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        Progress.Height = 12;
-        if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
-        UpdateTitleBarVisibility(true);
         _progressBarPressed = true;
-        var progressRatio = e.GetPosition((Visual?)sender).X / Progress.Bounds.Width;
-        var imageIndex = (int)double.Round(progressRatio * (int)ViewModel!.Stats.FileCount - 1);
-        if (imageIndex < 0) imageIndex = 0;
-        if (imageIndex >= ViewModel!.Stats.FileCount) imageIndex = (int)ViewModel!.Stats.FileCount - 1;
-        ViewModel.Select(destination: imageIndex);
+        Progress.Height = 12;
+        UpdateTitleBarVisibility(true);
+        ProgressToRatio(e.GetPosition((Visual?)sender).X / Progress.Bounds.Width);
     }
     private void ProgressBar_PointerMoved(object? sender, PointerEventArgs e)
     {
-        if (!_progressBarPressed || ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
-        var progressRatio = e.GetPosition((Visual?)sender).X / Progress.Bounds.Width;
-        var imageIndex = (int)double.Round(progressRatio * (int)ViewModel!.Stats.FileCount - 1);
-        if (imageIndex < 0) imageIndex = 0;
-        if (imageIndex >= ViewModel!.Stats.FileCount) imageIndex = (int)ViewModel!.Stats.FileCount - 1;
-        ViewModel.Select(destination: imageIndex);
+        if (_progressBarPressed)
+            ProgressToRatio(e.GetPosition((Visual?)sender).X / Progress.Bounds.Width);
     }
     private void ProgressBar_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        Progress.Height = 10;
         _progressBarPressed = false;
+        Progress.Height = 10;
+        ProgressToRatio(e.GetPosition((Visual?)sender).X / Progress.Bounds.Width, doShow: true);
+    }
+    private void ProgressToRatio(double progressRatio, bool doShow = false)
+    {
         if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
-        var progressRatio = e.GetPosition((Visual?)sender).X / Progress.Bounds.Width;
-        var imageIndex = (int)double.Round(progressRatio * (int)ViewModel!.Stats.FileCount - 1);
-        if (imageIndex < 0) imageIndex = 0;
-        if (imageIndex >= ViewModel!.Stats.FileCount) imageIndex = (int)ViewModel!.Stats.FileCount - 1;
-        ViewModel.ShowLocalImage(destination: imageIndex);
+        var imageIndex = (int)double.Round(progressRatio * (int)ViewModel.Stats.FileCount - 1);
+        imageIndex = Math.Clamp(imageIndex, 0, (int)ViewModel.Stats.FileCount - 1);
+        if (doShow) ViewModel.ShowLocalImage(destination: imageIndex);
+        else ViewModel.Select(destination: imageIndex);
     }
 
     private void MinimizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

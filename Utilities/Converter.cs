@@ -48,6 +48,14 @@ public class BoolConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+public class BoolToParameterConverter : IValueConverter
+{
+    public static readonly BoolToParameterConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => (bool?)value == true ? parameter : null;
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
 public class IntConverter : IValueConverter
 {
     public static readonly IntConverter Instance = new();

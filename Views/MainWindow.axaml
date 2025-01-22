@@ -19,13 +19,14 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
     <Window.Resources>
+        <cvt:BoolToParameterConverter x:Key="BoolToParameterConverter"/>
         <cvt:StatsConverter x:Key="StatsConverter"/>
         <cvt:BoolConverter x:Key="BoolConverter"/>
         <cvt:IntConverter x:Key="IntConverter"/>
     </Window.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto">
-        <Panel Grid.Row="0"
+        <Panel Grid.Row="{Binding Config.ExtendImageToTitleBar,Converter={StaticResource BoolToParameterConverter},ConverterParameter=1}"
                VerticalAlignment="Top" HorizontalAlignment="Left"
                Height="29" ZIndex="10" x:Name="TitleArea"
                PointerEntered="StackPanel_PointerEntered"
@@ -130,12 +131,12 @@
                 <CheckBox IsChecked="{Binding Recursive}" IsVisible="{Binding !Stats.IsWeb}">Recursive</CheckBox>
                 <MenuItem Header="Open" Command="{Binding OpenLocalCommand}"/>
                 <MenuItem Header="Open URI" Command="{Binding OpenUriCommand}"/>
-                <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
-                <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}" HotKey="F2"/>
-                <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
-                <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
                 <MenuItem Header="Explorer" Command="{Binding ShowInExplorerCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Refresh" Command="{Binding ReloadDirCommand}"/>
+                <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
+                <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}" HotKey="F2"/>
+                <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
+                <MenuItem Header="Delete" Command="{Binding DeleteCommand}" Background="#3FFF0000" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="QUIT" Command="{Binding QuitCommand}" Background="#3FFF0000"/>
             </ContextMenu>
         </Grid.ContextMenu>
