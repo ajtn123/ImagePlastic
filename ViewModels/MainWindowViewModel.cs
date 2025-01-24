@@ -28,6 +28,15 @@ public partial class MainWindowViewModel : ViewModelBase
             Path = Config.DefaultFile.FullName;
         else
             Stats = new(true);
+        FSWatcher = new()
+        {
+            Filter = "*.*",
+            NotifyFilter = NotifyFilters.FileName,
+        };
+        //FSWatcher.Changed += OnChanged;
+        FSWatcher.Created += OnFSChanged;
+        FSWatcher.Deleted += OnFSChanged;
+        FSWatcher.Renamed += OnFSChanged;
         Stretch = Config.Stretch;
         Recursive = Config.RecursiveSearch;
         GoPath = ReactiveCommand.Create(ChangeImageToPath);
@@ -148,6 +157,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public string? UIMessage { get => uIMessage; set => this.RaiseAndSetIfChanged(ref uIMessage, value); }
     public bool Pinned { get => pinned; set => this.RaiseAndSetIfChanged(ref pinned, value); }
     public string? SvgPath { get => svgPath; set => this.RaiseAndSetIfChanged(ref svgPath, value); }
+    public FileSystemWatcher FSWatcher { get; set; }
+    public bool FSChanged { get; set; } = false;
     //Re-scan dir when Recursive property changed.
     public bool Recursive
     {
@@ -206,6 +217,8 @@ public partial class MainWindowViewModel : ViewModelBase
             ErrorReport(Stats);
         }
     }
+    private void OnFSChanged(object sender, FileSystemEventArgs e)
+        => FSChanged = true;
     //Set ImageFile and load its directory.
     public void LoadFile(FileInfo file)
     {
@@ -224,6 +237,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 IEnumerable<FileInfo> a = [ImageFile];
                 CurrentDirItems = a.OrderBy(_ => 1);
             }
+            FSChanged = true;
             ShowLocalImage();
         }
         else
@@ -235,11 +249,13 @@ public partial class MainWindowViewModel : ViewModelBase
     //Load when dir changed.
     public void LoadDir(DirectoryInfo dir)
     {
-        if (CurrentDirItems != null && currentDir != null && currentDir.FullName == dir.FullName) return;
         currentDir = dir;
         CurrentDirItems = dir!.EnumerateFiles("", Recursive ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly)
                               .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
                               .OrderBy(file => file.FullName, new IntuitiveStringComparer());
+        FSWatcher.Path = currentDir.FullName;
+        FSWatcher.IncludeSubdirectories = Recursive;
+        FSWatcher.EnableRaisingEvents = true;
     }
     //Load and show info of ImageFile or its neighbor without decode or rendering.
     public void Select(int offset = 0, int? destination = null)
@@ -339,9 +355,10 @@ public partial class MainWindowViewModel : ViewModelBase
     //Get index of current file.
     public int GetCurrentIndex()
     {
-        if (Stats.FileCount == CurrentDirItems!.Count() && Stats.FileIndex != null)
+        if (Stats.FileIndex != null && !FSChanged)
             return (int)Stats.FileIndex;
-        else return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
+        FSChanged = false;
+        return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
     }
     public ProcessStartInfo? GetEditAppStartInfo(FileInfo file, MagickFormat format)
     {
