@@ -223,7 +223,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public void LoadFile(FileInfo file)
     {
         ImageFile = file;
-        if (ImageFile.Exists && config.Extensions.Contains(ImageFile.Extension.ToLower()))
+        if (ImageFile.Exists)
         {
             if (Recursive && (recursiveDir != null || ImageFile.Directory != null))
             {
@@ -277,25 +277,37 @@ public partial class MainWindowViewModel : ViewModelBase
     //Show ImageFile or its neighbor.
     public async void ShowLocalImage(int offset = 0, int? destination = null, bool doPreload = true)
     {
-        if (ImageFile == null || !ImageFile.Exists) return;
+        if (ImageFile == null || !ImageFile.Exists || CurrentDirItems == null || !CurrentDirItems.Any()) return;
         try
         {
             var files = CurrentDirItems;
-            if (files == null || !files.Any()) return;
             Loading = true;
 
-            destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
-            var file = files.ElementAt((int)destination);
-            ImageFile = file; Path = file.FullName;
-            Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
+            if (offset != 0 || Config.Extensions.Contains(ImageFile.Extension.ToLower()))
+            {
+                destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
+                var file = files.ElementAt((int)destination);
+                ImageFile = file; Path = file.FullName;
+                Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
-            using (var fs = file.OpenRead())
-                await ShowImage(fs, file.FullName);
+                using (var fs = file.OpenRead())
+                    await ShowImage(fs, file.FullName);
 
-            Stats = new(Stats.Success, Stats) { EditCmd = GetEditAppStartInfo(file, Stats.Format) };
+                Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
 
-            if (config.Preload && doPreload && file.FullName == Path)
-                PreloadImage(files, (int)destination);
+                if (config.Preload && doPreload && file.FullName == Path)
+                    PreloadImage(files, (int)destination);
+            }
+            else
+            {
+                var file = ImageFile; Path = file.FullName;
+                Stats = new(true) { FileIndex = -1, FileCount = files.Count(), File = file, DisplayName = file.Name };
+
+                using (var fs = file.OpenRead())
+                    await ShowImage(fs, file.FullName);
+
+                Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
+            }
         }
         catch
         {
@@ -359,15 +371,6 @@ public partial class MainWindowViewModel : ViewModelBase
             return (int)Stats.FileIndex;
         FSChanged = false;
         return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
-    }
-    public ProcessStartInfo? GetEditAppStartInfo(FileInfo file, MagickFormat format)
-    {
-        if (Config.EditApp.TryGetValue(format, out string? app))
-            return app != "" ? new ProcessStartInfo
-            { FileName = app ?? Config.EditApp[default], Arguments = $"\"{file.FullName}\"" } : null;
-        else
-            return new ProcessStartInfo
-            { FileName = Config.EditApp[default], Arguments = $"\"{file.FullName}\"" };
     }
 
     //😋 https://chatgpt.com/

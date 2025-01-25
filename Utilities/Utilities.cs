@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media.Imaging;
 using ImageMagick;
+using ImagePlastic.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,19 +12,6 @@ namespace ImagePlastic.Utilities;
 
 public static class Utils
 {
-    private static readonly HttpClient client = new();
-    private static readonly ImageOptimizer optimizer = new() { IgnoreUnsupportedFormats = true };
-    public static EqualityComparer<FileInfo?> FileInfoComparer { get; } = EqualityComparer<FileInfo?>.Create((a, b) =>
-    {
-        if (a == null || b == null) return false;
-        else return a.FullName.Equals(b.FullName, StringComparison.OrdinalIgnoreCase);
-    });
-    public static int SeekIndex(int current, int offset, int total)
-        => current + offset >= total ? current + offset - total
-              : current + offset < 0 ? current + offset + total
-                                     : current + offset;
-
-    //Convert any image to a Bitmap.
     public static Bitmap? ConvertImage(Stream stream)
     {
         try
@@ -44,6 +32,7 @@ public static class Utils
         catch { return null; }
     }
 
+    private static readonly HttpClient client = new();
     public static async Task<Stream?> GetStreamFromWeb(string url)
     {
         if (Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out Uri? uri))
@@ -57,14 +46,33 @@ public static class Utils
         return null;
     }
 
+    private static readonly ImageOptimizer optimizer = new() { IgnoreUnsupportedFormats = true };
     public static bool Optimize(FileInfo file)
         => optimizer.LosslessCompress(file);
 
+    public static EqualityComparer<FileInfo?> FileInfoComparer { get; }
+        = EqualityComparer<FileInfo?>.Create((a, b) =>
+        {
+            if (a == null || b == null) return false;
+            else return a.FullName.Equals(b.FullName, StringComparison.OrdinalIgnoreCase);
+        });
+    public static int SeekIndex(int current, int offset, int total)
+        => (current + offset + total) % total;
+
     public static void SelectInExplorer(FileInfo file)
         => Process.Start("explorer.exe", $@"/select,""{file.FullName}""");
-
     public static void OpenInExplorer(string path)
         => Process.Start("explorer.exe", $@"""{path}""");
+    public static ProcessStartInfo? GetEditAppStartInfo(FileInfo file, MagickFormat format, Config? config = null)
+    {
+        config ??= new();
+        if (config.EditApp.TryGetValue(format, out string? app))
+            return app != "" ? new ProcessStartInfo
+            { FileName = app ?? config.EditApp[default], Arguments = $"\"{file.FullName}\"" } : null;
+        else
+            return new ProcessStartInfo
+            { FileName = config.EditApp[default], Arguments = $"\"{file.FullName}\"" };
+    }
 
     public static string ToReadable(long length)
     {
