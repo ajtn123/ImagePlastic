@@ -135,6 +135,7 @@
                 <MenuItem Header="Refresh" Command="{Binding ReloadDirCommand}"/>
                 <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
                 <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}" HotKey="F2"/>
+                <MenuItem Header="Move" Command="{Binding MoveCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" Background="#3FFF0000" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="QUIT" Command="{Binding QuitCommand}" Background="#3FFF0000"/>

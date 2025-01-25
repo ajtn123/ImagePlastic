@@ -52,15 +52,16 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = new(true, Stats);
             UIMessage = $"Opt: {Stats.DisplayName} {result}" + (result ? $"{beforeLength} => {Utils.ToReadable(Stats.File!.Length)}" : "");
         });
-        DeleteCommand = ReactiveCommand.Create(() =>
+        DeleteCommand = ReactiveCommand.Create(async () =>
         {
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
+            if (Config.DeleteConfirmation && !await RequireConfirmation.Handle(new ConfirmationWindowViewModel("Delete Confirmation", $"Deleting file {file.FullName}", Config))) return;
             var fallbackFile = SeekFile(offset: -1);
 
             try
             {
-                FileSystem.DeleteFile(file.FullName, Config.DeleteConfirmation ? UIOption.AllDialogs : UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+                FileSystem.DeleteFile(file.FullName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
 
                 ImageFile = fallbackFile;
                 ShowLocalImage();
@@ -86,15 +87,29 @@ public partial class MainWindowViewModel : ViewModelBase
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
 
-            var newFileName = await InquiryRenameString.Handle(new(file) { Config = Config });
+            var newFilePath = await InquiryRenameString.Handle(new(file, false, Config));
 
-            if (string.IsNullOrEmpty(newFileName)) return;
-            var newFile = new FileInfo(newFileName);
+            if (string.IsNullOrEmpty(newFilePath)) return;
+            var newFile = new FileInfo(newFilePath);
             if (!newFile.Exists) return;
 
             ImageFile = newFile;
             Select(offset: 0);
             UIMessage = $"{file.FullName} => {newFile.Name}";
+        });
+        MoveCommand = ReactiveCommand.Create(async () =>
+        {
+            var file = Stats.File;
+            if (Stats == null || Stats.IsWeb == true || file == null) return;
+
+            var newFilePath = await InquiryRenameString.Handle(new(file, true, Config));
+
+            if (string.IsNullOrEmpty(newFilePath)) return;
+            var newFile = new FileInfo(newFilePath);
+            if (!newFile.Exists) return;
+
+            LoadFile(newFile);
+            UIMessage = $"{file.FullName} => {newFile.FullName}";
         });
         QuitCommand = ReactiveCommand.Create(() => { });
         OpenLocalCommand = ReactiveCommand.Create(async () =>
@@ -105,7 +120,7 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         OpenUriCommand = ReactiveCommand.Create(async () =>
         {
-            var uriString = await InquiryUriString.Handle(new() { Config = Config });
+            var uriString = await InquiryUriString.Handle(new(Config));
             if (string.IsNullOrWhiteSpace(uriString)) return;
             Path = uriString;
             ChangeImageToPath();
@@ -159,7 +174,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public string? SvgPath { get => svgPath; set => this.RaiseAndSetIfChanged(ref svgPath, value); }
     public FileSystemWatcher FSWatcher { get; set; }
     public bool FSChanged { get; set; } = false;
-    //Re-scan dir when Recursive property changed.
+    //Reload dir when Recursive property changed.
     public bool Recursive
     {
         get => recursive; set
@@ -183,6 +198,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand EditCommand { get; }
     public ICommand ShowInExplorerCommand { get; }
     public ICommand RenameCommand { get; }
+    public ICommand MoveCommand { get; }
     public ICommand OpenLocalCommand { get; }
     public ICommand OpenUriCommand { get; }
     public ICommand ReloadDirCommand { get; }
@@ -246,7 +262,7 @@ public partial class MainWindowViewModel : ViewModelBase
             ErrorReport(Stats);
         }
     }
-    //Load when dir changed.
+    //Load image files under a directory to CurrentDirItems.
     public void LoadDir(DirectoryInfo dir)
     {
         currentDir = dir;
@@ -257,7 +273,7 @@ public partial class MainWindowViewModel : ViewModelBase
         FSWatcher.IncludeSubdirectories = Recursive;
         FSWatcher.EnableRaisingEvents = true;
     }
-    //Load and show info of ImageFile or its neighbor without decode or rendering.
+    //Set and show info of ImageFile without decoding or rendering.
     public void Select(int offset = 0, int? destination = null)
     {
         if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || CurrentDirItems == null) return;
@@ -316,10 +332,9 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         Loading = false;
     }
-    //Show image from the string, use path as identifier.
+    //Show image from the stream, use path as identifier.
     public async Task ShowImage(Stream stream, string path)
     {
-        Loading = true;
         using MagickImage image = new(stream);
         Stats = new(true, Stats) { Format = image.Format };
         if (image.Format == MagickFormat.Svg)
@@ -343,18 +358,13 @@ public partial class MainWindowViewModel : ViewModelBase
                                      : new(true, Stats) { Height = Bitmap.Size.Height, Width = Bitmap.Size.Width };
         }
         ErrorReport(Stats);
-        Loading = false;
-
-        //GC.Collect();
     }
     public async void ShowWebImage(string url)
     {
         Loading = true; ImageFile = null;
         using var webStream = await Utils.GetStreamFromWeb(url);
         if (webStream == null)
-        {
             Stats = new(false) { IsWeb = true, Url = url };
-        }
         else
         {
             Stats = new(true) { IsWeb = true, Url = url };

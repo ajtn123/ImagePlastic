@@ -25,6 +25,7 @@ public class Config
     public StretchMode Stretch { get; set; } = StretchMode.Uniform;
     public bool DeleteConfirmation { get; set; } = true;
     public bool RenameConfirmation { get; set; } = false;
+    public bool MoveConfirmation { get; set; } = false;
     public bool RecursiveSearch { get; set; } = false;
     public bool Preload { get; set; } = true;
     public int PreloadLeft { get; set; } = 0;

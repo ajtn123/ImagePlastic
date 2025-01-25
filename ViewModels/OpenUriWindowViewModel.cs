@@ -2,13 +2,8 @@
 
 namespace ImagePlastic.ViewModels;
 
-public class OpenUriWindowViewModel : ViewModelBase
+public class OpenUriWindowViewModel(Config config) : ViewModelBase
 {
-    public OpenUriWindowViewModel()
-    {
-        StringInquiry = new(message: "Enter a URI");
-        Config ??= new Config();
-    }
-    public StringInquiryViewModel StringInquiry { get; set; }
-    public Config Config { get; set; }
+    public StringInquiryViewModel StringInquiry { get; set; } = new(message: "Enter a URI");
+    public Config Config { get; set; } = config;
 }

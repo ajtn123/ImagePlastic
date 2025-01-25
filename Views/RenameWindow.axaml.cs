@@ -7,7 +7,6 @@ using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using System;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
 
@@ -18,14 +17,9 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
         InitializeComponent();
         this.WhenActivated(disposables =>
         {
-            ViewModel ??= new(new(@"C:\a.png"));
+            ViewModel ??= new(new(@"C:\a.png"), false, new());
             ViewModel.StringInquiry.DenyCommand.Subscribe(Close).DisposeWith(disposables);
-            ViewModel.StringInquiry.ConfirmCommand.Subscribe(async newName =>
-            {
-                var newPath = await Rename(newName);
-                if (newPath == null) return;
-                else Close(newPath);
-            }).DisposeWith(disposables);
+            ViewModel.StringInquiry.ConfirmCommand.Subscribe(ViewModel.MovePath ? Move : Rename).DisposeWith(disposables);
             StringInquiryView.InquiryBox.Focus();
         });
     }
@@ -36,19 +30,32 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
         Position = new PixelPoint(Position.X + (int)x, Position.Y + (int)y);
     }
     private double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
-    private async Task<string?> Rename(string? newName)
+    private async void Rename(string? newName)
     {
-        if (ViewModel!.Config.RenameConfirmation && !await new ConfirmationWindow { DataContext = new ConfirmationWindowViewModel("Rename Confirmation", $"Renaming file {ViewModel!.RenamingFile.FullName} to {newName}") { Config = ViewModel.Config } }.ShowDialog<bool>(this)) return null;
+        if (ViewModel!.Config.RenameConfirmation && !await new ConfirmationWindow { DataContext = new ConfirmationWindowViewModel("Rename Confirmation", $"Renaming file {ViewModel!.RenamingFile.FullName} to {newName}", ViewModel.Config) }.ShowDialog<bool>(this)) return;
         try
         {
             FileSystem.RenameFile(ViewModel.RenamingFile.FullName, newName!);
-            return $@"{ViewModel.RenamingFile.DirectoryName}\{newName}";
+            Close($@"{ViewModel.RenamingFile.DirectoryName}\{newName}");
         }
         catch (Exception e)
         {
             ViewModel!.ErrorMessage = e.Message;
             ErrorMessageTextBlock.IsVisible = true;
-            return null;
+        }
+    }
+    private async void Move(string? newPath)
+    {
+        if (ViewModel!.Config.MoveConfirmation && !await new ConfirmationWindow { DataContext = new ConfirmationWindowViewModel("Move Confirmation", $"Moving file {ViewModel!.RenamingFile.FullName} to {newPath}", ViewModel.Config) }.ShowDialog<bool>(this)) return;
+        try
+        {
+            FileSystem.MoveFile(ViewModel.RenamingFile.FullName, newPath!);
+            Close(newPath);
+        }
+        catch (Exception e)
+        {
+            ViewModel!.ErrorMessage = e.Message;
+            ErrorMessageTextBlock.IsVisible = true;
         }
     }
     //Make entire window draggable.
