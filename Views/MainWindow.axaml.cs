@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml.Converters;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
@@ -12,7 +13,6 @@ using ReactiveUI;
 using System;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
@@ -32,13 +32,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
             ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
-            ViewModel.QuitCommand.Subscribe(q => Close()).DisposeWith(a);
             ViewModel.ErrorReport += ShowError;
             if (ViewModel.Config.SystemAccentColor)
             {
                 Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
                 var accentColor = (Color?)accentObject ?? ViewModel.Config.CustomAccentColor;
-                accentColor = new Color(127, accentColor.R, accentColor.G, accentColor.B);
+                accentColor = new Color(ViewModel.Config.SystemAccentColorOpacity, accentColor.R, accentColor.G, accentColor.B);
                 AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
             }
             else
@@ -157,7 +156,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     //Zoomer and Image scaling.
-    private void ResetZoom(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void ResetZoom(object? sender, RoutedEventArgs e)
         => ViewModel!.Stretch = StretchMode.Uniform;
     private void ZoomBorder_ZoomChanged(object sender, ZoomChangedEventArgs e)
         => RefreshZoomDisplay();
@@ -180,9 +179,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         }
         else ZoomText.Background = Brushes.Red;
     }
-    private void Button_Click_1(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void Button_Click_1(object? sender, RoutedEventArgs e)
         => SetZoom(1);
-    private void Button_Click_2(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void Button_Click_2(object? sender, RoutedEventArgs e)
         => ViewModel!.Stretch = StretchMode.Uniform;
     private void RefreshZoomDisplay()
         => ZoomText.Text = $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ViewModel!.Stats.Height, 2)}%";
@@ -196,7 +195,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         FileName.IsVisible = false;
         PathBox.Focus();
     }
-    private void TextBox_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void TextBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (string.IsNullOrEmpty(ViewModel!.Path) || ErrorState) return;
         PathBox.IsVisible = false;
@@ -264,21 +263,21 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else ViewModel.Select(destination: imageIndex);
     }
 
-    private void MinimizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void MinimizeButton_Click(object? sender, RoutedEventArgs e)
         => WindowState = WindowState.Minimized;
-    private void MaximizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void MaximizeButton_Click(object? sender, RoutedEventArgs e)
     {
         if (WindowState == WindowState.Maximized)
             WindowState = WindowState.Normal;
         else WindowState = WindowState.Maximized;
     }
-    private void FullscreenButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void FullscreenButton_Click(object? sender, RoutedEventArgs e)
     {
         if (WindowState == WindowState.FullScreen)
             WindowState = WindowState.Normal;
         else WindowState = WindowState.FullScreen;
     }
-    private void ExitButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void ExitButton_Click(object? sender, RoutedEventArgs e)
         => Close();
     private void SetWindowStateUI(WindowState state)
     {

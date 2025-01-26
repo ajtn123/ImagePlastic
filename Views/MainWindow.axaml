@@ -36,44 +36,44 @@
                PointerReleased="Window_PointerReleased">
             <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar" ZIndex="11">
                 <TextBox Name="PathBox" Text="{Binding Path}" 
-                         FontSize="14" Padding="0" MinHeight="10" MinWidth="50"
+                         Padding="0" MinHeight="10" MinWidth="50"
                          VerticalAlignment="Center" IsVisible="False"
                          LostFocus="TextBox_LostFocus">
                     <TextBox.KeyBindings>
                         <KeyBinding Gesture="Enter" Command="{Binding GoPath}"/>
                     </TextBox.KeyBindings>
                 </TextBox>
-                <TextBlock VerticalAlignment="Center" FontSize="14" Text="{Binding Stats.DisplayName}"
+                <TextBlock VerticalAlignment="Center" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center"
-                           FontSize="14" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
+                           Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
-                         FontSize="14" x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
-                <Button FontSize="14" Padding="0" Click="Button_Click_1" HotKey="OemPlus" Background="Transparent">
+                         x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
+                <Button Padding="0" Click="Button_Click_1" HotKey="OemPlus">
                     <Image Source="{SvgImage /Assets/ViewRealSize.svg}"/>
                 </Button>
-                <Button FontSize="14" Padding="0" Content="fit" Click="Button_Click_2" HotKey="OemMinus"  Background="Transparent">
+                <Button Padding="0" Click="Button_Click_2" HotKey="OemMinus">
                     <Image Source="{SvgImage /Assets/AspectRatio.svg}"/>
                 </Button>
-                <CheckBox FontSize="14" Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
+                <CheckBox Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" x:Name="WindowControls" ZIndex="100">
-                <Button Background="Transparent" Click="MinimizeButton_Click">
+                <Button Click="MinimizeButton_Click">
                     <Image Source="{SvgImage /Assets/Minimize.svg}"/>
                 </Button>
-                <Button Background="Transparent" Click="MaximizeButton_Click">
+                <Button Click="MaximizeButton_Click">
                     <Panel>
                         <Image Source="{SvgImage /Assets/Maximize.svg}" x:Name="MaximizeIcon"/>
                         <Image Source="{SvgImage /Assets/MaximizeExit.svg}" x:Name="MaximizeExitIcon" IsVisible="False"/>
                     </Panel>
                 </Button>
-                <Button Background="Transparent" Click="FullscreenButton_Click">
+                <Button Click="FullscreenButton_Click">
                     <Panel>
                         <Image Source="{SvgImage /Assets/Fullscreen.svg}" x:Name="FullscreenIcon"/>
                         <Image Source="{SvgImage /Assets/FullscreenExit.svg}" x:Name="FullscreenExitIcon" IsVisible="False"/>
                     </Panel>
                 </Button>
-                <Button Background="Transparent" Click="ExitButton_Click">
+                <Button Click="ExitButton_Click" Classes="Con" HotKey="Escape">
                     <Image Source="{SvgImage /Assets/Exit.svg}"/>
                 </Button>
             </StackPanel>
@@ -100,9 +100,6 @@
                 <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="BitmapImage" IsVisible="{Binding Bitmap,Converter={StaticResource BoolConverter}}"/>
                 <Svg Path="{Binding SvgPath}" x:Name="SvgImage" IsVisible="{Binding SvgPath,Converter={StaticResource BoolConverter}}"/>
             </Panel>
-            <ZoomBorder.KeyBindings>
-                <KeyBinding Gesture="Escape" Command="{Binding QuitCommand}"/>
-            </ZoomBorder.KeyBindings>
         </ZoomBorder>
 
         <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
@@ -126,7 +123,7 @@
         </Panel>
         
         <Grid.ContextMenu>
-            <ContextMenu>
+            <ContextMenu Background="#BFFFFFFF">
                 <CheckBox IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}">Title Bar</CheckBox>
                 <CheckBox IsChecked="{Binding Recursive}" IsVisible="{Binding !Stats.IsWeb}">Recursive</CheckBox>
                 <MenuItem Header="Open" Command="{Binding OpenLocalCommand}"/>
@@ -137,8 +134,8 @@
                 <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}" HotKey="F2"/>
                 <MenuItem Header="Move" Command="{Binding MoveCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
-                <MenuItem Header="Delete" Command="{Binding DeleteCommand}" Background="#3FFF0000" IsVisible="{Binding !Stats.IsWeb}"/>
-                <MenuItem Header="QUIT" Command="{Binding QuitCommand}" Background="#3FFF0000"/>
+                <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}" Classes="Con"/>
+                <MenuItem Header="QUIT" Click="ExitButton_Click" Classes="Con"/>
             </ContextMenu>
         </Grid.ContextMenu>
     </Grid>

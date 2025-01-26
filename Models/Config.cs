@@ -20,6 +20,7 @@ public class Config
     //= Enum.GetValues<MagickFormat>().Cast<MagickFormat>().Select((a, b) => { return a.ToString().ToLower().Insert(0, "."); }).ToArray();
     public bool ExtendImageToTitleBar { get; set; } = true;
     public bool SystemAccentColor { get; set; } = true;
+    public byte SystemAccentColorOpacity { get; set; } = 127;
     public Color CustomAccentColor { get; set; } = Color.Parse("#7F40CFBF");
     public bool LoadingIndicator { get; set; } = true;
     public StretchMode Stretch { get; set; } = StretchMode.Uniform;

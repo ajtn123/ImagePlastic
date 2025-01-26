@@ -111,7 +111,6 @@ public partial class MainWindowViewModel : ViewModelBase
             LoadFile(newFile);
             UIMessage = $"{file.FullName} => {newFile.FullName}";
         });
-        QuitCommand = ReactiveCommand.Create(() => { });
         OpenLocalCommand = ReactiveCommand.Create(async () =>
         {
             var fileUri = await OpenFilePicker.Handle(new());
@@ -202,7 +201,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenLocalCommand { get; }
     public ICommand OpenUriCommand { get; }
     public ICommand ReloadDirCommand { get; }
-    public ReactiveCommand<Unit, Unit> QuitCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
