@@ -52,6 +52,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 ZoomText.IsVisible = false;
             }
             RenderOptions.SetBitmapInterpolationMode(BitmapImage, ViewModel.Config.InterpolationMode);
+            Zoomer.Focus();
         });
     }
 

@@ -291,49 +291,43 @@ public partial class MainWindowViewModel : ViewModelBase
     //Show ImageFile or its neighbor.
     public async void ShowLocalImage(int offset = 0, int? destination = null, bool doPreload = true)
     {
-        if (ImageFile == null || !ImageFile.Exists || CurrentDirItems == null || !CurrentDirItems.Any()) return;
-        try
+        if (ImageFile == null || !ImageFile.Exists) return;
+        var files = CurrentDirItems;
+        Loading = true;
+
+        if (offset != 0 || Config.Extensions.Contains(ImageFile.Extension.ToLower()))
         {
-            var files = CurrentDirItems;
-            Loading = true;
+            if (files == null || !files.Any()) return;
+            destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
+            var file = files.ElementAt((int)destination);
+            ImageFile = file; Path = file.FullName;
+            Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
-            if (offset != 0 || Config.Extensions.Contains(ImageFile.Extension.ToLower()))
-            {
-                destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
-                var file = files.ElementAt((int)destination);
-                ImageFile = file; Path = file.FullName;
-                Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
+            using (var fs = file.OpenRead())
+                await ShowImage(fs, file.FullName);
 
-                using (var fs = file.OpenRead())
-                    await ShowImage(fs, file.FullName);
+            Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
 
-                Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
-
-                if (config.Preload && doPreload && file.FullName == Path)
-                    PreloadImage(files, (int)destination);
-            }
-            else
-            {
-                var file = ImageFile; Path = file.FullName;
-                Stats = new(true) { FileIndex = -1, FileCount = files.Count(), File = file, DisplayName = file.Name };
-
-                using (var fs = file.OpenRead())
-                    await ShowImage(fs, file.FullName);
-
-                Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
-            }
+            if (config.Preload && doPreload && file.FullName == Path)
+                PreloadImage(files, (int)destination);
         }
-        catch
+        else
         {
-            Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
-            ErrorReport(Stats);
+            var file = ImageFile; Path = file.FullName;
+            Stats = new(true) { FileIndex = null, FileCount = files?.Count(), File = file, DisplayName = file.Name };
+
+            using (var fs = file.OpenRead())
+                await ShowImage(fs, file.FullName);
+
+            Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
         }
         Loading = false;
     }
     //Show image from the stream, use path as identifier.
     public async Task ShowImage(Stream stream, string path)
     {
-        using MagickImage image = new(stream);
+        MagickImage image;
+        try { image = new(stream); } catch { image = new(); }
         Stats = new(true, Stats) { Format = image.Format };
         if (image.Format == MagickFormat.Svg)
         {
@@ -355,6 +349,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = (Bitmap == null) ? new(false, Stats)
                                      : new(true, Stats) { Height = Bitmap.Size.Height, Width = Bitmap.Size.Width };
         }
+        image.Dispose();
         ErrorReport(Stats);
     }
     public async void ShowWebImage(string url)

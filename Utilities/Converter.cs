@@ -13,20 +13,19 @@ public class StatsConverter : IValueConverter
     public static readonly StatsConverter Instance = new();
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var s = (Stats)value!;
+        var s = (Stats?)value;
         if (s == null) return string.Empty;
 
         List<string> a = [];
         a.Add(string.Empty);
         //Show the actual image format if it is different from the file extension.
-        if ((s.IsWeb && s.Url != null && !s.Url.Split('.')[^1].Equals(s.Format.ToString(), StringComparison.OrdinalIgnoreCase)) ||
-            (s.File != null && !s.File.Extension.TrimStart('.').Equals(s.Format.ToString(), StringComparison.OrdinalIgnoreCase)))
+        if (s.DisplayName != null && !s.DisplayName.Split('.')[^1].Equals(s.Format.ToString(), StringComparison.OrdinalIgnoreCase))
             a.Add(s.Format.ToString());
-        if (s.FileIndex != null && s.FileCount != null)
-            a.Add($"{s.FileIndex + 1}/{s.FileCount}");
+        if (s.FileIndex != null || s.FileCount != null)
+            a.Add($"{(s.FileIndex ?? -1) + 1}/{s.FileCount ?? 0}");
         if (s.File != null && s.File.Exists)
             a.Add(Utils.ToReadable(s.File.Length));
-        if (true)
+        if (!double.IsNaN(s.Height) && !double.IsNaN(s.Width))
             a.Add($"{s.Height}*{s.Width}");
         if (s.File != null && s.File.Exists)
             a.Add(s.File.LastWriteTime.ToString());
@@ -48,6 +47,7 @@ public class BoolConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
 public class BoolToParameterConverter : IValueConverter
 {
     public static readonly BoolToParameterConverter Instance = new();
@@ -56,6 +56,7 @@ public class BoolToParameterConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
+
 public class IntConverter : IValueConverter
 {
     public static readonly IntConverter Instance = new();
