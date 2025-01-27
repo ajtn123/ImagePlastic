@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.PanAndZoom;
+using Avalonia.Diagnostics;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml.Converters;
@@ -8,8 +9,10 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using ImagePlastic.Models;
+using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
+using SkiaSharp;
 using System;
 using System.Linq;
 using System.Reactive;
@@ -153,12 +156,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Zoomer.IsVisible = errorStats.Success;
         ErrorView.IsVisible = !errorStats.Success;
         ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File?.FullName ?? errorStats.Url}";
-        ViewModel!.Stretch = StretchMode.Uniform;
+        Zoomer.Uniform();
     }
 
     //Zoomer and Image scaling.
     private void ResetZoom(object? sender, RoutedEventArgs e)
-        => ViewModel!.Stretch = StretchMode.Uniform;
+        => Zoomer.Uniform();
     private void ZoomBorder_ZoomChanged(object sender, ZoomChangedEventArgs e)
         => RefreshZoomDisplay();
     private void ZoomBorder_SizeChanged(object? sender, SizeChangedEventArgs e)
@@ -183,7 +186,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void Button_Click_1(object? sender, RoutedEventArgs e)
         => SetZoom(1);
     private void Button_Click_2(object? sender, RoutedEventArgs e)
-        => ViewModel!.Stretch = StretchMode.Uniform;
+        => Zoomer.Uniform();
     private void RefreshZoomDisplay()
         => ZoomText.Text = $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ViewModel!.Stats.Height, 2)}%";
     private void SetZoom(double zoom)
