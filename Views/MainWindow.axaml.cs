@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.PanAndZoom;
-using Avalonia.Diagnostics;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml.Converters;
@@ -9,10 +8,8 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using ImagePlastic.Models;
-using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
-using SkiaSharp;
 using System;
 using System.Linq;
 using System.Reactive;
@@ -24,9 +21,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     public MainWindow()
     {
-        InitializeComponent();
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
+        Resources["BoolConverter"] = Converter.BoolConverter.Instance;
+        Resources["BoolToParameterConverter"] = Converter.BoolToParameterConverter.Instance;
+        Resources["EnumToBoolConverter"] = Converter.EnumToBoolConverter.Instance;
+        Resources["IntConverter"] = Converter.IntConverter.Instance;
+        Resources["StatsConverter"] = Converter.StatsConverter.Instance;
+        InitializeComponent();
         this.GetObservable(WindowStateProperty).Subscribe(SetWindowStateUI); ;
         this.WhenActivated(a =>
         {
@@ -39,7 +41,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             if (ViewModel.Config.SystemAccentColor)
             {
                 Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
-                var accentColor = (Color?)accentObject ?? ViewModel.Config.CustomAccentColor;
+                var accentColor = (Color?)accentObject ?? Color.Parse(ViewModel.Config.CustomAccentColor);
                 accentColor = new Color(ViewModel.Config.SystemAccentColorOpacity, accentColor.R, accentColor.G, accentColor.B);
                 AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
             }
@@ -68,10 +70,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     //Hotkeys
     private void KeyDownHandler(object? sender, KeyEventArgs e)
     {
+        if (FocusManager?.GetFocusedElement() is TextBox) return;
         if (e.Key == Key.Left)
             NavigateImage(-1, e.KeyModifiers == KeyModifiers.Control);
         else if (e.Key == Key.Right)
             NavigateImage(1, e.KeyModifiers == KeyModifiers.Control);
+        else if (e.Key == Key.OemPlus)
+            SetZoom(1);
+        else if (e.Key == Key.OemMinus)
+            Zoomer.Uniform();
+        e.Handled = true;
     }
     private void KeyUpHandler(object? sender, KeyEventArgs e)
     {
@@ -130,7 +138,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     //Auto hide Title Bar.
     private void UpdateTitleBarVisibility(bool visible)
     {
-        visible = visible || (ErrorState || PathBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned);
+        visible = visible || ErrorState || PathBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned;
         WindowControls.IsVisible = visible;
         TitleBar.IsVisible = visible;
         TitleArea.Background = ErrorState ? Brushes.Red
@@ -155,7 +163,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ZoomText.IsVisible = errorStats.Success;
         Zoomer.IsVisible = errorStats.Success;
         ErrorView.IsVisible = !errorStats.Success;
-        ErrorView.ErrorMsg.Text = $"Unable to open {errorStats.File?.FullName ?? errorStats.Url}";
+        ErrorView.ErrorMsg.Text = errorStats.DisplayName != null ? $"Unable to open {errorStats.DisplayName}" : "Error!";
         Zoomer.Uniform();
     }
 
@@ -199,7 +207,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         FileName.IsVisible = false;
         PathBox.Focus();
     }
-    private void TextBox_LostFocus(object? sender, RoutedEventArgs e)
+    private void PathBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (string.IsNullOrEmpty(ViewModel!.Path) || ErrorState) return;
         PathBox.IsVisible = false;
@@ -306,5 +314,36 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             MaximizeIcon.IsVisible = true;
             MaximizeExitIcon.IsVisible = false;
         }
+    }
+
+    private int FullscreenLeftButtonClickCount = 0;
+    private int FullscreenRightButtonClickCount = 0;
+    private async void FullWindowLeftButtonClick(object? sender, RoutedEventArgs e)
+    {
+        FullscreenLeftButtonClickCount += 1;
+        if (FullWindowLeftArrow.IsVisible)
+        {
+            FullWindowLeftArrow.IsVisible = false;
+            await Task.Delay(100);
+        }
+        FullWindowLeftArrow.IsVisible = true;
+        await Task.Delay(1000);
+        if (FullscreenLeftButtonClickCount == 1)
+            FullWindowLeftArrow.IsVisible = false;
+        FullscreenLeftButtonClickCount -= 1;
+    }
+    private async void FullWindowRightButtonClick(object? sender, RoutedEventArgs e)
+    {
+        FullscreenRightButtonClickCount += 1;
+        if (FullWindowRightArrow.IsVisible)
+        {
+            FullWindowRightArrow.IsVisible = false;
+            await Task.Delay(100);
+        }
+        FullWindowRightArrow.IsVisible = true;
+        await Task.Delay(1000);
+        if (FullscreenRightButtonClickCount == 1)
+            FullWindowRightArrow.IsVisible = false;
+        FullscreenRightButtonClickCount -= 1;
     }
 }

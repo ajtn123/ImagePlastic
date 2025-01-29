@@ -24,6 +24,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public MainWindowViewModel()
     {
+        config = ConfigProvider.LoadConfig();
         if (Config.DefaultFile != null)
             Path = Config.DefaultFile.FullName;
         else
@@ -137,7 +138,7 @@ public partial class MainWindowViewModel : ViewModelBase
     //Generating a new default configuration every time.
     //A helper is needed to persist config, also a setting view.
     private string[]? args;
-    private Config config = new();
+    private Config config;
     private Bitmap? bitmap;
     private string path = "";
     private Stats stats = new(true) { DisplayName = "None" };
@@ -214,7 +215,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Path = Path.Trim('"');
         if (string.IsNullOrWhiteSpace(Path)) return;
         //Using index of current dir.
-        else if (int.TryParse(Path, out int des))
+        else if (int.TryParse(Path, out int des) && des >= 1 && des <= Stats.FileCount)
             ShowLocalImage(destination: des - 1);
         //Using web URL.
         else if (new UrlAttribute().IsValid(Path))

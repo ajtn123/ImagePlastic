@@ -36,5 +36,8 @@
         <Style Selector="Button.Pro:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#BF7FFF7F"/>
         </Style>
+        <Style Selector="Button.FullscreenButtons:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#00000000"/>
+        </Style>
     </Application.Styles>
 </Application>

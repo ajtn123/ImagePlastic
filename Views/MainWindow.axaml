@@ -3,7 +3,6 @@
         xmlns:vm="using:ImagePlastic.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:cvt="using:ImagePlastic.Converter"
         xmlns:view="using:ImagePlastic.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ImagePlastic.Views.MainWindow"
@@ -18,12 +17,6 @@
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-    <Window.Resources>
-        <cvt:BoolToParameterConverter x:Key="BoolToParameterConverter"/>
-        <cvt:StatsConverter x:Key="StatsConverter"/>
-        <cvt:BoolConverter x:Key="BoolConverter"/>
-        <cvt:IntConverter x:Key="IntConverter"/>
-    </Window.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto">
         <Panel Grid.Row="{Binding Config.ExtendImageToTitleBar,Converter={StaticResource BoolToParameterConverter},ConverterParameter=1}"
@@ -38,7 +31,7 @@
                 <TextBox Name="PathBox" Text="{Binding Path}" 
                          Padding="0" MinHeight="10" MinWidth="50"
                          VerticalAlignment="Center" IsVisible="False"
-                         LostFocus="TextBox_LostFocus">
+                         LostFocus="PathBox_LostFocus">
                     <TextBox.KeyBindings>
                         <KeyBinding Gesture="Enter" Command="{Binding GoPath}"/>
                     </TextBox.KeyBindings>
@@ -49,10 +42,10 @@
                            Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
                          x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
-                <Button Padding="0" Click="Button_Click_1" HotKey="OemPlus">
+                <Button Padding="0" Click="Button_Click_1">
                     <Image Source="{SvgImage /Assets/ViewRealSize.svg}"/>
                 </Button>
-                <Button Padding="0" Click="Button_Click_2" HotKey="OemMinus">
+                <Button Padding="0" Click="Button_Click_2">
                     <Image Source="{SvgImage /Assets/AspectRatio.svg}"/>
                 </Button>
                 <CheckBox Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
@@ -79,18 +72,31 @@
             </StackPanel>
         </Panel>
 
-        <Button Content="←" Command="{Binding GoLeft}"
-                Grid.Row="1" HorizontalAlignment="Left" ZIndex="5"
-                Background="Transparent" Foreground="Transparent"
-                Margin="24,0,0,0" CornerRadius="24" FontSize="24"
-                IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
-                PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
-        <Button Content="→" Command="{Binding GoRight}"
-                Grid.Row="1" HorizontalAlignment="Right" ZIndex="6"
-                Background="Transparent" Foreground="Transparent"
-                Margin="0,0,24,0" CornerRadius="24" FontSize="24"
-                IsVisible="{Binding !Stats.IsWeb}" IsEnabled="{Binding !Stats.IsWeb}"
-                PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
+        <Panel Grid.Row="1" ZIndex="6" IsVisible="{Binding Config.ArrowButton,Converter={StaticResource EnumToBoolConverter},ConverterParameter=Normal}">
+            <Button Content="←" Command="{Binding GoLeft}" Foreground="Transparent"
+                    Margin="24,0,0,0" CornerRadius="24" FontSize="{Binding Config.ArrowSize}"
+                    IsVisible="{Binding !Stats.IsWeb}" HorizontalAlignment="Left"
+                    PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
+            <Button Content="→" Command="{Binding GoRight}" Foreground="Transparent"
+                    Margin="0,0,24,0" CornerRadius="24" FontSize="{Binding Config.ArrowSize}"
+                    IsVisible="{Binding !Stats.IsWeb}" HorizontalAlignment="Right"
+                    PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
+        </Panel>
+        
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ZIndex="5" IsVisible="{Binding Config.ArrowButton,Converter={StaticResource EnumToBoolConverter},ConverterParameter=FullWindow}">
+            <Button Command="{Binding GoLeft}" Grid.Column="0" Click="FullWindowLeftButtonClick"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    Margin="0" CornerRadius="0" Classes="FullscreenButtons"
+                    IsVisible="{Binding !Stats.IsWeb}">
+                <Image Source="{SvgImage /Assets/ArrowBack.svg}" IsVisible="False" x:Name="FullWindowLeftArrow"/>
+            </Button>
+            <Button Command="{Binding GoRight}" Grid.Column="2" Click="FullWindowRightButtonClick"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    Margin="0" CornerRadius="0" Classes="FullscreenButtons"
+                    IsVisible="{Binding !Stats.IsWeb}">
+                <Image Source="{SvgImage /Assets/ArrowForward.svg}" IsVisible="False" x:Name="FullWindowRightArrow"/>
+            </Button>
+        </Grid>
 
         <ZoomBorder Grid.Row="1" ZIndex="2" x:Name="Zoomer" SizeChanged="ZoomBorder_SizeChanged"
                     Stretch="{Binding Stretch}" Focusable="True" PanButton="{Binding Config.PanButton}"
