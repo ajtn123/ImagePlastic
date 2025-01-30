@@ -10,7 +10,7 @@
         Title="{Binding Stats.DisplayName}"
         Background="{Binding Config.BackgroundColor}"
         SizeChanged="Window_SizeChanged"
-        TransparencyLevelHint="{Binding Config.Blur}">
+        TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}">
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>

@@ -9,7 +9,7 @@
         x:Class="ImagePlastic.Views.RenameWindow"
         Title="Rename"
         Background="{Binding Config.BackgroundColor}"
-        TransparencyLevelHint="{Binding Config.Blur}"
+        TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}"
         PointerMoved="Window_PointerMoved"
         PointerPressed="Window_PointerPressed"
         PointerReleased="Window_PointerReleased"

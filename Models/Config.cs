@@ -12,26 +12,8 @@ namespace ImagePlastic.Models;
 public class Config : ReactiveObject
 {
     public FileInfo? DefaultFile { get; set; }
-    public IReadOnlyList<WindowTransparencyLevel> Blur
-    {
-        get
-        {
-            var list = new List<WindowTransparencyLevel>();
-            foreach (var item in Blurs)
-                list.Add(item switch
-                {
-                    Transparency.None => WindowTransparencyLevel.None,
-                    Transparency.Transparent => WindowTransparencyLevel.Transparent,
-                    Transparency.Blur => WindowTransparencyLevel.Blur,
-                    Transparency.AcrylicBlur => WindowTransparencyLevel.AcrylicBlur,
-                    Transparency.Mica => WindowTransparencyLevel.Mica,
-                    _ => WindowTransparencyLevel.None,
-                });
-            return list;
-        }
-    }
     public Transparency[] Blurs { get; set; }
-        = [Transparency.AcrylicBlur, Transparency.Blur, Transparency.Transparent];
+        = [Transparency.AcrylicBlur, Transparency.Mica, Transparency.Blur, Transparency.Transparent];
     public string BackgroundColor { get; set; } = "#00BFBFBF";
     public string[] Extensions { get; set; }
         = [".png", ".jpg", ".jpeg", ".avif", ".heic", ".heif", ".bmp", ".jxl", ".gif", ".psd", ".svg"];
