@@ -1,6 +1,7 @@
 ﻿using ImagePlastic.Models;
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace ImagePlastic.Utilities;
@@ -14,11 +15,12 @@ public static class ConfigProvider
     public static Config LoadConfig()
     {
         if (!File.Exists(Path.GetDirectoryName(Environment.ProcessPath) + @"\IPConfig.json")) return new();
+
         using StreamReader configFile = new(Environment.CurrentDirectory + @"\IPConfig.json");
         using JsonReader reader = new JsonTextReader(configFile);
         Config? config = null;
-        try { config = serializer.Deserialize<Config>(reader); } catch { }
-        return config ?? new Config();
+        try { config = serializer.Deserialize<Config>(reader); } catch (Exception e) { Trace.WriteLine(e); }
+        return config ?? new();
     }
     public static async void Save(this Config config)
     {

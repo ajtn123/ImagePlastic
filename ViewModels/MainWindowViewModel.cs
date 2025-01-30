@@ -6,6 +6,7 @@ using ImagePlastic.Models;
 using ImagePlastic.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -137,16 +138,12 @@ public partial class MainWindowViewModel : ViewModelBase
     //Generating a new default configuration every time.
     //A helper is needed to persist config, also a setting view.
     private string[]? args;
-    private Bitmap? bitmap;
     private string path = "";
     private Stats stats = new(true) { DisplayName = "None" };
     private StretchMode stretch;
-    private string? uIMessage;
     private DirectoryInfo? currentDir;
     private DirectoryInfo? recursiveDir = null;
-    private bool pinned = false;
     public bool loading = false;
-    private string? svgPath;
     private bool recursive;
 
     public string[]? Args
@@ -159,16 +156,20 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
     public Dictionary<string, Bitmap?> Preload { get; set; } = [];
-    public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
+    [Reactive]
+    public Bitmap? Bitmap { get; set; }
     public FileInfo? ImageFile { get; set; }
     public IOrderedEnumerable<FileInfo>? CurrentDirItems { get; set; }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
     public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
     public bool Loading { get => Config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
-    public string? UIMessage { get => uIMessage; set => this.RaiseAndSetIfChanged(ref uIMessage, value); }
-    public bool Pinned { get => pinned; set => this.RaiseAndSetIfChanged(ref pinned, value); }
-    public string? SvgPath { get => svgPath; set => this.RaiseAndSetIfChanged(ref svgPath, value); }
+    [Reactive]
+    public string? UIMessage { get; set; }
+    [Reactive]
+    public bool Pinned { get; set; }
+    [Reactive]
+    public string? SvgPath { get; set; }
     public FileSystemWatcher FSWatcher { get; set; }
     public bool FSChanged { get; set; } = false;
     //Reload dir when Recursive property changed.
@@ -326,7 +327,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public async Task ShowImage(Stream stream, string path)
     {
         MagickImage image;
-        try { image = new(stream); } catch { image = new(); }
+        try { image = new(stream); }
+        catch (Exception e) { image = new(); Trace.WriteLine(e); }
         Stats = new(true, Stats) { Format = image.Format };
         if (image.Format == MagickFormat.Svg)
         {

@@ -1,13 +1,10 @@
-﻿using ImagePlastic.Models;
-using ReactiveUI;
+﻿using ReactiveUI.Fody.Helpers;
 using System.IO;
 
 namespace ImagePlastic.ViewModels;
 
 public class RenameWindowViewModel : ViewModelBase
 {
-    private string? errorMessage;
-
     public RenameWindowViewModel(FileInfo file, bool movePath)
     {
         MovePath = movePath;
@@ -16,6 +13,7 @@ public class RenameWindowViewModel : ViewModelBase
     }
     public StringInquiryViewModel StringInquiry { get; set; }
     public FileInfo RenamingFile { get; set; }
-    public string? ErrorMessage { get => errorMessage; set => this.RaiseAndSetIfChanged(ref errorMessage, value); }
+    [Reactive]
+    public string? ErrorMessage { get; set; }
     public bool MovePath { get; set; }
 }

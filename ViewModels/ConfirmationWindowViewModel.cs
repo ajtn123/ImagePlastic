@@ -1,5 +1,4 @@
-﻿using ImagePlastic.Models;
-using ReactiveUI;
+﻿using ReactiveUI;
 using System.Reactive;
 
 namespace ImagePlastic.ViewModels;

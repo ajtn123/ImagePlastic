@@ -19,7 +19,7 @@ public static class Utils
             using var mi = new MagickImage(stream);
             return mi.ToBitmap().ConvertToAvaloniaBitmap();
         }
-        catch { return null; }
+        catch (Exception e) { Trace.WriteLine(e); return null; }
     }
     public static Bitmap? ConvertImage(FileInfo file)
     {
@@ -29,7 +29,7 @@ public static class Utils
     public static Bitmap? ConvertImage(MagickImage image)
     {
         try { return image.ToBitmap().ConvertToAvaloniaBitmap(); }
-        catch { return null; }
+        catch (Exception e) { Trace.WriteLine(e); return null; }
     }
 
     private static readonly HttpClient client = new();
@@ -42,7 +42,7 @@ public static class Utils
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadAsStreamAsync();
             }
-            catch { return null; }
+            catch (Exception e) { Trace.WriteLine(e); return null; }
         return null;
     }
 

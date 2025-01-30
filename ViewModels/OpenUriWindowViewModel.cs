@@ -1,6 +1,4 @@
-﻿using ImagePlastic.Models;
-
-namespace ImagePlastic.ViewModels;
+﻿namespace ImagePlastic.ViewModels;
 
 public class OpenUriWindowViewModel : ViewModelBase
 {
