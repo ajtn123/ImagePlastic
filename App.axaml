@@ -11,6 +11,12 @@
   
     <Application.Styles>
         <FluentTheme />
+        <Style Selector="Window">
+            <Setter Property="Icon" Value="/Assets/avalonia-logo.ico"/>
+            <Setter Property="ExtendClientAreaToDecorationsHint" Value="True"/>
+            <Setter Property="ExtendClientAreaChromeHints" Value="NoChrome"/>
+            <Setter Property="WindowStartupLocation" Value="CenterOwner"/>
+        </Style>
         <Style Selector="TextBlock">
             <Setter Property="FontSize" Value="14"/>
         </Style>

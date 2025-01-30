@@ -15,7 +15,7 @@ public partial class OpenUriWindow : ReactiveWindow<OpenUriWindowViewModel>
         InitializeComponent();
         this.WhenActivated(disposables =>
         {
-            ViewModel ??= new(new());
+            ViewModel ??= new();
             ViewModel.StringInquiry.ConfirmCommand.Subscribe(Close).DisposeWith(disposables);
             ViewModel.StringInquiry.DenyCommand.Subscribe(Close).DisposeWith(disposables);
             StringInquiryView.InquiryBox.Focus();

@@ -7,12 +7,9 @@
         x:DataType="vm:OpenUriWindowViewModel"
         mc:Ignorable="d" SizeToContent="WidthAndHeight" CanResize="False"
         x:Class="ImagePlastic.Views.OpenUriWindow"
-        Title="Open Uri" Icon="/Assets/avalonia-logo.ico"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="NoChrome"
+        Title="Open Uri"
         Background="{Binding Config.BackgroundColor}"
         TransparencyLevelHint="{Binding Config.Blur}"
-        WindowStartupLocation="CenterOwner"
         SizeChanged="Window_SizeChanged" MaxWidth="600">
     <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}" Margin="5"/>
 </Window>

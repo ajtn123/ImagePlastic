@@ -17,7 +17,7 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
         InitializeComponent();
         this.WhenActivated(disposables =>
         {
-            ViewModel ??= new(new(@"C:\a.png"), false, new());
+            ViewModel ??= new(new(@"C:\a.png"), false);
             ViewModel.StringInquiry.DenyCommand.Subscribe(Close).DisposeWith(disposables);
             ViewModel.StringInquiry.ConfirmCommand.Subscribe(ViewModel.MovePath ? Move : Rename).DisposeWith(disposables);
             StringInquiryView.InquiryBox.Focus();
@@ -32,7 +32,7 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
     private double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
     private async void Rename(string? newName)
     {
-        if (ViewModel!.Config.RenameConfirmation && !await new ConfirmationWindow { DataContext = new ConfirmationWindowViewModel("Rename Confirmation", $"Renaming file {ViewModel!.RenamingFile.FullName} to {newName}", ViewModel.Config) }.ShowDialog<bool>(this)) return;
+        if (ViewModel!.Config.RenameConfirmation && !await new ConfirmationWindow { DataContext = new ConfirmationWindowViewModel("Rename Confirmation", $"Renaming file {ViewModel!.RenamingFile.FullName} to {newName}") }.ShowDialog<bool>(this)) return;
         try
         {
             FileSystem.RenameFile(ViewModel.RenamingFile.FullName, newName!);
@@ -46,7 +46,7 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
     }
     private async void Move(string? newPath)
     {
-        if (ViewModel!.Config.MoveConfirmation && !await new ConfirmationWindow { DataContext = new ConfirmationWindowViewModel("Move Confirmation", $"Moving file {ViewModel!.RenamingFile.FullName} to {newPath}", ViewModel.Config) }.ShowDialog<bool>(this)) return;
+        if (ViewModel!.Config.MoveConfirmation && !await new ConfirmationWindow { DataContext = new ConfirmationWindowViewModel("Move Confirmation", $"Moving file {ViewModel!.RenamingFile.FullName} to {newPath}") }.ShowDialog<bool>(this)) return;
         try
         {
             FileSystem.MoveFile(ViewModel.RenamingFile.FullName, newPath!);

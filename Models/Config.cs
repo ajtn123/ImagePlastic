@@ -2,12 +2,14 @@
 using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media.Imaging;
 using ImageMagick;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System.Collections.Generic;
 using System.IO;
 
 namespace ImagePlastic.Models;
 
-public class Config
+public class Config : ReactiveObject
 {
     public FileInfo? DefaultFile { get; set; }
     public IReadOnlyList<WindowTransparencyLevel> Blur
@@ -57,6 +59,7 @@ public class Config
         {default,@"C:\Program Files\GIMP 2\bin\gimp-2.10.exe"},
     };
     public ArrowButton ArrowButton { get; set; } = ArrowButton.Normal;
+    [Reactive]
     public int ArrowSize { get; set; } = 48;
 }
 

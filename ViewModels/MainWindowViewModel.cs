@@ -24,7 +24,6 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public MainWindowViewModel()
     {
-        config = ConfigProvider.LoadConfig();
         if (Config.DefaultFile != null)
             Path = Config.DefaultFile.FullName;
         else
@@ -57,7 +56,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
-            if (Config.DeleteConfirmation && !await RequireConfirmation.Handle(new ConfirmationWindowViewModel("Delete Confirmation", $"Deleting file {file.FullName}", Config))) return;
+            if (Config.DeleteConfirmation && !await RequireConfirmation.Handle(new ConfirmationWindowViewModel("Delete Confirmation", $"Deleting file {file.FullName}"))) return;
             var fallbackFile = SeekFile(offset: -1);
 
             try
@@ -88,7 +87,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
 
-            var newFilePath = await InquiryRenameString.Handle(new(file, false, Config));
+            var newFilePath = await InquiryRenameString.Handle(new(file, false));
 
             if (string.IsNullOrEmpty(newFilePath)) return;
             var newFile = new FileInfo(newFilePath);
@@ -103,7 +102,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var file = Stats.File;
             if (Stats == null || Stats.IsWeb == true || file == null) return;
 
-            var newFilePath = await InquiryRenameString.Handle(new(file, true, Config));
+            var newFilePath = await InquiryRenameString.Handle(new(file, true));
 
             if (string.IsNullOrEmpty(newFilePath)) return;
             var newFile = new FileInfo(newFilePath);
@@ -120,7 +119,7 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         OpenUriCommand = ReactiveCommand.Create(async () =>
         {
-            var uriString = await InquiryUriString.Handle(new(Config));
+            var uriString = await InquiryUriString.Handle(new());
             if (string.IsNullOrWhiteSpace(uriString)) return;
             Path = uriString;
             ChangeImageToPath();
@@ -138,7 +137,6 @@ public partial class MainWindowViewModel : ViewModelBase
     //Generating a new default configuration every time.
     //A helper is needed to persist config, also a setting view.
     private string[]? args;
-    private Config config;
     private Bitmap? bitmap;
     private string path = "";
     private Stats stats = new(true) { DisplayName = "None" };
@@ -161,14 +159,13 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
     public Dictionary<string, Bitmap?> Preload { get; set; } = [];
-    public Config Config { get => config; set => this.RaiseAndSetIfChanged(ref config, value); }
     public Bitmap? Bitmap { get => bitmap; set => this.RaiseAndSetIfChanged(ref bitmap, value); }
     public FileInfo? ImageFile { get; set; }
     public IOrderedEnumerable<FileInfo>? CurrentDirItems { get; set; }
     public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
     public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
     public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
-    public bool Loading { get => config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
+    public bool Loading { get => Config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
     public string? UIMessage { get => uIMessage; set => this.RaiseAndSetIfChanged(ref uIMessage, value); }
     public bool Pinned { get => pinned; set => this.RaiseAndSetIfChanged(ref pinned, value); }
     public string? SvgPath { get => svgPath; set => this.RaiseAndSetIfChanged(ref svgPath, value); }
@@ -292,6 +289,7 @@ public partial class MainWindowViewModel : ViewModelBase
     //Show ImageFile or its neighbor.
     public async void ShowLocalImage(int offset = 0, int? destination = null, bool doPreload = true)
     {
+        Config.ArrowSize += 1;
         if (ImageFile == null || !ImageFile.Exists) return;
         var files = CurrentDirItems;
         Loading = true;
@@ -309,7 +307,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
 
-            if (config.Preload && doPreload && file.FullName == Path)
+            if (Config.Preload && doPreload && file.FullName == Path)
                 PreloadImage(files, (int)destination);
         }
         else
@@ -339,7 +337,7 @@ public partial class MainWindowViewModel : ViewModelBase
         else
         {
             Bitmap? bitmapTemp = null;
-            if (config.Preload)
+            if (Config.Preload)
                 Preload.TryGetValue(path, out bitmapTemp);
             bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(image); });
 
@@ -395,8 +393,8 @@ public partial class MainWindowViewModel : ViewModelBase
         var preloadTasks = new List<Task>();
 
         // Define preload range
-        int leftRange = Math.Max(-config.PreloadLeft, -(files.Count() - 1));
-        int rightRange = Math.Min(config.PreloadRight, files.Count() - 1);
+        int leftRange = Math.Max(-Config.PreloadLeft, -(files.Count() - 1));
+        int rightRange = Math.Min(Config.PreloadRight, files.Count() - 1);
 
         // Identify files to preload
         var newPreloadSet = new HashSet<string>();

@@ -23,11 +23,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
-        Resources["BoolConverter"] = Converter.BoolConverter.Instance;
-        Resources["BoolToParameterConverter"] = Converter.BoolToParameterConverter.Instance;
-        Resources["EnumToBoolConverter"] = Converter.EnumToBoolConverter.Instance;
-        Resources["IntConverter"] = Converter.IntConverter.Instance;
-        Resources["StatsConverter"] = Converter.StatsConverter.Instance;
         InitializeComponent();
         this.GetObservable(WindowStateProperty).Subscribe(SetWindowStateUI); ;
         this.WhenActivated(a =>

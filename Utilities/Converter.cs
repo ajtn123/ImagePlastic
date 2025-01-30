@@ -1,10 +1,12 @@
-﻿using Avalonia.Data.Converters;
+﻿using Avalonia.Controls;
+using Avalonia.Data.Converters;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace ImagePlastic.Converter;
 
@@ -74,6 +76,23 @@ public class EnumToBoolConverter : IValueConverter
     public static readonly EnumToBoolConverter Instance = new();
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value?.ToString() == parameter?.ToString();
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+public class BlurConverter : IValueConverter
+{
+    public static readonly BlurConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => ((Transparency[]?)value)?.Select(item => item switch
+        {
+            Transparency.None => WindowTransparencyLevel.None,
+            Transparency.Transparent => WindowTransparencyLevel.Transparent,
+            Transparency.Blur => WindowTransparencyLevel.Blur,
+            Transparency.AcrylicBlur => WindowTransparencyLevel.AcrylicBlur,
+            Transparency.Mica => WindowTransparencyLevel.Mica,
+            _ => WindowTransparencyLevel.None,
+        }).ToList();
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }

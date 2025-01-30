@@ -17,7 +17,7 @@ public partial class ConfirmationWindow : ReactiveWindow<ConfirmationWindowViewM
         InitializeComponent();
         this.WhenActivated(disposables =>
         {
-            ViewModel ??= new("Notice", "Msg", new());
+            ViewModel ??= new("Notice", "Msg");
             ViewModel.ConfirmCommand.Subscribe(result => Close(result)).DisposeWith(disposables);
             ViewModel.DenyCommand.Subscribe(result => Close(result)).DisposeWith(disposables);
         });

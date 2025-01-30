@@ -3,7 +3,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" SizeToContent="Height" Width="400" 
-        Icon="/Assets/avalonia-logo.ico"
         x:Class="ImagePlastic.Views.ConfirmationWindow"
         xmlns:vm="using:ImagePlastic.ViewModels"
         x:DataType="vm:ConfirmationWindowViewModel"
@@ -11,11 +10,8 @@
         PointerMoved="Window_PointerMoved"
         PointerPressed="Window_PointerPressed"
         PointerReleased="Window_PointerReleased"
-        ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaChromeHints="NoChrome"
         Background="{Binding Config.BackgroundColor}"
-        TransparencyLevelHint="{Binding Config.Blur}"
-        WindowStartupLocation="CenterOwner">
+        TransparencyLevelHint="{Binding Config.Blur}">
     <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto">
         <Image Source="{SvgImage /Assets/Info.svg}" Height="50" Margin="5,5,0,0" VerticalAlignment="Top" Grid.RowSpan="2"/>
         <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" Margin="5"/>

@@ -8,16 +8,14 @@ public class ConfirmationWindowViewModel : ViewModelBase
 {
     public string Title { get; set; }
     public string Message { get; set; }
-    public Config Config { get; set; }
 
     public ReactiveCommand<Unit, bool> ConfirmCommand { get; set; }
     public ReactiveCommand<Unit, bool> DenyCommand { get; set; }
 
-    public ConfirmationWindowViewModel(string title, string message, Config config)
+    public ConfirmationWindowViewModel(string title, string message)
     {
         Title = title;
         Message = message;
-        Config = config;
         ConfirmCommand = ReactiveCommand.Create(() => true);
         DenyCommand = ReactiveCommand.Create(() => false);
     }
