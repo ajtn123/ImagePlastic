@@ -40,31 +40,31 @@
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
                          x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
                 <Button Padding="0" Click="Button_Click_1">
-                    <Image Source="{SvgImage /Assets/ViewRealSize.svg}"/>
+                    <Svg Path="/Assets/ViewRealSize.svg"/>
                 </Button>
                 <Button Padding="0" Click="Button_Click_2">
-                    <Image Source="{SvgImage /Assets/AspectRatio.svg}"/>
+                    <Svg Path="/Assets/AspectRatio.svg"/>
                 </Button>
                 <CheckBox Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" x:Name="WindowControls" ZIndex="100">
                 <Button Click="MinimizeButton_Click">
-                    <Image Source="{SvgImage /Assets/Minimize.svg}"/>
+                    <Svg Path="/Assets/Minimize.svg"/>
                 </Button>
                 <Button Click="MaximizeButton_Click">
                     <Panel>
-                        <Image Source="{SvgImage /Assets/Maximize.svg}" x:Name="MaximizeIcon"/>
-                        <Image Source="{SvgImage /Assets/MaximizeExit.svg}" x:Name="MaximizeExitIcon" IsVisible="False"/>
+                        <Svg Path="/Assets/Maximize.svg" x:Name="MaximizeIcon"/>
+                        <Svg Path="/Assets/MaximizeExit.svg" x:Name="MaximizeExitIcon" IsVisible="False"/>
                     </Panel>
                 </Button>
                 <Button Click="FullscreenButton_Click">
                     <Panel>
-                        <Image Source="{SvgImage /Assets/Fullscreen.svg}" x:Name="FullscreenIcon"/>
-                        <Image Source="{SvgImage /Assets/FullscreenExit.svg}" x:Name="FullscreenExitIcon" IsVisible="False"/>
+                        <Svg Path="/Assets/Fullscreen.svg" x:Name="FullscreenIcon"/>
+                        <Svg Path="/Assets/FullscreenExit.svg" x:Name="FullscreenExitIcon" IsVisible="False"/>
                     </Panel>
                 </Button>
                 <Button Click="ExitButton_Click" Classes="Con" HotKey="Escape">
-                    <Image Source="{SvgImage /Assets/Exit.svg}"/>
+                    <Svg Path="/Assets/Exit.svg"/>
                 </Button>
             </StackPanel>
         </Panel>
@@ -85,13 +85,13 @@
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     Margin="0" CornerRadius="0" Classes="FullscreenButtons"
                     IsVisible="{Binding !Stats.IsWeb}">
-                <Image Source="{SvgImage /Assets/ArrowBack.svg}" IsVisible="False" x:Name="FullWindowLeftArrow"/>
+                <Svg Path="/Assets/ArrowBack.svg" IsVisible="False" x:Name="FullWindowLeftArrow"/>
             </Button>
             <Button Command="{Binding GoRight}" Grid.Column="2" Click="FullWindowRightButtonClick"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     Margin="0" CornerRadius="0" Classes="FullscreenButtons"
                     IsVisible="{Binding !Stats.IsWeb}">
-                <Image Source="{SvgImage /Assets/ArrowForward.svg}" IsVisible="False" x:Name="FullWindowRightArrow"/>
+                <Svg Path="/Assets/ArrowForward.svg" IsVisible="False" x:Name="FullWindowRightArrow"/>
             </Button>
         </Grid>
 

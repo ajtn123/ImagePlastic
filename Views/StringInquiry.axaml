@@ -10,10 +10,10 @@
         <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" Margin="0,0,2,0" Spacing="1">
                 <Button Command="{Binding DenyCommand}" Height="26" Width="26" Padding="5" Background="#1FFF0000" BorderBrush="#BFFF7F7F" Classes="Con">
-                    <Image Source="{SvgImage /Assets/Deny.svg}"/>
+                    <Svg Path="/Assets/Deny.svg"/>
                 </Button>
                 <Button Command="{Binding ConfirmCommand}" Height="26" Width="26" Padding="5" Background="#1F00FF00" BorderBrush="#BF7FFF7F" Classes="Pro">
-                    <Image Source="{SvgImage /Assets/Confirm.svg}"/>
+                    <Svg Path="/Assets/Confirm.svg"/>
                 </Button>
             </StackPanel>
         </TextBox.InnerRightContent>
