@@ -138,9 +138,6 @@ public partial class MainWindowViewModel : ViewModelBase
     //Generating a new default configuration every time.
     //A helper is needed to persist config, also a setting view.
     private string[]? args;
-    private string path = "";
-    private Stats stats = new(true) { DisplayName = "None" };
-    private StretchMode stretch;
     private DirectoryInfo? currentDir;
     private DirectoryInfo? recursiveDir = null;
     public bool loading = false;
@@ -160,9 +157,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public Bitmap? Bitmap { get; set; }
     public FileInfo? ImageFile { get; set; }
     public IOrderedEnumerable<FileInfo>? CurrentDirItems { get; set; }
-    public string Path { get => path; set => this.RaiseAndSetIfChanged(ref path, value); }
-    public Stats Stats { get => stats; set => this.RaiseAndSetIfChanged(ref stats, value); }
-    public StretchMode Stretch { get => stretch; set => this.RaiseAndSetIfChanged(ref stretch, value); }
+    [Reactive]
+    public string Path { get; set; } = "";
+    [Reactive]
+    public Stats Stats { get; set; } = new(true);
+    [Reactive]
+    public StretchMode Stretch { get; set; }
     public bool Loading { get => Config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
     [Reactive]
     public string? UIMessage { get; set; }

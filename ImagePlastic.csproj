@@ -8,10 +8,15 @@
     <OutputType>WinExe</OutputType>
     <SelfContained>false</SelfContained>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>Assets\avalonia-logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\avalonia-logo.ico" />
   </ItemGroup>
 
   <ItemGroup>
