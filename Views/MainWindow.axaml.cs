@@ -341,4 +341,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             FullWindowRightArrow.IsVisible = false;
         FullscreenRightButtonClickCount -= 1;
     }
+
+    private double angle = 0;
+    private void Button_Click_3(object sender, RoutedEventArgs e)
+    {
+        angle += 90;
+        if (angle == 360) angle = 0;
+        BitmapImage.RenderTransform = angle != 0 ? new RotateTransform(angle) : null;
+    }
 }

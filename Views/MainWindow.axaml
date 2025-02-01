@@ -45,6 +45,9 @@
                 <Button Padding="0" Click="Button_Click_2">
                     <Svg Path="/Assets/AspectRatio.svg"/>
                 </Button>
+                <Button Padding="3" Click="Button_Click_3" Background="CadetBlue">
+                    R
+                </Button>
                 <CheckBox Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" x:Name="WindowControls" ZIndex="100">
