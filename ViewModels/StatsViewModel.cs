@@ -1,6 +1,5 @@
 ﻿using ImageMagick;
 using ImagePlastic.Models;
-using System.Diagnostics;
 using System.IO;
 
 namespace ImagePlastic.ViewModels;

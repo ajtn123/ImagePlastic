@@ -139,6 +139,7 @@
                 <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}" HotKey="F2"/>
                 <MenuItem Header="Move" Command="{Binding MoveCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
+                <MenuItem Header="Setting" Command="{Binding ConfigureCommand}"/>
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}" Classes="Con"/>
                 <MenuItem Header="QUIT" Click="ExitButton_Click" Classes="Con"/>
             </ContextMenu>

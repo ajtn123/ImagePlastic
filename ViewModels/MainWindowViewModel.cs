@@ -29,15 +29,15 @@ public partial class MainWindowViewModel : ViewModelBase
             Path = Config.DefaultFile.FullName;
         else
             Stats = new(true);
-        FSWatcher = new()
+        fsWatcher = new()
         {
             Filter = "*.*",
             NotifyFilter = NotifyFilters.FileName,
         };
         //FSWatcher.Changed += OnChanged;
-        FSWatcher.Created += OnFSChanged;
-        FSWatcher.Deleted += OnFSChanged;
-        FSWatcher.Renamed += OnFSChanged;
+        fsWatcher.Created += OnFSChanged;
+        fsWatcher.Deleted += OnFSChanged;
+        fsWatcher.Renamed += OnFSChanged;
         Stretch = Config.Stretch;
         Recursive = Config.RecursiveSearch;
         GoPath = ReactiveCommand.Create(ChangeImageToPath);
@@ -133,6 +133,10 @@ public partial class MainWindowViewModel : ViewModelBase
             else if (Stats.IsWeb && Stats.Url != null)
                 ShowWebImage(Stats.Url);
         });
+        ConfigureCommand = ReactiveCommand.Create(() =>
+        {
+            Process.Start("explorer", "\"IPConfig.json\"");
+        });
     }
 
     //Generating a new default configuration every time.
@@ -141,6 +145,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private DirectoryInfo? currentDir;
     private DirectoryInfo? recursiveDir = null;
     public bool loading = false;
+    public bool fsChanged = false;
+    private FileSystemWatcher fsWatcher;
     private bool recursive;
     private Stats stats = new(true);
 
@@ -161,7 +167,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [Reactive]
     public string Path { get; set; } = "";
     [Reactive]
-    public StatsViewModel StatsViewModel { get; set; }
+    public StatsViewModel? StatsViewModel { get; set; }
     public Stats Stats { get => stats; set { stats = value; StatsViewModel = new(value); } }
     [Reactive]
     public StretchMode Stretch { get; set; }
@@ -172,8 +178,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool Pinned { get; set; }
     [Reactive]
     public string? SvgPath { get; set; }
-    public FileSystemWatcher FSWatcher { get; set; }
-    public bool FSChanged { get; set; } = false;
     //Reload dir when Recursive property changed.
     public bool Recursive
     {
@@ -202,6 +206,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenLocalCommand { get; }
     public ICommand OpenUriCommand { get; }
     public ICommand ReloadDirCommand { get; }
+    public ICommand ConfigureCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
@@ -233,7 +238,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
     private void OnFSChanged(object sender, FileSystemEventArgs e)
-        => FSChanged = true;
+        => fsChanged = true;
     //Set ImageFile and load its directory.
     public void LoadFile(FileInfo file)
     {
@@ -252,7 +257,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 IEnumerable<FileInfo> a = [ImageFile];
                 CurrentDirItems = a.OrderBy(_ => 1);
             }
-            FSChanged = true;
+            fsChanged = true;
             ShowLocalImage();
         }
         else
@@ -268,9 +273,9 @@ public partial class MainWindowViewModel : ViewModelBase
         CurrentDirItems = dir!.EnumerateFiles("", Recursive ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly)
                               .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
                               .OrderBy(file => file.FullName, new IntuitiveStringComparer());
-        FSWatcher.Path = currentDir.FullName;
-        FSWatcher.IncludeSubdirectories = Recursive;
-        FSWatcher.EnableRaisingEvents = true;
+        fsWatcher.Path = currentDir.FullName;
+        fsWatcher.IncludeSubdirectories = Recursive;
+        fsWatcher.EnableRaisingEvents = true;
     }
     //Set and show info of ImageFile without decoding or rendering.
     public void Select(int offset = 0, int? destination = null)
@@ -373,9 +378,9 @@ public partial class MainWindowViewModel : ViewModelBase
     //Get index of current file.
     public int GetCurrentIndex()
     {
-        if (Stats.FileIndex != null && !FSChanged)
+        if (Stats.FileIndex != null && !fsChanged)
             return (int)Stats.FileIndex;
-        FSChanged = false;
+        fsChanged = false;
         return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
     }
 

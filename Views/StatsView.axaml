@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ImagePlastic.ViewModels"
              x:DataType="vm:StatsViewModel"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="20"
              x:Class="ImagePlastic.Views.StatsView">
     <TextBlock Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
 </UserControl>
