@@ -35,8 +35,7 @@
                 </TextBox>
                 <TextBlock VerticalAlignment="Center" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
-                <TextBlock VerticalAlignment="Center"
-                           Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
+                <view:StatsView DataContext="{Binding StatsViewModel}" VerticalAlignment="Center"/>
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
                          x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
                 <Button Padding="0" Click="Button_Click_1">

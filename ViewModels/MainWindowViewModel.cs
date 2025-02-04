@@ -142,6 +142,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private DirectoryInfo? recursiveDir = null;
     public bool loading = false;
     private bool recursive;
+    private Stats stats = new(true);
 
     public string[]? Args
     {
@@ -160,7 +161,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [Reactive]
     public string Path { get; set; } = "";
     [Reactive]
-    public Stats Stats { get; set; } = new(true);
+    public StatsViewModel StatsViewModel { get; set; }
+    public Stats Stats { get => stats; set { stats = value; StatsViewModel = new(value); } }
     [Reactive]
     public StretchMode Stretch { get; set; }
     public bool Loading { get => Config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }

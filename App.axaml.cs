@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using ImagePlastic.Converter;
 using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ImagePlastic.Views;

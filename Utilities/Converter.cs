@@ -1,13 +1,12 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using ImagePlastic.Models;
-using ImagePlastic.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace ImagePlastic.Converter;
+namespace ImagePlastic.Utilities;
 
 public class StatsConverter : IValueConverter
 {
