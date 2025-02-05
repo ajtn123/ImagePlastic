@@ -1,4 +1,7 @@
-﻿using Avalonia.Media.Imaging;
+﻿using Avalonia;
+using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Media.Immutable;
 using ImageMagick;
 using ImagePlastic.Models;
 using System;
@@ -17,19 +20,26 @@ public static class Utils
         try
         {
             using var mi = new MagickImage(stream);
-            return mi.ToBitmap().ConvertToAvaloniaBitmap();
+            return mi.ConvertToAvaloniaBitmap();
         }
         catch (Exception e) { Trace.WriteLine(e); return null; }
     }
     public static Bitmap? ConvertImage(FileInfo file)
     {
-        using var a = file.OpenRead();
-        return ConvertImage(a);
+        using var fs = file.OpenRead();
+        return ConvertImage(fs);
     }
     public static Bitmap? ConvertImage(MagickImage image)
     {
-        try { return image.ToBitmap().ConvertToAvaloniaBitmap(); }
+        try { return image.ConvertToAvaloniaBitmap(); }
         catch (Exception e) { Trace.WriteLine(e); return null; }
+    }
+
+    public static IBrush? GetSystemBrush(double opacity = 0.5)
+    {
+        if (Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject))
+            return new ImmutableSolidColorBrush((Color)accentObject!, opacity);
+        else return null;
     }
 
     private static readonly HttpClient client = new();

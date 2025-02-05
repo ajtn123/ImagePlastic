@@ -3,13 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml.Converters;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Linq;
 using System.Reactive;
@@ -34,14 +34,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
             ViewModel.ErrorReport += ShowError;
             if (ViewModel.Config.SystemAccentColor)
-            {
-                Application.Current!.TryGetResource("SystemAccentColor", Application.Current.ActualThemeVariant, out object? accentObject);
-                var accentColor = (Color?)accentObject ?? Color.Parse(ViewModel.Config.CustomAccentColor);
-                accentColor = new Color(ViewModel.Config.SystemAccentColorOpacity, accentColor.R, accentColor.G, accentColor.B);
-                AccentBrush = (IBrush?)ColorToBrushConverter.Convert(accentColor, typeof(IBrush));
-            }
+                AccentBrush = Locator.Current.GetService<IBrush>() ?? Brush.Parse(ViewModel.Config.CustomAccentColor);
             else
-                AccentBrush = (IBrush?)ColorToBrushConverter.Convert(ViewModel.Config.CustomAccentColor, typeof(IBrush));
+                AccentBrush = Brush.Parse(ViewModel.Config.CustomAccentColor);
             UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
             if (string.IsNullOrEmpty(ViewModel.Path))
             {

@@ -11,13 +11,13 @@ public class Config
     public FileInfo? DefaultFile { get; set; }
     public Transparency[] Blurs { get; set; }
         = [Transparency.AcrylicBlur, Transparency.Mica, Transparency.Blur, Transparency.Transparent];
-    public string BackgroundColor { get; set; } = "#00BFBFBF";
+    public string BackgroundColor { get; set; } = "#00ABCDEF";
     public string[] Extensions { get; set; }
         = [".png", ".jpg", ".jpeg", ".avif", ".heic", ".heif", ".bmp", ".jxl", ".gif", ".psd", ".svg"];
     public bool ExtendImageToTitleBar { get; set; } = true;
-    public bool SystemAccentColor { get; set; } = true;
+    public bool SystemAccentColor { get; set; } = false;
     public byte SystemAccentColorOpacity { get; set; } = 127;
-    public string CustomAccentColor { get; set; } = "#7F40CFBF";
+    public string CustomAccentColor { get; set; } = "#7FABCDEF";
     public bool LoadingIndicator { get; set; } = true;
     public StretchMode Stretch { get; set; } = StretchMode.Uniform;
     public bool DeleteConfirmation { get; set; } = true;
