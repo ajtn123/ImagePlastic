@@ -33,7 +33,7 @@
                         <KeyBinding Gesture="Enter" Command="{Binding GoPath}"/>
                     </TextBox.KeyBindings>
                 </TextBox>
-                <TextBlock VerticalAlignment="Center" Text="{Binding Stats.DisplayName}"
+                <TextBlock VerticalAlignment="Center" Text="{Binding StatsViewModel.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <view:StatsView DataContext="{Binding StatsViewModel}" VerticalAlignment="Center"/>
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
