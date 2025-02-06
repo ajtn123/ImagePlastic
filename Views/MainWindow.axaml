@@ -27,14 +27,7 @@
                PointerReleased="Window_PointerReleased"
                Background="Transparent">
             <StackPanel Orientation="Horizontal" Height="30" VerticalAlignment="Top" x:Name="TitleBar" ZIndex="11" Background="{Binding AccentBrush}">
-                <TextBox Name="PathBox" Text="{Binding Path}" 
-                         Padding="0" MinHeight="10" MinWidth="50" Margin="5,0,0,0"
-                         VerticalAlignment="Center" IsVisible="False"
-                         LostFocus="PathBox_LostFocus">
-                    <TextBox.KeyBindings>
-                        <KeyBinding Gesture="Enter" Command="{Binding GoPath}"/>
-                    </TextBox.KeyBindings>
-                </TextBox>
+                <view:StringInquiry x:Name="PathBox" DataContext="{Binding StringInquiryViewModel}" IsVisible="False"/>
                 <TextBlock VerticalAlignment="Center" Text="{Binding StatsViewModel.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <view:StatsView DataContext="{Binding StatsViewModel}" VerticalAlignment="Center"/>
@@ -101,7 +94,7 @@
 
         <ZoomBorder Grid.Row="1" ZIndex="2" x:Name="Zoomer" SizeChanged="ZoomBorder_SizeChanged"
                     Stretch="{Binding Stretch}" Focusable="True" PanButton="{Binding Config.PanButton}"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" GotFocus="ZoomBorder_GotFocus"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
             <Panel x:Name="ImagePanel">
                 <Image Source="{Binding Bitmap}" Stretch="Uniform" x:Name="BitmapImage" IsVisible="{Binding Bitmap,Converter={StaticResource BoolConverter}}"/>

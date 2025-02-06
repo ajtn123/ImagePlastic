@@ -1,11 +1,14 @@
 ﻿using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System.Reactive;
 
 namespace ImagePlastic.ViewModels;
 
 public class StringInquiryViewModel : ViewModelBase
 {
+    [Reactive]
     public string? Message { get; set; }
+    [Reactive]
     public string Result { get; set; }
 
     public ReactiveCommand<Unit, string?> ConfirmCommand { get; set; }

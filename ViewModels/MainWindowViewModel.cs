@@ -165,8 +165,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public Bitmap? Bitmap { get; set; }
     public FileInfo? ImageFile { get; set; }
     public IOrderedEnumerable<FileInfo>? CurrentDirItems { get; set; }
-    [Reactive]
-    public string Path { get; set; } = "";
+    public string Path { get => StringInquiryViewModel.Result; set => StringInquiryViewModel.Result = value; }
+    public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
     [Reactive]
     public StatsViewModel? StatsViewModel { get; set; }
     public Stats Stats { get => stats; set { stats = value; StatsViewModel = new(value); } }

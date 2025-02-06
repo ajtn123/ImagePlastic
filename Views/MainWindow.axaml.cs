@@ -33,6 +33,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
             ViewModel.ErrorReport += ShowError;
+            ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(); HidePathBox(); });
+            ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
             this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => UpdateTitleBarVisibility(b));
             UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
             if (string.IsNullOrEmpty(ViewModel.Path))
@@ -143,6 +145,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void ShowError(Stats errorStats)
     {
         UpdateTitleBarVisibility(!errorStats.Success);
+        HidePathBox();
         ZoomText.IsVisible = errorStats.Success;
         Zoomer.IsVisible = errorStats.Success;
         ErrorView.IsVisible = !errorStats.Success;
@@ -159,6 +162,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => RefreshZoomDisplay();
     private void ZoomBorder_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
         => ViewModel!.Stretch = StretchMode.None;
+    private void ZoomBorder_GotFocus(object? sender, GotFocusEventArgs e)
+        => HidePathBox();
     private void TextBox_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter || string.IsNullOrEmpty(ZoomText.Text)) return;
@@ -188,11 +193,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         PathBox.IsVisible = true;
         FileName.IsVisible = false;
-        PathBox.Focus();
+        PathBox.InquiryBox.Focus();
     }
-    private void PathBox_LostFocus(object? sender, RoutedEventArgs e)
+    private void HidePathBox()
     {
-        if (string.IsNullOrEmpty(ViewModel!.Path) || ErrorState) return;
+        ViewModel!.StringInquiryViewModel.Result = ViewModel.ImageFile?.FullName ?? "";
+        if (string.IsNullOrWhiteSpace(ViewModel.Path) || ErrorState) return;
         PathBox.IsVisible = false;
         FileName.IsVisible = true;
     }
