@@ -19,7 +19,7 @@ public class StatsConverter : IValueConverter
         List<string> a = [];
         a.Add(string.Empty);
         //Show the actual image format if it is different from the file extension.
-        if (s.DisplayName != null && !s.DisplayName.Split('.')[^1].Equals(s.Format.ToString(), StringComparison.OrdinalIgnoreCase))
+        if (s.DisplayName != null && s.Format != default && !s.DisplayName.Split('.')[^1].Equals(s.Format.ToString(), StringComparison.OrdinalIgnoreCase))
             a.Add(s.Format.ToString());
         if (s.FileIndex != null || s.FileCount != null)
             a.Add($"{(s.FileIndex ?? -1) + 1}/{s.FileCount ?? 0}");

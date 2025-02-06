@@ -287,7 +287,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var file = CurrentDirItems.ElementAt((int)destination);
         ImageFile = file;
         Path = file.FullName;
-        Stats = new(true, offset == 0 ? Stats : null) { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name };
+        Stats = new(true, offset == 0 && destination == Stats.FileIndex ? Stats : null) { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name };
     }
     //Return FileInfo of ImageFile or its neighbor.
     public FileInfo? SeekFile(int offset = 0, int? destination = null)
