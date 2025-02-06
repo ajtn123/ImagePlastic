@@ -9,11 +9,9 @@ using Avalonia.ReactiveUI;
 using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
-using Splat;
 using System;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
