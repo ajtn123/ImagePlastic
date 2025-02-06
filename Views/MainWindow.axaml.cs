@@ -10,6 +10,7 @@ using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
@@ -214,8 +215,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { AllowMultiple = false });
             context.SetOutput(files.Any() ? files[0].Path : null);
         }
-        catch
+        catch (Exception e)
         {
+            Trace.WriteLine(e);
             context.SetOutput(null);
         }
     }

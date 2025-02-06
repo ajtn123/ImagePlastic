@@ -70,6 +70,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             catch (Exception e)
             {
+                Trace.WriteLine(e);
                 UIMessage = e.Message;
             }
         });

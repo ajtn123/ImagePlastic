@@ -6,6 +6,7 @@ using ImagePlastic.ViewModels;
 using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using System;
+using System.Diagnostics;
 using System.Reactive.Disposables;
 
 namespace ImagePlastic.Views;
@@ -40,6 +41,7 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
         }
         catch (Exception e)
         {
+            Trace.WriteLine(e);
             ViewModel!.ErrorMessage = e.Message;
             ErrorMessageTextBlock.IsVisible = true;
         }
@@ -54,6 +56,7 @@ public partial class RenameWindow : ReactiveWindow<RenameWindowViewModel>
         }
         catch (Exception e)
         {
+            Trace.WriteLine(e);
             ViewModel!.ErrorMessage = e.Message;
             ErrorMessageTextBlock.IsVisible = true;
         }
