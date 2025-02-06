@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls.PanAndZoom;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using DynamicData;
 using ImageMagick;
@@ -7,6 +8,7 @@ using ImagePlastic.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -29,6 +31,10 @@ public partial class MainWindowViewModel : ViewModelBase
             Path = Config.DefaultFile.FullName;
         else
             Stats = new(true);
+        if (Config.SystemAccentColor)
+            AccentBrush = Locator.Current.GetService<IBrush>() ?? Brush.Parse(Config.CustomAccentColor);
+        else
+            AccentBrush = Brush.Parse(Config.CustomAccentColor);
         fsWatcher = new()
         {
             Filter = "*.*",
@@ -176,6 +182,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public string? UIMessage { get; set; }
     [Reactive]
     public bool Pinned { get; set; }
+    [Reactive]
+    public bool WindowOnTop { get; set; }
+    [Reactive]
+    public IBrush? AccentBrush { get; set; } = Brushes.Aquamarine;
     [Reactive]
     public string? SvgPath { get; set; }
     //Reload dir when Recursive property changed.

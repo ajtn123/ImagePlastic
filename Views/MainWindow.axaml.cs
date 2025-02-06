@@ -13,6 +13,7 @@ using Splat;
 using System;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
@@ -24,7 +25,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         KeyDown += KeyDownHandler;
         KeyUp += KeyUpHandler;
         InitializeComponent();
-        this.GetObservable(WindowStateProperty).Subscribe(SetWindowStateUI); ;
+        this.GetObservable(WindowStateProperty).Subscribe(SetWindowStateUI);
         this.WhenActivated(a =>
         {
             ViewModel ??= new();
@@ -33,10 +34,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
             ViewModel.ErrorReport += ShowError;
-            if (ViewModel.Config.SystemAccentColor)
-                AccentBrush = Locator.Current.GetService<IBrush>() ?? Brush.Parse(ViewModel.Config.CustomAccentColor);
-            else
-                AccentBrush = Brush.Parse(ViewModel.Config.CustomAccentColor);
+            this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => UpdateTitleBarVisibility(b));
             UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
             if (string.IsNullOrEmpty(ViewModel.Path))
             {
@@ -51,7 +49,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         });
     }
 
-    public IBrush? AccentBrush { get; set; } = Brushes.Aquamarine;
     public bool ErrorState => ViewModel != null && ViewModel.Stats != null && !ViewModel.Stats.Success;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
@@ -131,9 +128,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         visible = visible || ErrorState || PathBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned;
         WindowControls.IsVisible = visible;
         TitleBar.IsVisible = visible;
-        TitleArea.Background = ErrorState ? Brushes.Red
-                                : visible ? AccentBrush
-                                          : Brushes.Transparent;
     }
     private void StackPanel_PointerEntered(object? sender, PointerEventArgs e)
         => UpdateTitleBarVisibility(true);
@@ -142,7 +136,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     //Auto hide left and right Buttons.
     private void Button_PointerEntered(object? sender, PointerEventArgs e)
-        => ((Button)sender!).Foreground = AccentBrush;
+        => ((Button)sender!).Foreground = Brushes.Black;
     private void Button_PointerExited(object? sender, PointerEventArgs e)
         => ((Button)sender!).Foreground = Brushes.Transparent;
 

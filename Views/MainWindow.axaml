@@ -10,7 +10,8 @@
         Title="{Binding Stats.DisplayName}"
         Background="{Binding Config.BackgroundColor}"
         SizeChanged="Window_SizeChanged"
-        TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}">
+        TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}"
+        Topmost="{Binding WindowOnTop}">
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
@@ -18,15 +19,16 @@
     <Grid RowDefinitions="Auto,*,Auto">
         <Panel Grid.Row="{Binding Config.ExtendImageToTitleBar,Converter={StaticResource BoolToParameterConverter},ConverterParameter=1}"
                VerticalAlignment="Top" HorizontalAlignment="Left"
-               Height="29" ZIndex="10" x:Name="TitleArea"
+               Height="60" ZIndex="10" x:Name="TitleArea"
                PointerEntered="StackPanel_PointerEntered"
                PointerExited="StackPanel_PointerExited"
                PointerMoved="Window_PointerMoved"
                PointerPressed="Window_PointerPressed"
-               PointerReleased="Window_PointerReleased">
-            <StackPanel Orientation="Horizontal" Margin="5,0,0,0" x:Name="TitleBar" ZIndex="11">
+               PointerReleased="Window_PointerReleased"
+               Background="Transparent">
+            <StackPanel Orientation="Horizontal" Height="30" VerticalAlignment="Top" x:Name="TitleBar" ZIndex="11" Background="{Binding AccentBrush}">
                 <TextBox Name="PathBox" Text="{Binding Path}" 
-                         Padding="0" MinHeight="10" MinWidth="50"
+                         Padding="0" MinHeight="10" MinWidth="50" Margin="5,0,0,0"
                          VerticalAlignment="Center" IsVisible="False"
                          LostFocus="PathBox_LostFocus">
                     <TextBox.KeyBindings>
@@ -44,12 +46,12 @@
                 <Button Padding="0" Click="Button_Click_2">
                     <Svg Path="/Assets/AspectRatio.svg"/>
                 </Button>
-                <Button Padding="3" Click="Button_Click_3" Background="CadetBlue">
-                    R
+                <Button Padding="3" Click="Button_Click_3">
+                    <Svg Path="/Assets/Rotate90Cw.svg"/>
                 </Button>
                 <CheckBox Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" x:Name="WindowControls" ZIndex="100">
+            <StackPanel Orientation="Horizontal" Height="30" HorizontalAlignment="Right" VerticalAlignment="Top" x:Name="WindowControls" ZIndex="100">
                 <Button Click="MinimizeButton_Click">
                     <Svg Path="/Assets/Minimize.svg"/>
                 </Button>
@@ -131,6 +133,7 @@
             <ContextMenu Background="#BFFFFFFF">
                 <CheckBox IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}">Title Bar</CheckBox>
                 <CheckBox IsChecked="{Binding Recursive}" IsVisible="{Binding !Stats.IsWeb}">Recursive</CheckBox>
+                <CheckBox IsChecked="{Binding WindowOnTop}">On Top</CheckBox>
                 <MenuItem Header="Open" Command="{Binding OpenLocalCommand}"/>
                 <MenuItem Header="Open URI" Command="{Binding OpenUriCommand}"/>
                 <MenuItem Header="Explorer" Command="{Binding ShowInExplorerCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
