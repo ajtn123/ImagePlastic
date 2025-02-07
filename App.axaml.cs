@@ -15,7 +15,6 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
 
         Locator.CurrentMutable.RegisterConstant(ConfigProvider.LoadConfig());
-        Locator.CurrentMutable.RegisterConstant(Utils.GetSystemBrush());
 
         Resources["BoolConverter"] = BoolConverter.Instance;
         Resources["BoolToParameterConverter"] = BoolToParameterConverter.Instance;

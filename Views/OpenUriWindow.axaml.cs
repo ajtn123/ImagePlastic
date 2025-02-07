@@ -13,6 +13,7 @@ public partial class OpenUriWindow : ReactiveWindow<OpenUriWindowViewModel>
     public OpenUriWindow()
     {
         InitializeComponent();
+        Deactivated += (a, b) => Close();
         this.WhenActivated(disposables =>
         {
             ViewModel ??= new();

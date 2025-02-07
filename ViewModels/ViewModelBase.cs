@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media;
 using ImagePlastic.Models;
+using ImagePlastic.Utilities;
 using ReactiveUI;
 using Splat;
 
@@ -9,7 +10,7 @@ public class ViewModelBase : ReactiveObject
 {
     public ViewModelBase()
     {
-        AccentBrush = Config.SystemAccentColor ? Locator.Current.GetService<IBrush>() ?? Brush.Parse(Config.CustomAccentColor) : Brush.Parse(Config.CustomAccentColor);
+        AccentBrush = Config.SystemAccentColor ? Utils.GetSystemBrush(Config.SystemAccentColorOpacity) ?? Brush.Parse(Config.CustomAccentColor) : Brush.Parse(Config.CustomAccentColor);
     }
     public Config Config { get; set; } = Locator.Current.GetService<Config>()!;
     public IBrush? AccentBrush { get; set; }

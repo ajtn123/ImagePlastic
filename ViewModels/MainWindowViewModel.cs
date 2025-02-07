@@ -136,6 +136,7 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         ConfigureCommand = ReactiveCommand.Create(() =>
         {
+            Config.Save();
             Process.Start("explorer", "\"IPConfig.json\"");
         });
     }
@@ -147,7 +148,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private DirectoryInfo? recursiveDir = null;
     public bool loading = false;
     public bool fsChanged = false;
-    private FileSystemWatcher fsWatcher;
+    private readonly FileSystemWatcher fsWatcher;
     private bool recursive;
     private Stats stats = new(true);
 
