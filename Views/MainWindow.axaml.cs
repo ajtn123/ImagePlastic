@@ -6,6 +6,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
@@ -126,7 +127,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     //Auto hide Title Bar.
     private void UpdateTitleBarVisibility(bool visible)
     {
-        visible = visible || ErrorState || PathBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned;
+        visible = visible || ErrorState || PathBox.InquiryBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned;
         WindowControls.IsVisible = visible;
         TitleBar.IsVisible = visible;
     }
@@ -193,7 +194,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         PathBox.IsVisible = true;
         FileName.IsVisible = false;
-        PathBox.InquiryBox.Focus();
+        Dispatcher.UIThread.Post(() => PathBox.InquiryBox.Focus(), DispatcherPriority.Background);
     }
     private void HidePathBox()
     {

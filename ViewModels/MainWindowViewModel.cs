@@ -148,8 +148,6 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
-    //Generating a new default configuration every time.
-    //A helper is needed to persist config, also a setting view.
     private string[]? args;
     private DirectoryInfo? currentDir;
     private DirectoryInfo? recursiveDir = null;
@@ -158,27 +156,22 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly FileSystemWatcher fsWatcher;
     private bool recursive;
     private Stats stats = new(true);
-    private Bitmap? bitmap;
     private MagickImage? magick;
+    public Dictionary<string, Bitmap?> Preload = [];
+    public FileInfo? ImageFile;
+    public IOrderedEnumerable<FileInfo>? CurrentDirItems;
 
     public string[]? Args
     {
         get => args; set
         {
             args = value;
-            if (Args == null || Args.Length == 0) return;
-            Path = Args[0]; ChangeImageToPath();
+            if (Args != null && Args.Length != 0)
+                Path = Args[0]; ChangeImageToPath();
         }
     }
-    public Dictionary<string, Bitmap?> Preload { get; set; } = [];
     [Reactive]
-    public Bitmap? Bitmap
-    {
-        get => bitmap; set
-        {
-            this.RaiseAndSetIfChanged(ref bitmap, value);
-        }
-    }
+    public Bitmap? Bitmap { get; set; }
     public MagickImage? Magick
     {
         get => magick; set
@@ -187,8 +180,6 @@ public partial class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref magick, value);
         }
     }
-    public FileInfo? ImageFile { get; set; }
-    public IOrderedEnumerable<FileInfo>? CurrentDirItems { get; set; }
     public string Path { get => StringInquiryViewModel.Result; set => StringInquiryViewModel.Result = value; }
     public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
     [Reactive]
