@@ -141,7 +141,9 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         PickColorCommand = ReactiveCommand.Create(() =>
         {
-            if (Magick == null) return;
+            if (Magick == null)
+                if (Stats.File != null) Magick = new(Stats.File);
+                else return;
             UIMessage = Magick.GetPixels().GetPixel(100, 100).ToColor()?.ToHexString();
         });
     }
@@ -298,6 +300,7 @@ public partial class MainWindowViewModel : ViewModelBase
         currentDir = dir;
         CurrentDirItems = dir!.EnumerateFiles("", Recursive ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly)
                               .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
+                              .Where(file => Config.ShowHiddenOrSystemFile || ((file.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0))
                               .OrderBy(file => file.FullName, new IntuitiveStringComparer());
         fsWatcher.Path = currentDir.FullName;
         fsWatcher.IncludeSubdirectories = Recursive;
@@ -323,7 +326,6 @@ public partial class MainWindowViewModel : ViewModelBase
     //Show ImageFile or its neighbor.
     public async void ShowLocalImage(int offset = 0, int? destination = null, bool doPreload = true)
     {
-        Config.ArrowSize += 1;
         if (ImageFile == null || !ImageFile.Exists) return;
         var files = CurrentDirItems;
         Loading = true;
@@ -335,6 +337,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var file = files.ElementAt((int)destination);
             ImageFile = file; Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
+
             var oldBitmap = Bitmap;
             using (var fs = file.OpenRead())
                 await ShowImage(fs, file.FullName);
@@ -360,22 +363,21 @@ public partial class MainWindowViewModel : ViewModelBase
     //Show image from the stream, use path as identifier.
     public async Task ShowImage(Stream stream, string path)
     {
-        MagickImage image;
-        try { image = new(stream); }
-        catch (Exception e) { image = new(); Trace.WriteLine(e); }
-        Stats = new(true, Stats) { Format = image.Format };
-        if (image.Format == MagickFormat.Svg)
+        var imageInfo = new MagickImageInfo(stream);
+        MagickImage? image = null;
+        Stats = new(true, Stats) { Format = imageInfo.Format };
+        if (imageInfo.Format == MagickFormat.Svg)
         {
             SvgPath = path;
             Bitmap = null;
-            Stats = new(true, Stats) { Height = image.Width, Width = image.Height };
+            Stats = new(true, Stats) { Height = imageInfo.Width, Width = imageInfo.Height };
         }
         else
         {
             Bitmap? bitmapTemp = null;
             if (Config.Preload)
                 Preload.TryGetValue(path, out bitmapTemp);
-            bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(image); });
+            bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(stream, out image); });
 
             if (path != Path) return;
             Bitmap = bitmapTemp;

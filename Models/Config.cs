@@ -13,7 +13,7 @@ public class Config
         = [Transparency.AcrylicBlur, Transparency.Mica, Transparency.Blur, Transparency.Transparent];
     public string BackgroundColor { get; set; } = "#00ABCDEF";
     public string[] Extensions { get; set; }
-        = [".png", ".jpg", ".jpeg", ".avif", ".heic", ".heif", ".bmp", ".jxl", ".gif", ".psd", ".svg"];
+        = [".png", ".jpg", ".jpeg", ".webp", ".avif", ".heic", ".heif", ".bmp", ".jxl", ".gif", ".psd", ".svg"];
     public bool ExtendImageToTitleBar { get; set; } = true;
     public bool SystemAccentColor { get; set; } = false;
     public byte SystemAccentColorOpacity { get; set; } = 127;
@@ -24,6 +24,7 @@ public class Config
     public bool RenameConfirmation { get; set; } = false;
     public bool MoveConfirmation { get; set; } = false;
     public bool RecursiveSearch { get; set; } = false;
+    public bool ShowHiddenOrSystemFile { get; set; } = false;
     public bool Preload { get; set; } = true;
     public int PreloadLeft { get; set; } = 0;
     public int PreloadRight { get; set; } = 2;

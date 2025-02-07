@@ -19,10 +19,21 @@ public static class Utils
     {
         try
         {
+            stream.Seek(0, SeekOrigin.Begin);
             using var mi = new MagickImage(stream);
             return mi.ConvertToAvaloniaBitmap();
         }
         catch (Exception e) { Trace.WriteLine(e); return null; }
+    }
+    public static Bitmap? ConvertImage(Stream stream, out MagickImage? image)
+    {
+        try
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            image = new MagickImage(stream);
+            return image.ConvertToAvaloniaBitmap();
+        }
+        catch (Exception e) { Trace.WriteLine(e); image = null; return null; }
     }
     public static Bitmap? ConvertImage(FileInfo file)
     {

@@ -134,7 +134,7 @@
                 <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
                 <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}" HotKey="F2"/>
                 <MenuItem Header="Move" Command="{Binding MoveCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
-                <MenuItem Header="Pick Color" Command="{Binding PickColorCommand}" IsVisible="{Binding Magick,Converter={StaticResource BoolConverter}}"/>
+                <MenuItem Header="Pick Color" Command="{Binding PickColorCommand}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
                 <MenuItem Header="Setting" Command="{Binding ConfigureCommand}"/>
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}" Classes="Con"/>
