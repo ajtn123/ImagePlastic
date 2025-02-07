@@ -139,6 +139,11 @@ public partial class MainWindowViewModel : ViewModelBase
             Config.Save();
             Process.Start("explorer", "\"IPConfig.json\"");
         });
+        PickColorCommand = ReactiveCommand.Create(() =>
+        {
+            if (Magick == null) return;
+            UIMessage = Magick.GetPixels().GetPixel(100, 100).ToColor()?.ToHexString();
+        });
     }
 
     //Generating a new default configuration every time.
@@ -151,6 +156,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly FileSystemWatcher fsWatcher;
     private bool recursive;
     private Stats stats = new(true);
+    private Bitmap? bitmap;
+    private MagickImage? magick;
 
     public string[]? Args
     {
@@ -163,7 +170,21 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     public Dictionary<string, Bitmap?> Preload { get; set; } = [];
     [Reactive]
-    public Bitmap? Bitmap { get; set; }
+    public Bitmap? Bitmap
+    {
+        get => bitmap; set
+        {
+            this.RaiseAndSetIfChanged(ref bitmap, value);
+        }
+    }
+    public MagickImage? Magick
+    {
+        get => magick; set
+        {
+            magick?.Dispose();
+            this.RaiseAndSetIfChanged(ref magick, value);
+        }
+    }
     public FileInfo? ImageFile { get; set; }
     public IOrderedEnumerable<FileInfo>? CurrentDirItems { get; set; }
     public string Path { get => StringInquiryViewModel.Result; set => StringInquiryViewModel.Result = value; }
@@ -211,6 +232,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand OpenUriCommand { get; }
     public ICommand ReloadDirCommand { get; }
     public ICommand ConfigureCommand { get; }
+    public ICommand PickColorCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
@@ -313,7 +335,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var file = files.ElementAt((int)destination);
             ImageFile = file; Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
-
+            var oldBitmap = Bitmap;
             using (var fs = file.OpenRead())
                 await ShowImage(fs, file.FullName);
 
@@ -321,6 +343,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (Config.Preload && doPreload && file.FullName == Path)
                 PreloadImage(files, (int)destination);
+            else oldBitmap?.Dispose();
         }
         else
         {
@@ -361,7 +384,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats = (Bitmap == null) ? new(false, Stats)
                                      : new(true, Stats) { Height = Bitmap.Size.Height, Width = Bitmap.Size.Width };
         }
-        image.Dispose();
+        Magick = image;
         ErrorReport(Stats);
     }
     public async void ShowWebImage(string url)
@@ -413,39 +436,26 @@ public partial class MainWindowViewModel : ViewModelBase
         var newPreloadSet = new HashSet<string>();
         foreach (var offset in Enumerable.Range(leftRange, rightRange - leftRange + 1))
         {
-            if (token.IsCancellationRequested) break;
-
             int preloadIndex = Utils.SeekIndex(index, offset, files.Count());
             var preloadFileName = files.ElementAt(preloadIndex).FullName;
             newPreloadSet.Add(preloadFileName);
 
-            if (offset == 0)
-                if (Bitmap != null)
-                    Preload.TryAdd(preloadFileName, Bitmap);
-                else continue;
+            if (offset == 0 && Bitmap != null)
+                Preload.TryAdd(preloadFileName, Bitmap);
+            else if (token.IsCancellationRequested) break;
             else if (!Preload.ContainsKey(preloadFileName))
             {
                 Preload.TryAdd(preloadFileName, null);
-                preloadTasks.Add(Task.Run(() =>
-                {
-                    if (token.IsCancellationRequested) return;
-                    var bitmap = Utils.ConvertImage(files.ElementAt(preloadIndex));
-                    if (!token.IsCancellationRequested)
-                        Preload[preloadFileName] = bitmap;
-                }, token));
+                preloadTasks.Add(Task.Run(() => Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)), token));
             }
         }
 
         // Remove preloads outside the range
         var keysToRemove = Preload.Keys.Where(key => !newPreloadSet.Contains(key)).ToList();
         foreach (var key in keysToRemove)
-            Preload.Remove(key, out _);
-
-        // Wait for tasks to complete (optional, for debugging)
-        Task.WhenAll(preloadTasks).ContinueWith(_ =>
         {
-            if (!token.IsCancellationRequested)
-                GC.Collect();
-        }, TaskScheduler.Default);
+            Preload.Remove(key, out var bm);
+            bm?.Dispose();
+        }
     }
 }
