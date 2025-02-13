@@ -123,8 +123,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             var uriString = await InquiryUriString.Handle(new());
             if (string.IsNullOrWhiteSpace(uriString)) return;
-            Path = uriString;
-            ChangeImageToPath();
+            ChangeImageToPath(uriString);
         });
         ReloadDirCommand = ReactiveCommand.Create(() =>
         {
@@ -167,7 +166,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             args = value;
             if (Args != null && Args.Length != 0)
-                Path = Args[0]; ChangeImageToPath();
+                ChangeImageToPath(Args[0]);
         }
     }
     [Reactive]
