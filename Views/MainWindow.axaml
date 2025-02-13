@@ -16,7 +16,7 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="Auto,*,Auto" DragDrop.AllowDrop="True" DragDrop.Drop="FileDrop">
         <Panel Grid.Row="{Binding Config.ExtendImageToTitleBar,Converter={StaticResource BoolToParameterConverter},ConverterParameter=1}"
                VerticalAlignment="Top" HorizontalAlignment="Left"
                Height="60" ZIndex="10" x:Name="TitleArea"

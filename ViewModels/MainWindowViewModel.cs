@@ -234,6 +234,11 @@ public partial class MainWindowViewModel : ViewModelBase
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };
 
+    public void ChangeImageToPath(string path)
+    {
+        Path = path;
+        ChangeImageToPath();
+    }
     public void ChangeImageToPath()
     {
         Path = Path.Trim('"');

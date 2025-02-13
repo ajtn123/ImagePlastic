@@ -7,14 +7,19 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
+using ExCSS;
 using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reflection;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ImagePlastic.Views;
 
@@ -344,5 +349,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         angle += 90;
         if (angle == 360) angle = 0;
         BitmapImage.RenderTransform = angle != 0 ? new RotateTransform(angle) : null;
+    }
+    public void FileDrop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetFiles() is { } fileNames && ViewModel != null)
+        {
+            if (fileNames.First().TryGetLocalPath() is { } fileName)
+                ViewModel.ChangeImageToPath(fileName);
+        }
     }
 }
