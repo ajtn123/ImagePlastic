@@ -138,12 +138,10 @@ public partial class MainWindowViewModel : ViewModelBase
             Config.Save();
             Process.Start("explorer", "\"IPConfig.json\"");
         });
-        PickColorCommand = ReactiveCommand.Create(() =>
+        PickColorCommand = ReactiveCommand.Create(async () =>
         {
-            if (Magick == null)
-                if (Stats.File != null) Magick = new(Stats.File);
-                else return;
-            UIMessage = Magick.GetPixels().GetPixel(100, 100).ToColor()?.ToHexString();
+            if (Magick == null) return;
+            _ = await OpenColorPicker.Handle(new(Magick));
         });
         RotateCommand = ReactiveCommand.Create(() =>
         {
@@ -241,6 +239,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
+    public Interaction<ColorPickerWindowViewModel, Unit> OpenColorPicker { get; } = new();
     public Interaction<Unit, Uri?> OpenFilePicker { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);

@@ -33,6 +33,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
             ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
+            ViewModel.OpenColorPicker.RegisterHandler(ShowColorPickerWindow);
             ViewModel.ErrorReport += ShowError;
             ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(); HidePathBox(); });
             ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
@@ -47,10 +48,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 ZoomText.IsVisible = false;
             }
             RenderOptions.SetBitmapInterpolationMode(BitmapImage, ViewModel.Config.InterpolationMode);
+            BitmapImage.PointerMoved += BitmapImage_PointerMoved;
             Zoomer.Focus();
         });
     }
 
+    private void BitmapImage_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        var pointerPosition = e.GetPosition(BitmapImage);
+        RelativePosition.PointerX = pointerPosition.X / BitmapImage.Bounds.Width;
+        RelativePosition.PointerY = pointerPosition.Y / BitmapImage.Bounds.Height;
+    }
+    public RelativePosition RelativePosition = new();
     public bool ErrorState => ViewModel != null && ViewModel.Stats != null && !ViewModel.Stats.Success;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
@@ -215,6 +224,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => context.SetOutput(await new RenameWindow { DataContext = context.Input }.ShowDialog<string?>(this));
     private async Task ShowOpenUriWindow(IInteractionContext<OpenUriWindowViewModel, string?> context)
         => context.SetOutput(await new OpenUriWindow { DataContext = context.Input }.ShowDialog<string?>(this));
+    private void ShowColorPickerWindow(IInteractionContext<ColorPickerWindowViewModel, Unit> context)
+    {
+        context.Input.RelativePosition = RelativePosition;
+        new ColorPickerWindow() { DataContext = context.Input }.Show();
+        context.SetOutput(Unit.Default);
+    }
     private async Task ShowFilePickerAsync(IInteractionContext<Unit, Uri?> context)
     {
         try

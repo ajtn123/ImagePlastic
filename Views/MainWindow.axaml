@@ -69,11 +69,11 @@
         <Panel Grid.Row="1" ZIndex="6" IsVisible="{Binding Config.ArrowButton,Converter={StaticResource EnumToBoolConverter},ConverterParameter=Normal}">
             <Button Content="←" Command="{Binding GoLeft}" Foreground="Transparent"
                     Margin="24,0,0,0" CornerRadius="24" FontSize="{Binding Config.ArrowSize}"
-                    IsVisible="{Binding !Stats.IsWeb}" HorizontalAlignment="Left"
+                    IsVisible="{Binding !Stats.IsWeb}" HorizontalAlignment="Left" Focusable="False"
                     PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
             <Button Content="→" Command="{Binding GoRight}" Foreground="Transparent"
                     Margin="0,0,24,0" CornerRadius="24" FontSize="{Binding Config.ArrowSize}"
-                    IsVisible="{Binding !Stats.IsWeb}" HorizontalAlignment="Right"
+                    IsVisible="{Binding !Stats.IsWeb}" HorizontalAlignment="Right" Focusable="False"
                     PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
         </Panel>
         
@@ -81,13 +81,13 @@
             <Button Command="{Binding GoLeft}" Grid.Column="0" Click="FullWindowLeftButtonClick"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     Margin="0" CornerRadius="0" Classes="FullscreenButtons"
-                    IsVisible="{Binding !Stats.IsWeb}">
+                    IsVisible="{Binding !Stats.IsWeb}" Focusable="False">
                 <Svg Path="/Assets/ArrowBack.svg" IsVisible="False" x:Name="FullWindowLeftArrow"/>
             </Button>
             <Button Command="{Binding GoRight}" Grid.Column="2" Click="FullWindowRightButtonClick"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     Margin="0" CornerRadius="0" Classes="FullscreenButtons"
-                    IsVisible="{Binding !Stats.IsWeb}">
+                    IsVisible="{Binding !Stats.IsWeb}" Focusable="False">
                 <Svg Path="/Assets/ArrowForward.svg" IsVisible="False" x:Name="FullWindowRightArrow"/>
             </Button>
         </Grid>
