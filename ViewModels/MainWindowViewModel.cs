@@ -145,6 +145,12 @@ public partial class MainWindowViewModel : ViewModelBase
                 else return;
             UIMessage = Magick.GetPixels().GetPixel(100, 100).ToColor()?.ToHexString();
         });
+        RotateCommand = ReactiveCommand.Create(() =>
+        {
+            if (Magick == null) return;
+            Magick.Rotate(90);
+            _ = ShowMagickImageAsync(Magick);
+        });
     }
 
     private string[]? args;
@@ -173,7 +179,13 @@ public partial class MainWindowViewModel : ViewModelBase
     public Bitmap? Bitmap { get; set; }
     public MagickImage? Magick
     {
-        get => magick; set
+        get
+        {
+            if (magick == null && Stats.File != null)
+                Magick = new(Stats.File);
+            return magick;
+        }
+        set
         {
             magick?.Dispose();
             this.RaiseAndSetIfChanged(ref magick, value);
@@ -225,6 +237,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand ReloadDirCommand { get; }
     public ICommand ConfigureCommand { get; }
     public ICommand PickColorCommand { get; }
+    public ICommand RotateCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
@@ -383,6 +396,13 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         Magick = image;
         ErrorReport(Stats);
+    }
+    public async Task ShowMagickImageAsync(MagickImage magick)
+    {
+        Bitmap = await Task.Run(() => { return Utils.ConvertImage(magick); });
+        SvgPath = null;
+        Stats = (Bitmap == null) ? new(false, Stats)
+                                 : new(true, Stats) { Height = Bitmap.Size.Height, Width = Bitmap.Size.Width };
     }
     public async void ShowWebImage(string url)
     {

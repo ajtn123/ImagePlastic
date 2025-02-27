@@ -39,7 +39,7 @@
                 <Button Padding="0" Click="Button_Click_2">
                     <Svg Path="/Assets/AspectRatio.svg"/>
                 </Button>
-                <Button Padding="3" Click="Button_Click_3">
+                <Button Padding="3" Command="{Binding RotateCommand}">
                     <Svg Path="/Assets/Rotate90Cw.svg"/>
                 </Button>
                 <CheckBox Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
