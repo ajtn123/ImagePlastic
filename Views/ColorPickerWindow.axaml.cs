@@ -1,5 +1,4 @@
 using Avalonia.ReactiveUI;
-using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;

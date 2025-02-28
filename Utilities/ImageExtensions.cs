@@ -1,14 +1,10 @@
 ﻿using Avalonia;
-using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using ImageMagick;
-using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Bitmap = Avalonia.Media.Imaging.Bitmap;
 using PixelFormat = Avalonia.Platform.PixelFormat;
-using SBitmap = System.Drawing.Bitmap;
-
 
 namespace ImagePlastic.Utilities;
 
