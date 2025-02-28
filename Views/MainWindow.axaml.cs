@@ -38,6 +38,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(); HidePathBox(); });
             ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
             this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => UpdateTitleBarVisibility(b));
+            this.WhenAnyValue(a => a.ViewModel!.Magick).Subscribe(b => RelativePosition.Magick = b);
+            this.WhenAnyValue(a => a.ViewModel!.Bitmap).Subscribe(b => RelativePosition.Bitmap = b);
             UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
             if (string.IsNullOrEmpty(ViewModel.Path))
             {
@@ -49,11 +51,30 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             }
             RenderOptions.SetBitmapInterpolationMode(BitmapImage, ViewModel.Config.InterpolationMode);
             BitmapImage.PointerMoved += BitmapImage_PointerMoved;
+            BitmapImage.PointerPressed += BitmapImage_PointerPressed;
             Zoomer.Focus();
         });
     }
 
+    private void BitmapImage_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (ColorPickerWindow == null) return;
+
+        var isMiddle = e.GetCurrentPoint(sender as Control).Properties.IsMiddleButtonPressed;
+        RelativePosition.Frozen = isMiddle;
+        UpdateRelativePosition(e);
+
+        if (isMiddle)
+            ColorPickerWindow.CopyColor();
+        if (e.ClickCount >= 2)
+            ColorPickerWindow.Close();
+    }
     private void BitmapImage_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (RelativePosition.Frozen) return;
+        UpdateRelativePosition(e);
+    }
+    private void UpdateRelativePosition(PointerEventArgs e)
     {
         var pointerPosition = e.GetPosition(BitmapImage);
         RelativePosition.PointerX = pointerPosition.X / BitmapImage.Bounds.Width;
@@ -224,10 +245,15 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => context.SetOutput(await new RenameWindow { DataContext = context.Input }.ShowDialog<string?>(this));
     private async Task ShowOpenUriWindow(IInteractionContext<OpenUriWindowViewModel, string?> context)
         => context.SetOutput(await new OpenUriWindow { DataContext = context.Input }.ShowDialog<string?>(this));
+    private ColorPickerWindow? ColorPickerWindow;
     private void ShowColorPickerWindow(IInteractionContext<ColorPickerWindowViewModel, Unit> context)
     {
-        context.Input.RelativePosition = RelativePosition;
-        new ColorPickerWindow() { DataContext = context.Input }.Show();
+        ColorPickerWindow?.Close();
+        RelativePosition = context.Input.RelativePosition;
+        RelativePosition.Magick = ViewModel?.Magick;
+        RelativePosition.Bitmap = ViewModel?.Bitmap;
+        ColorPickerWindow = new() { DataContext = context.Input };
+        ColorPickerWindow.Show(this);
         context.SetOutput(Unit.Default);
     }
     private async Task ShowFilePickerAsync(IInteractionContext<Unit, Uri?> context)

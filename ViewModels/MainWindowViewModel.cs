@@ -141,7 +141,7 @@ public partial class MainWindowViewModel : ViewModelBase
         PickColorCommand = ReactiveCommand.Create(async () =>
         {
             if (Magick == null) return;
-            _ = await OpenColorPicker.Handle(new(Magick));
+            _ = await OpenColorPicker.Handle(new());
         });
         RotateCommand = ReactiveCommand.Create(() =>
         {

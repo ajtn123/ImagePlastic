@@ -1,7 +1,14 @@
-﻿using ImageMagick;
+﻿using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using ImageMagick;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Bitmap = Avalonia.Media.Imaging.Bitmap;
+using PixelFormat = Avalonia.Platform.PixelFormat;
+using SBitmap = System.Drawing.Bitmap;
+
 
 namespace ImagePlastic.Utilities;
 
@@ -11,15 +18,14 @@ public static class ImageExtensions
     public static Bitmap? ConvertToAvaloniaBitmap(this MagickImage magick)
     {
         using var sysBitmap = magick.ToBitmap();
-        if (sysBitmap == null)
-            return null;
-        var bitmapData = sysBitmap.LockBits(new Rectangle(0, 0, sysBitmap.Width, sysBitmap.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        if (sysBitmap == null) return null;
+        var bitmapData = sysBitmap.LockBits(new Rectangle(0, 0, sysBitmap.Width, sysBitmap.Height), ImageLockMode.ReadWrite, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         Bitmap avaBitmap = new(
-            Avalonia.Platform.PixelFormat.Bgra8888,
-            Avalonia.Platform.AlphaFormat.Premul,
+            PixelFormat.Bgra8888,
+            AlphaFormat.Premul,
             bitmapData.Scan0,
-            new Avalonia.PixelSize(bitmapData.Width, bitmapData.Height),
-            new Avalonia.Vector(96, 96),
+            new PixelSize(bitmapData.Width, bitmapData.Height),
+            new Vector(96, 96),
             bitmapData.Stride);
         sysBitmap.UnlockBits(bitmapData);
         sysBitmap.Dispose();

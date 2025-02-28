@@ -26,7 +26,7 @@ public class StatsConverter : IValueConverter
         if (s.File != null && s.File.Exists)
             a.Add(Utils.ToReadable(s.File.Length));
         if (!double.IsNaN(s.Height) && !double.IsNaN(s.Width))
-            a.Add($"{s.Height}*{s.Width}");
+            a.Add($"{s.Width}*{s.Height}");
         if (s.File != null && s.File.Exists)
             a.Add(s.File.LastWriteTime.ToString());
         if (!s.Success)
@@ -62,11 +62,15 @@ public class IntConverter : IValueConverter
     public static readonly IntConverter Instance = new();
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (!int.TryParse((string?)parameter, out int result) || (int?)value == null) return null;
-        else return (int)value + result;
+        if (!int.TryParse((string?)parameter, out int para) || (int?)value == null) return null;
+        else return (int)value + para;
     }
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (!int.TryParse((string?)parameter, out int para)) return null;
+        else if (int.TryParse((string?)value, out int result)) return result - para;
+        else return null;
+    }
 }
 
 public class EnumToBoolConverter : IValueConverter

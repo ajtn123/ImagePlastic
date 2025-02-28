@@ -3,15 +3,38 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:ImagePlastic.ViewModels"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d"
         x:Class="ImagePlastic.Views.ColorPickerWindow"
         x:DataType="vm:ColorPickerWindowViewModel"
-        Title="ColorPickerWindow"
+        Title="ColorPicker"
         SizeToContent="WidthAndHeight"
-        ExtendClientAreaChromeHints="Default">
-    <StackPanel>
-        <TextBlock Text="{Binding RelativePosition.PointerX}"/>
-        <TextBlock Text="{Binding RelativePosition.PointerY}"/>
-        <TextBlock Text="{Binding HexColorString}"/>
-    </StackPanel>
+        CanResize="False"
+        Width="200" Height="100"
+        ExtendClientAreaToDecorationsHint="False"
+        ExtendClientAreaChromeHints="Default"
+        Topmost="True">
+    <Grid RowDefinitions="auto,auto,auto,*" Margin="5">
+        <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBox Text="{Binding PixelX,Converter={StaticResource IntConverter},ConverterParameter=1}"/>
+            <TextBox Text="{Binding PixelY,Converter={StaticResource IntConverter},ConverterParameter=1}"/>
+            <Button>
+                <Panel>
+                    <Svg Path="/Assets/Locked.svg" IsVisible="{Binding RelativePosition.Frozen}"/>
+                    <Svg Path="/Assets/Unlocked.svg" IsVisible="{Binding !RelativePosition.Frozen}"/>
+                </Panel>
+            </Button>
+        </StackPanel>
+        <TextBlock Text="{Binding HexColorString}" Grid.Row="1" Margin="0,5"/>
+        <Border Background="{Binding HexColorString}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                Grid.Row="2" MinHeight="20" MinWidth="10"
+                CornerRadius="5" BorderThickness="1" BorderBrush="{Binding AccentBrush}"/>
+        <ZoomBorder Grid.Row="3" Width="190" Height="190" ClipToBounds="True" Margin="0,5,0,0" x:Name="Magnifier"
+                    CornerRadius="5" BorderThickness="1" BorderBrush="{Binding AccentBrush}">
+            <Image Source="{Binding RelativePosition.Bitmap}" x:Name="MagnifiedImage"
+                   RenderOptions.BitmapInterpolationMode="None"/>
+        </ZoomBorder>
+        <Border BorderBrush="Black" BorderThickness="1" Grid.Row="3"
+                Height="5" Width="5" IsVisible="{Binding Config.ColorPickerAiming}"/>
+    </Grid>
 </Window>
