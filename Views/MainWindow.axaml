@@ -130,6 +130,7 @@
                 <MenuItem Header="Open" Command="{Binding OpenLocalCommand}"/>
                 <MenuItem Header="Open URI" Command="{Binding OpenUriCommand}"/>
                 <MenuItem Header="Explorer" Command="{Binding ShowInExplorerCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
+                <MenuItem Header="Copy Path" Command="{Binding CopyPathCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
                 <MenuItem Header="Refresh" Command="{Binding ReloadDirCommand}"/>
                 <MenuItem Header="Optimize" Command="{Binding OptCommand}" IsVisible="{Binding Stats.Optimizable}"/>
                 <MenuItem Header="Rename" Command="{Binding RenameCommand}" IsVisible="{Binding !Stats.IsWeb}" HotKey="F2"/>

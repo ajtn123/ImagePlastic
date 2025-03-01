@@ -10,9 +10,6 @@
         Title="Rename"
         Background="{Binding Config.BackgroundColor}"
         TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}"
-        PointerMoved="Window_PointerMoved"
-        PointerPressed="Window_PointerPressed"
-        PointerReleased="Window_PointerReleased"
         SizeChanged="Window_SizeChanged" MaxWidth="600">
     <StackPanel>
         <view:StringInquiry x:Name="StringInquiryView" DataContext="{Binding StringInquiry}" Margin="5"/>

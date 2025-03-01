@@ -149,6 +149,14 @@ public partial class MainWindowViewModel : ViewModelBase
             Magick.Rotate(90);
             _ = ShowMagickImageAsync(Magick);
         });
+        CopyPathCommand = ReactiveCommand.Create(async () =>
+        {
+            var path = Stats.File?.FullName ?? Stats.Url;
+            if (path == null) return;
+            if (Config.PathCopyQuotation == PathQuotation.Always || (Config.PathCopyQuotation == PathQuotation.ContainSpace && path.Contains(' ')))
+                path = path.Insert(0, "\"") + "\"";
+            _ = await CopyToClipboard.Handle(path);
+        });
     }
 
     private string[]? args;
@@ -236,10 +244,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand ConfigureCommand { get; }
     public ICommand PickColorCommand { get; }
     public ICommand RotateCommand { get; }
+    public ICommand CopyPathCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
     public Interaction<ColorPickerWindowViewModel, Unit> OpenColorPicker { get; } = new();
+    public Interaction<string, Unit> CopyToClipboard { get; } = new();
     public Interaction<Unit, Uri?> OpenFilePicker { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);

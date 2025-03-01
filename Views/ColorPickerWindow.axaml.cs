@@ -1,4 +1,6 @@
+using Avalonia.Controls;
 using Avalonia.ReactiveUI;
+using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
@@ -14,11 +16,10 @@ public partial class ColorPickerWindow : ReactiveWindow<ColorPickerWindowViewMod
         {
             if (ViewModel == null) return;
 
-            WindowStartupLocation = Avalonia.Controls.WindowStartupLocation.Manual;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+            DraggableBehavior.SetIsDraggable(this);
             if ((MainWindow?)Owner != null)
                 Position = new(((MainWindow)Owner).Position.X + 25, ((MainWindow)Owner).Position.Y + 25);
-
-            Magnifier.Zoom(ViewModel.Config.ColorPickerZoom, 0, 0);
 
             this.WhenAnyValue(x => x.ViewModel!.PixelX, x => x.ViewModel!.PixelY)
                 .Subscribe(pos => { GetColor(pos.Item1, pos.Item2); });
@@ -44,6 +45,7 @@ public partial class ColorPickerWindow : ReactiveWindow<ColorPickerWindowViewMod
         var image = ViewModel.Magick;
         if (x < 0 || y < 0 || x >= image.Width || y >= image.Height) return;
 
+        if (Magnifier.ZoomX != ViewModel.Config.ColorPickerZoom) Magnifier.Zoom(ViewModel.Config.ColorPickerZoom, 0, 0);
         Magnifier.Pan(MagnifiedImage.Bounds.Width * ViewModel.RelativePosition.PointerX * -ViewModel.Config.ColorPickerZoom + 65, MagnifiedImage.Bounds.Height * ViewModel.RelativePosition.PointerY * -ViewModel.Config.ColorPickerZoom + 90);
 
         using ImageMagick.IPixelCollection<float> pixels = image.GetPixels();
@@ -55,4 +57,11 @@ public partial class ColorPickerWindow : ReactiveWindow<ColorPickerWindowViewMod
         if (ViewModel == null || !ViewModel.Config.ColorPickerCopy || Clipboard == null) return;
         Clipboard.SetTextAsync(ViewModel.HexColorString);
     }
+
+    private void Button_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => ViewModel!.RelativePosition.Frozen = !ViewModel.RelativePosition.Frozen;
+    private void Button_Click_1(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => CopyColor();
+    private void Button_Click_2(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => Close();
 }

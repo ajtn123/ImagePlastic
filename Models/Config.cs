@@ -40,7 +40,8 @@ public class Config
     public int ArrowSize { get; set; } = 48;
     public bool ColorPickerCopy { get; set; } = true;
     public int ColorPickerZoom { get; set; } = 50;
-    public bool ColorPickerAiming { get; set; } = true;
+    //public bool ColorPickerAiming { get; set; } = true;
+    public PathQuotation PathCopyQuotation { get; set; } = PathQuotation.ContainSpace;
 }
 
 public enum ArrowButton
@@ -56,4 +57,10 @@ public enum Transparency
     Blur,
     AcrylicBlur,
     Mica,
+}
+public enum PathQuotation
+{
+    ContainSpace,
+    No,
+    Always,
 }

@@ -7,9 +7,6 @@
         xmlns:vm="using:ImagePlastic.ViewModels"
         x:DataType="vm:ConfirmationWindowViewModel"
         Title="{Binding Title}"
-        PointerMoved="Window_PointerMoved"
-        PointerPressed="Window_PointerPressed"
-        PointerReleased="Window_PointerReleased"
         Background="{Binding Config.BackgroundColor}"
         TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}">
     <Grid ColumnDefinitions="Auto,*" RowDefinitions="*,Auto">

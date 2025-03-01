@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.ReactiveUI;
+using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
@@ -16,6 +17,7 @@ public partial class OpenUriWindow : ReactiveWindow<OpenUriWindowViewModel>
         Deactivated += (a, b) => Close();
         this.WhenActivated(disposables =>
         {
+            DraggableBehavior.SetIsDraggable(this);
             ViewModel ??= new();
             ViewModel.StringInquiry.ConfirmCommand.Subscribe(Close).DisposeWith(disposables);
             ViewModel.StringInquiry.DenyCommand.Subscribe(Close).DisposeWith(disposables);
