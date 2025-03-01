@@ -7,23 +7,23 @@ namespace ImagePlastic.Utilities;
 public static class DraggableBehavior
 {
     public static readonly AttachedProperty<bool> IsDraggableProperty
-        = AvaloniaProperty.RegisterAttached<Control, bool>("IsDraggable", typeof(DraggableBehavior));
-    public static bool GetIsDraggable(Control control)
-        => control.GetValue(IsDraggableProperty);
-    public static void SetIsDraggable(Control control, bool value = true)
+        = AvaloniaProperty.RegisterAttached<Window, bool>("IsDraggable", typeof(DraggableBehavior));
+    public static bool GetIsDraggable(Window window)
+        => window.GetValue(IsDraggableProperty);
+    public static void SetIsDraggable(Window window, bool value = true)
     {
-        control.SetValue(IsDraggableProperty, value);
+        window.SetValue(IsDraggableProperty, value);
         if (value)
         {
-            control.PointerMoved += Control_PointerMoved;
-            control.PointerPressed += Control_PointerPressed;
-            control.PointerReleased += Control_PointerReleased;
+            window.PointerMoved += Control_PointerMoved;
+            window.PointerPressed += Control_PointerPressed;
+            window.PointerReleased += Control_PointerReleased;
         }
         else
         {
-            control.PointerMoved -= Control_PointerMoved;
-            control.PointerPressed -= Control_PointerPressed;
-            control.PointerReleased -= Control_PointerReleased;
+            window.PointerMoved -= Control_PointerMoved;
+            window.PointerPressed -= Control_PointerPressed;
+            window.PointerReleased -= Control_PointerReleased;
         }
     }
 
