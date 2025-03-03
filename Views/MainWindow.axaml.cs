@@ -11,6 +11,7 @@ using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
@@ -64,9 +65,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         var isMiddle = e.GetCurrentPoint(sender as Control).Properties.IsMiddleButtonPressed;
         RelativePosition.Frozen = isMiddle;
         UpdateRelativePosition(e);
+        ColorPickerWindow.CopyColor();
 
-        if (isMiddle)
-            ColorPickerWindow.CopyColor();
         if (e.ClickCount >= 2)
             ColorPickerWindow.Close();
     }
@@ -81,6 +81,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         RelativePosition.PointerX = pointerPosition.X / BitmapImage.Bounds.Width;
         RelativePosition.PointerY = pointerPosition.Y / BitmapImage.Bounds.Height;
     }
+
+    public List<Window> ChildWindows = [];
     public RelativePosition RelativePosition = new();
     public bool ErrorState => ViewModel != null && ViewModel.Stats != null && !ViewModel.Stats.Success;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
@@ -254,6 +256,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         RelativePosition.Magick = ViewModel?.Magick;
         RelativePosition.Bitmap = ViewModel?.Bitmap;
         ColorPickerWindow = new() { DataContext = context.Input };
+        ChildWindows.Add(ColorPickerWindow);
         ColorPickerWindow.Show(this);
         context.SetOutput(Unit.Default);
     }
@@ -323,7 +326,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else WindowState = WindowState.FullScreen;
     }
     private void ExitButton_Click(object? sender, RoutedEventArgs e)
-        => Close();
+    {
+        List<Window> removals = [];
+        foreach (var window in ChildWindows)
+            if (!window.IsLoaded) removals.Add(window);
+        foreach (var removal in removals)
+            ChildWindows.Remove(removal);
+        if (ChildWindows.Count != 0) ChildWindows.Last().Close();
+        else Close();
+    }
+
     private void SetWindowStateUI(WindowState state)
     {
         if (state == WindowState.FullScreen)

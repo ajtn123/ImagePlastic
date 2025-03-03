@@ -45,8 +45,8 @@ public partial class ColorPickerWindow : ReactiveWindow<ColorPickerWindowViewMod
         var image = ViewModel.Magick;
         if (x < 0 || y < 0 || x >= image.Width || y >= image.Height) return;
 
-        if (Magnifier.ZoomX != ViewModel.Config.ColorPickerZoom) Magnifier.Zoom(ViewModel.Config.ColorPickerZoom, 0, 0);
-        Magnifier.Pan(MagnifiedImage.Bounds.Width * ViewModel.RelativePosition.PointerX * -ViewModel.Config.ColorPickerZoom + 65, MagnifiedImage.Bounds.Height * ViewModel.RelativePosition.PointerY * -ViewModel.Config.ColorPickerZoom + 90);
+        Canvas.SetLeft(MagnifiedImage, -10 * x + 95);
+        Canvas.SetTop(MagnifiedImage, -10 * y + 95);
 
         using ImageMagick.IPixelCollection<float> pixels = image.GetPixels();
         ViewModel.Pixel = pixels.GetPixel(x, y);

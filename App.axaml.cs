@@ -20,6 +20,7 @@ public partial class App : Application
         Resources["BoolToParameterConverter"] = BoolToParameterConverter.Instance;
         Resources["EnumToBoolConverter"] = EnumToBoolConverter.Instance;
         Resources["IntConverter"] = IntConverter.Instance;
+        Resources["IntMultiplyConverter"] = DoubleMultiplyConverter.Instance;
         Resources["StatsConverter"] = StatsConverter.Instance;
         Resources["BlurConverter"] = BlurConverter.Instance;
     }

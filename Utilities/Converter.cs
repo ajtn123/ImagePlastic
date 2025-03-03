@@ -73,6 +73,18 @@ public class IntConverter : IValueConverter
     }
 }
 
+public class DoubleMultiplyConverter : IValueConverter
+{
+    public static readonly DoubleMultiplyConverter Instance = new();
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (!int.TryParse((string?)parameter, out int para) || (double?)value == null) return null;
+        else return (double)value * para;
+    }
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 public class EnumToBoolConverter : IValueConverter
 {
     public static readonly EnumToBoolConverter Instance = new();

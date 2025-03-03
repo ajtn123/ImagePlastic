@@ -21,7 +21,7 @@
                     <Svg Path="/Assets/Unlocked.svg" IsVisible="{Binding !RelativePosition.Frozen}"/>
                 </Panel>
             </Button>
-            <Button Click="Button_Click_2" Padding="0">
+            <Button Click="Button_Click_2" HotKey="Escape" Padding="0">
                 <Svg Path="/Assets/Exit.svg"/>
             </Button>
         </StackPanel>
@@ -33,12 +33,14 @@
                     CornerRadius="5" BorderThickness="1" BorderBrush="{Binding AccentBrush}"/>
         </Grid>
         <Separator Margin="0,5,0,0" Background="{Binding AccentBrush}"/>
-        <ZoomBorder Width="200" Height="200"
-                    x:Name="Magnifier" ClipToBounds="True">
+        <Canvas Width="200" Height="200" ClipToBounds="True">
             <Image Source="{Binding RelativePosition.Bitmap}" x:Name="MagnifiedImage"
-                   RenderOptions.BitmapInterpolationMode="None"/>
-        </ZoomBorder>
-        <!--<Border BorderBrush="Black" BorderThickness="1" Grid.Row="3"
-                Height="5" Width="5" IsVisible="{Binding Config.ColorPickerAiming}"/>-->
+                   RenderOptions.BitmapInterpolationMode="None"
+                   Width="{Binding RelativePosition.Bitmap.Size.Width,Converter={StaticResource IntMultiplyConverter},ConverterParameter=10}"/>
+            <Border Width="10" Height="10"
+                    Canvas.Top="95" Canvas.Left="95"
+                    BorderThickness="1" BorderBrush="{Binding AccentBrush}"
+                    IsVisible="{Binding Config.ColorPickerAiming}"/>
+        </Canvas>
     </StackPanel>
 </Window>
