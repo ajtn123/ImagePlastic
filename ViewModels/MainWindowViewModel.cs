@@ -194,7 +194,8 @@ public partial class MainWindowViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref magick, value);
         }
     }
-    public string Path { get => StringInquiryViewModel.Result; set => StringInquiryViewModel.Result = value; }
+    private string path = "";
+    public string Path { get => path; set { path = value; StringInquiryViewModel.Result = value; } }
     public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
     [Reactive]
     public Stats Stats { get; set; } = new(true);
@@ -320,24 +321,24 @@ public partial class MainWindowViewModel : ViewModelBase
         fsWatcher.EnableRaisingEvents = true;
     }
     //Set and show info of ImageFile without decoding or rendering.
-    public void Select(int offset = 0, int? destination = null)
+    public void Select(int offset = 0, int destination = -1)
     {
         if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || CurrentDirItems == null) return;
-        destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
+        if (destination == -1) destination = Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
         var file = CurrentDirItems.ElementAt((int)destination);
         ImageFile = file;
         Path = file.FullName;
         Stats = new(true, offset == 0 && destination == Stats.FileIndex ? Stats : null) { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name };
     }
     //Return FileInfo of ImageFile or its neighbor.
-    public FileInfo? SeekFile(int offset = 0, int? destination = null)
+    public FileInfo? SeekFile(int offset = 0, int destination = -1)
     {
         if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || CurrentDirItems == null) return null;
-        destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
-        return CurrentDirItems.ElementAt((int)destination);
+        if (destination == -1) destination = Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
+        return CurrentDirItems.ElementAt(destination);
     }
     //Show ImageFile or its neighbor.
-    public async void ShowLocalImage(int offset = 0, int? destination = null, bool doPreload = true)
+    public async void ShowLocalImage(int offset = 0, int destination = -1, bool doPreload = true)
     {
         if (ImageFile == null || !ImageFile.Exists) return;
         var files = CurrentDirItems;
@@ -346,8 +347,8 @@ public partial class MainWindowViewModel : ViewModelBase
         if (offset != 0 || Config.Extensions.Contains(ImageFile.Extension.ToLower()))
         {
             if (files == null || !files.Any()) return;
-            destination ??= Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
-            var file = files.ElementAt((int)destination);
+            if (destination == -1) destination = Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
+            var file = files.ElementAt(destination);
             ImageFile = file; Path = file.FullName;
             Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
 
@@ -358,13 +359,13 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats.EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config);
 
             if (Config.Preload && doPreload && file.FullName == Path)
-                PreloadImage(files, (int)destination);
+                PreloadImage(files, destination);
             else oldBitmap?.Dispose();
         }
         else
         {
             var file = ImageFile; Path = file.FullName;
-            Stats = new(true) { FileIndex = null, FileCount = files?.Count(), File = file, DisplayName = file.Name };
+            Stats = new(true) { FileIndex = -1, FileCount = -1, File = file, DisplayName = file.Name };
 
             using (var fs = file.OpenRead())
                 await ShowImage(fs, file.FullName);
@@ -438,8 +439,8 @@ public partial class MainWindowViewModel : ViewModelBase
     //Get index of current file.
     public int GetCurrentIndex()
     {
-        if (Stats.FileIndex != null && !fsChanged)
-            return (int)Stats.FileIndex;
+        if (Stats.FileIndex >= 0 && !fsChanged)
+            return Stats.FileIndex;
         fsChanged = false;
         return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
     }

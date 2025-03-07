@@ -234,8 +234,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void HidePathBox()
     {
-        ViewModel!.StringInquiryViewModel.Result = ViewModel.ImageFile?.FullName ?? "";
-        if (string.IsNullOrWhiteSpace(ViewModel.Path) || ErrorState) return;
+        if (ViewModel != null && string.IsNullOrWhiteSpace(ViewModel.Path) || ErrorState) return;
         PathBox.IsVisible = false;
         FileName.IsVisible = true;
     }
@@ -307,9 +306,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void ProgressToRatio(double progressRatio, bool doShow = false)
     {
-        if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount == null) return;
-        var imageIndex = (int)double.Round(progressRatio * (int)ViewModel.Stats.FileCount - 1);
-        imageIndex = Math.Clamp(imageIndex, 0, (int)ViewModel.Stats.FileCount - 1);
+        if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount >= 0) return;
+        var imageIndex = (int)double.Round(progressRatio * ViewModel.Stats.FileCount - 1);
+        imageIndex = Math.Clamp(imageIndex, 0, ViewModel.Stats.FileCount - 1);
         if (doShow) ViewModel.ShowLocalImage(destination: imageIndex);
         else ViewModel.Select(destination: imageIndex);
     }

@@ -41,9 +41,9 @@ public class Stats : ReactiveObject
     [Reactive]
     public string? DisplayName { get; set; }
     [Reactive]
-    public int? FileIndex { get; set; }
+    public int FileIndex { get; set; } = int.MinValue;
     [Reactive]
-    public int? FileCount { get; set; }
+    public int FileCount { get; set; } = int.MinValue;
     [Reactive]
     public double Height { get; set; } = double.NaN;
     [Reactive]
