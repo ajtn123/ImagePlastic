@@ -38,6 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
         fsWatcher.Renamed += OnFSChanged;
         Stretch = Config.Stretch;
         Recursive = Config.RecursiveSearch;
+        this.WhenAnyValue(vm => vm.Stats).Subscribe(stats => stats.PropertyChanged += UpdateStats);
         GoPath = ReactiveCommand.Create(ChangeImageToPath);
         GoLeft = ReactiveCommand.Create(() => { ShowLocalImage(offset: -1); });
         GoRight = ReactiveCommand.Create(() => { ShowLocalImage(offset: 1); });
@@ -156,6 +157,9 @@ public partial class MainWindowViewModel : ViewModelBase
             _ = await CopyToClipboard.Handle(path);
         });
     }
+
+    private void UpdateStats(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        => this.RaisePropertyChanged(nameof(Stats));
 
     private string[]? args;
     private DirectoryInfo? currentDir;
@@ -424,15 +428,10 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Loading = true; ImageFile = null;
         using var webStream = await Utils.GetStreamFromWeb(url);
-        if (webStream == null)
-            Stats = new(false) { IsWeb = true, Url = url };
-        else
-        {
-            Stats = new(true) { IsWeb = true, Url = url };
-            Path = url;
-            await ShowImage(webStream, url);
-        }
-        Stats.DisplayName = url.Split('/')[^1];
+        Stats = new(webStream != null) { IsWeb = true, Url = url, DisplayName = url.Split('/')[^1] };
+
+        if (webStream != null) await ShowImage(webStream, url);
+
         ErrorReport(Stats);
         Loading = false;
     }

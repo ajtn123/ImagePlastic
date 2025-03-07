@@ -30,7 +30,7 @@
                 <view:StringInquiry x:Name="PathBox" DataContext="{Binding StringInquiryViewModel}" IsVisible="False"/>
                 <TextBlock VerticalAlignment="Center" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
-                <view:StatsView DataContext="{Binding Stats}" VerticalAlignment="Center"/>
+                <TextBlock VerticalAlignment="Center" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
                          x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
                 <Button Padding="0" Click="Button_Click_1">
