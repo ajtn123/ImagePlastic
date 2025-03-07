@@ -41,6 +41,8 @@ public class Config
     public bool ColorPickerCopy { get; set; } = true;
     public bool ColorPickerAiming { get; set; } = true;
     public PathQuotation PathCopyQuotation { get; set; } = PathQuotation.ContainSpace;
+    //Close the last child window, if exist, before closing the parent.
+    public bool OrderedClosing { get; set; } = true;
 }
 
 public enum ArrowButton

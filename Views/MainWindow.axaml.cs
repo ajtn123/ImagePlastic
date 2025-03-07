@@ -328,7 +328,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else WindowState = WindowState.FullScreen;
     }
     private void ExitButton_Click(object? sender, RoutedEventArgs e)
-        => (ChildWindows.Count != 0 ? ChildWindows.Last() : this).Close();
+        => (ChildWindows.Count != 0 && ViewModel!.Config.OrderedClosing ? ChildWindows.Last() : this).Close();
 
     private void SetWindowStateUI(WindowState state)
     {
