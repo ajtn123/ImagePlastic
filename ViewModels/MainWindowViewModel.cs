@@ -27,8 +27,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (Config.DefaultFile != null)
             Path = Config.DefaultFile.FullName;
-        else
-            Stats = new(true);
         fsWatcher = new()
         {
             Filter = "*.*",
@@ -166,7 +164,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool fsChanged = false;
     private readonly FileSystemWatcher fsWatcher;
     private bool recursive;
-    private Stats stats = new(true);
     private MagickImage? magick;
     public Dictionary<string, Bitmap?> Preload = [];
     public FileInfo? ImageFile;
@@ -200,8 +197,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public string Path { get => StringInquiryViewModel.Result; set => StringInquiryViewModel.Result = value; }
     public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
     [Reactive]
-    public StatsViewModel? StatsViewModel { get; set; }
-    public Stats Stats { get => stats; set { stats = value; StatsViewModel = new(value); } }
+    public Stats Stats { get; set; } = new(true);
     [Reactive]
     public StretchMode Stretch { get; set; }
     public bool Loading { get => Config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
@@ -359,7 +355,7 @@ public partial class MainWindowViewModel : ViewModelBase
             using (var fs = file.OpenRead())
                 await ShowImage(fs, file.FullName);
 
-            Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
+            Stats.EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config);
 
             if (Config.Preload && doPreload && file.FullName == Path)
                 PreloadImage(files, (int)destination);
@@ -373,7 +369,7 @@ public partial class MainWindowViewModel : ViewModelBase
             using (var fs = file.OpenRead())
                 await ShowImage(fs, file.FullName);
 
-            Stats = new(Stats.Success, Stats) { EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config) };
+            Stats.EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config);
         }
         Loading = false;
     }
@@ -400,8 +396,13 @@ public partial class MainWindowViewModel : ViewModelBase
             Bitmap = bitmapTemp;
 
             SvgPath = null;
-            Stats = (Bitmap == null) ? new(false, Stats)
-                                     : new(true, Stats) { Height = Bitmap.Size.Height, Width = Bitmap.Size.Width };
+            if (Bitmap == null)
+                Stats = new(false, Stats);
+            else
+            {
+                Stats.Height = Bitmap.Size.Height;
+                Stats.Width = Bitmap.Size.Width;
+            }
         }
         Magick = image;
         ErrorReport(Stats);
@@ -410,8 +411,13 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Bitmap = await Task.Run(() => { return Utils.ConvertImage(magick); });
         SvgPath = null;
-        Stats = (Bitmap == null) ? new(false, Stats)
-                                 : new(true, Stats) { Height = Bitmap.Size.Height, Width = Bitmap.Size.Width };
+        if (Bitmap == null)
+            Stats = new(false, Stats);
+        else
+        {
+            Stats.Height = Bitmap.Size.Height;
+            Stats.Width = Bitmap.Size.Width;
+        }
     }
     public async void ShowWebImage(string url)
     {
@@ -422,9 +428,10 @@ public partial class MainWindowViewModel : ViewModelBase
         else
         {
             Stats = new(true) { IsWeb = true, Url = url };
+            Path = url;
             await ShowImage(webStream, url);
         }
-        Stats = new(Stats.Success, Stats) { DisplayName = url.Split('/')[^1] };
+        Stats.DisplayName = url.Split('/')[^1];
         ErrorReport(Stats);
         Loading = false;
     }

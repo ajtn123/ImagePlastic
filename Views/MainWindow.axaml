@@ -28,9 +28,9 @@
                Background="Transparent">
             <StackPanel Orientation="Horizontal" Height="30" VerticalAlignment="Top" x:Name="TitleBar" ZIndex="11" Background="{Binding AccentBrush}">
                 <view:StringInquiry x:Name="PathBox" DataContext="{Binding StringInquiryViewModel}" IsVisible="False"/>
-                <TextBlock VerticalAlignment="Center" Text="{Binding StatsViewModel.DisplayName}"
+                <TextBlock VerticalAlignment="Center" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
-                <view:StatsView DataContext="{Binding StatsViewModel}" VerticalAlignment="Center"/>
+                <view:StatsView DataContext="{Binding Stats}" VerticalAlignment="Center"/>
                 <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
                          x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
                 <Button Padding="0" Click="Button_Click_1">
@@ -113,8 +113,8 @@
                PointerEntered="Panel_PointerEntered" x:Name="ProgressBarPanel"
                PointerExited="Panel_PointerExited" Height="40" IsVisible="{Binding !Stats.IsWeb}">
             <ProgressBar Margin="5,10" VerticalAlignment="Bottom" x:Name="Progress" IsVisible="False" MinWidth="0"
-                         Value="{Binding StatsViewModel.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"
-                         Maximum="{Binding StatsViewModel.FileCount,Mode=OneWay}"
+                         Value="{Binding Stats.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"
+                         Maximum="{Binding Stats.FileCount,Mode=OneWay}"
                          PointerPressed="ProgressBar_PointerPressed"
                          PointerMoved="ProgressBar_PointerMoved"
                          PointerReleased="ProgressBar_PointerReleased"

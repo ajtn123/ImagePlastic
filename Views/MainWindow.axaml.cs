@@ -37,7 +37,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.OpenColorPicker.RegisterHandler(ShowColorPickerWindow);
             ViewModel.CopyToClipboard.RegisterHandler(x => { Clipboard?.SetTextAsync(x.Input); x.SetOutput(Unit.Default); });
             ViewModel.ErrorReport += ShowError;
-            ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(); HidePathBox(); });
+            ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(s ?? ""); HidePathBox(); });
             ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
             this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => UpdateTitleBarVisibility(b));
             this.WhenAnyValue(a => a.ViewModel!.Magick).Subscribe(b => RelativePosition.Magick = b);
@@ -55,6 +55,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             BitmapImage.PointerMoved += BitmapImage_PointerMoved;
             BitmapImage.PointerPressed += BitmapImage_PointerPressed;
             Zoomer.Focus();
+            ViewModel.Stats.FileIndex += 1;
+            ViewModel.Stats.FileIndex -= 1;
         });
     }
 
@@ -82,7 +84,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         RelativePosition.PointerY = pointerPosition.Y / BitmapImage.Bounds.Height;
     }
 
-    public List<Window> ChildWindows = [];
+    public List<Window> childWindows = [];
+    public List<Window> ChildWindows => childWindows = [.. childWindows.Where(window => window.IsLoaded)];
     public RelativePosition RelativePosition = new();
     public bool ErrorState => ViewModel != null && ViewModel.Stats != null && !ViewModel.Stats.Success;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
@@ -326,15 +329,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else WindowState = WindowState.FullScreen;
     }
     private void ExitButton_Click(object? sender, RoutedEventArgs e)
-    {
-        List<Window> removals = [];
-        foreach (var window in ChildWindows)
-            if (!window.IsLoaded) removals.Add(window);
-        foreach (var removal in removals)
-            ChildWindows.Remove(removal);
-        if (ChildWindows.Count != 0) ChildWindows.Last().Close();
-        else Close();
-    }
+        => (ChildWindows.Count != 0 ? ChildWindows.Last() : this).Close();
 
     private void SetWindowStateUI(WindowState state)
     {
