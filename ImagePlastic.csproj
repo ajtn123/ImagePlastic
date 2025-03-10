@@ -30,7 +30,7 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.3" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.3" />
     <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.4.0" />
-    <PackageReference Include="Magick.NET.SystemDrawing" Version="8.0.4" />
+    <PackageReference Include="Magick.NET.SystemDrawing" Version="8.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
   </ItemGroup>
