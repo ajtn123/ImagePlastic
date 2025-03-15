@@ -49,7 +49,7 @@ public partial class MainWindowViewModel : ViewModelBase
             var beforeLength = Utils.ToReadable(Stats.File!.Length);
             var result = await Task.Run(() => { return Utils.Optimize(Stats.File!); });
             Loading = false;
-            Stats = new(true, Stats);
+            UpdateStats();
             UIMessage = $"Opt: {Stats.DisplayName} {result}" + (result ? $"{beforeLength} => {Utils.ToReadable(Stats.File!.Length)}" : "");
         });
         DeleteCommand = ReactiveCommand.Create(async () =>
@@ -158,8 +158,10 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
-    private void UpdateStats(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void UpdateStats()
         => this.RaisePropertyChanged(nameof(Stats));
+    private void UpdateStats(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        => UpdateStats();
 
     private string[]? args;
     private DirectoryInfo? currentDir;
@@ -202,7 +204,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public string Path { get => path; set { path = value; StringInquiryViewModel.Result = value; } }
     public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
     [Reactive]
-    public Stats Stats { get; set; } = new(true);
+    public Stats Stats { get; set; } = new();
     [Reactive]
     public StretchMode Stretch { get; set; }
     public bool Loading { get => Config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
@@ -279,7 +281,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            Stats = new(false);
+            Stats = new() { Success = false };
             ErrorReport(Stats);
         }
     }
@@ -308,7 +310,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            Stats = new(false) { File = ImageFile, DisplayName = ImageFile.Name };
+            Stats = new() { Success = false, File = ImageFile, DisplayName = ImageFile.Name };
             ErrorReport(Stats);
         }
     }
@@ -329,10 +331,17 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || CurrentDirItems == null) return;
         if (destination == -1) destination = Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
-        var file = CurrentDirItems.ElementAt((int)destination);
+        var file = CurrentDirItems.ElementAt(destination);
         ImageFile = file;
         Path = file.FullName;
-        Stats = new(true, offset == 0 && destination == Stats.FileIndex ? Stats : null) { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name };
+        if (offset == 0 && destination == Stats.FileIndex)
+        {
+            Stats.FileIndex = destination;
+            Stats.FileCount = CurrentDirItems!.Count();
+            Stats.File = file;
+            Stats.DisplayName = file.Name;
+        }
+        else Stats = new() { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name };
     }
     //Return FileInfo of ImageFile or its neighbor.
     public FileInfo? SeekFile(int offset = 0, int destination = -1)
@@ -354,7 +363,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (destination == -1) destination = Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
             var file = files.ElementAt(destination);
             ImageFile = file; Path = file.FullName;
-            Stats = new(true) { FileIndex = destination, FileCount = files.Count(), File = file, DisplayName = file.Name };
+            Stats = new() { FileCount = files.Count(), FileIndex = destination, File = file, DisplayName = file.Name };
 
             var oldBitmap = Bitmap;
             using (var fs = file.OpenRead())
@@ -369,7 +378,7 @@ public partial class MainWindowViewModel : ViewModelBase
         else
         {
             var file = ImageFile; Path = file.FullName;
-            Stats = new(true) { FileIndex = -1, FileCount = -1, File = file, DisplayName = file.Name };
+            Stats = new() { File = file, DisplayName = file.Name };
 
             using (var fs = file.OpenRead())
                 await ShowImage(fs, file.FullName);
@@ -383,12 +392,13 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var imageInfo = new MagickImageInfo(stream);
         MagickImage? image = null;
-        Stats = new(true, Stats) { Format = imageInfo.Format };
+        Stats.Format = imageInfo.Format;
         if (imageInfo.Format == MagickFormat.Svg)
         {
             SvgPath = path;
             Bitmap = null;
-            Stats = new(true, Stats) { Height = imageInfo.Width, Width = imageInfo.Height };
+            Stats.Height = imageInfo.Height;
+            Stats.Width = imageInfo.Width;
         }
         else
         {
@@ -402,7 +412,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             SvgPath = null;
             if (Bitmap == null)
-                Stats = new(false, Stats);
+                Stats.Success = false;
             else
             {
                 Stats.Height = Bitmap.Size.Height;
@@ -417,7 +427,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Bitmap = await Task.Run(() => { return Utils.ConvertImage(magick); });
         SvgPath = null;
         if (Bitmap == null)
-            Stats = new(false, Stats);
+            Stats.Success = false;
         else
         {
             Stats.Height = Bitmap.Size.Height;
@@ -428,7 +438,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Loading = true; ImageFile = null;
         using var webStream = await Utils.GetStreamFromWeb(url);
-        Stats = new(webStream != null) { IsWeb = true, Url = url, DisplayName = url.Split('/')[^1] };
+        Stats = new() { Success = webStream != null, IsWeb = true, Url = url, DisplayName = url.Split('/')[^1] };
 
         if (webStream != null) await ShowImage(webStream, url);
 

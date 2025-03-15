@@ -12,26 +12,13 @@ namespace ImagePlastic.Models;
 //Actually necessary, doesn't it?
 public class Stats : ReactiveObject
 {
-    public Stats(bool success, Stats? stats = null)
+    public Stats()
     {
-        Success = success;
-
-        if (stats == null) return;
-        IsWeb = stats.IsWeb;
-        FileIndex = stats.FileIndex;
-        Height = stats.Height;
-        Width = stats.Width;
-        File = stats.File;
-        FileCount = stats.FileCount;
-        DisplayName = stats.DisplayName;
-        EditCmd = stats.EditCmd;
-        Format = stats.Format;
-        Url = stats.Url;
-
-        if (File != null && Success)
-            Optimizable = Constants.OptimizableExts.Contains(File.Extension);
+        this.WhenAnyValue(s => s.File).Subscribe(f => Optimizable = Constants.OptimizableExts.Contains(f?.Extension));
     }
-    public bool Success { get; }
+
+    [Reactive]
+    public bool Success { get; set; } = true;
     [Reactive]
     public bool IsWeb { get; set; } = false;
     [Reactive]
@@ -41,9 +28,9 @@ public class Stats : ReactiveObject
     [Reactive]
     public string? DisplayName { get; set; }
     [Reactive]
-    public int FileIndex { get; set; } = int.MinValue;
+    public int FileIndex { get; set; } = -1;
     [Reactive]
-    public int FileCount { get; set; } = int.MinValue;
+    public int FileCount { get; set; } = 0;
     [Reactive]
     public double Height { get; set; } = double.NaN;
     [Reactive]
