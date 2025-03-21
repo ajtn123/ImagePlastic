@@ -35,13 +35,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
             ViewModel.OpenColorPicker.RegisterHandler(ShowColorPickerWindow);
+            ViewModel.OpenPropWindow.RegisterHandler(ShowPropWindow);
             ViewModel.CopyToClipboard.RegisterHandler(x => { Clipboard?.SetTextAsync(x.Input); x.SetOutput(Unit.Default); });
             ViewModel.ErrorReport += ShowError;
             ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(s ?? ""); HidePathBox(); });
             ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
             this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => UpdateTitleBarVisibility(b));
             this.WhenAnyValue(a => a.ViewModel!.Magick).Subscribe(b => RelativePosition.Magick = b);
-            this.WhenAnyValue(a => a.ViewModel!.Bitmap).Subscribe(b => RelativePosition.Bitmap = b);
+            this.WhenAnyValue(a => a.ViewModel!.Stats.Bitmap).Subscribe(b => RelativePosition.Bitmap = b);
             UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
             if (string.IsNullOrEmpty(ViewModel.Path))
             {
@@ -55,8 +56,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             BitmapImage.PointerMoved += BitmapImage_PointerMoved;
             BitmapImage.PointerPressed += BitmapImage_PointerPressed;
             Zoomer.Focus();
-            ViewModel.Stats.FileIndex += 1;
-            ViewModel.Stats.FileIndex -= 1;
         });
     }
 
@@ -187,6 +186,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         Zoomer.IsVisible = errorStats.Success;
         ErrorView.IsVisible = !errorStats.Success;
         ErrorView.ErrorMsg.Text = errorStats.DisplayName != null ? $"Unable to open {errorStats.DisplayName}" : "Error!";
+        if (errorStats.Bitmap == null) ColorPickerWindow?.Close();
         Zoomer.Uniform();
     }
 
@@ -256,10 +256,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ColorPickerWindow?.Close();
         RelativePosition = context.Input.RelativePosition;
         RelativePosition.Magick = ViewModel?.Magick;
-        RelativePosition.Bitmap = ViewModel?.Bitmap;
+        RelativePosition.Bitmap = ViewModel?.Stats.Bitmap;
         ColorPickerWindow = new() { DataContext = context.Input };
         ChildWindows.Add(ColorPickerWindow);
         ColorPickerWindow.Show(this);
+        context.SetOutput(Unit.Default);
+    }
+    private void ShowPropWindow(IInteractionContext<PropertyWindowViewModel, Unit> context)
+    {
+        var window = new PropertyWindow() { DataContext = context.Input };
+        ChildWindows.Add(window);
+        window.Show(this);
         context.SetOutput(Unit.Default);
     }
     private async Task ShowFilePickerAsync(IInteractionContext<Unit, Uri?> context)

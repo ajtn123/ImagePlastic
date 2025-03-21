@@ -1,4 +1,5 @@
-﻿using ImageMagick;
+﻿using Avalonia.Media.Imaging;
+using ImageMagick;
 using ImagePlastic.Utilities;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -32,13 +33,25 @@ public class Stats : ReactiveObject
     [Reactive]
     public int FileCount { get; set; } = 0;
     [Reactive]
-    public double Height { get; set; } = double.NaN;
-    [Reactive]
-    public double Width { get; set; } = double.NaN;
-    [Reactive]
     public bool Optimizable { get; set; } = false;
     [Reactive]
     public ProcessStartInfo? EditCmd { get; set; }
     [Reactive]
-    public MagickFormat Format { get; set; }
+    public MagickImageInfo? Info { get; set; }
+    [Reactive]
+    public MagickImage? Image { get; set; }
+    [Reactive]
+    public Bitmap? Bitmap { get; set; }
+    [Reactive]
+    public string? SvgPath { get; set; }
+
+    public MagickFormat Format => Info != null ? Info.Format : default;
+    public double Height => Info != null ? Info.Height : double.NaN;
+    public double Width => Info != null ? Info.Width : double.NaN;
+
+    ~Stats()
+    {
+        Image?.Dispose();
+        Bitmap?.Dispose();
+    }
 }

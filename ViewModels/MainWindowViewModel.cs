@@ -25,13 +25,10 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public MainWindowViewModel()
     {
+        Pics.Add(new()); Stats = Pics.First();
         if (Config.DefaultFile != null)
             Path = Config.DefaultFile.FullName;
-        fsWatcher = new()
-        {
-            Filter = "*.*",
-            NotifyFilter = NotifyFilters.FileName,
-        };
+        fsWatcher = new();
         //FSWatcher.Changed += OnChanged;
         fsWatcher.Created += OnFSChanged;
         fsWatcher.Deleted += OnFSChanged;
@@ -61,11 +58,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
             try
             {
-                FileSystem.DeleteFile(file.FullName, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+                FileSystem.DeleteFile(file.FullName, UIOption.OnlyErrorDialogs, Config.MoveToRecycleBin ? RecycleOption.SendToRecycleBin : RecycleOption.DeletePermanently);
 
                 ImageFile = fallbackFile;
                 ShowLocalImage();
-                UIMessage = $"{file.FullName} is sent to recycle bin.";
+                UIMessage = $"{file.FullName} is {(Config.MoveToRecycleBin ? "sent to recycle bin" : "deleted permanently")}.";
             }
             catch (Exception e)
             {
@@ -156,6 +153,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 path = path.Insert(0, "\"") + "\"";
             _ = await CopyToClipboard.Handle(path);
         });
+        OpenPropCommand = ReactiveCommand.Create(async () =>
+        {
+            var vm = new PropertyWindowViewModel() { Stats = Stats };
+            _ = await OpenPropWindow.Handle(vm);
+        });
     }
 
     private void UpdateStats()
@@ -184,8 +186,6 @@ public partial class MainWindowViewModel : ViewModelBase
                 ChangeImageToPath(Args[0]);
         }
     }
-    [Reactive]
-    public Bitmap? Bitmap { get; set; }
     public MagickImage? Magick
     {
         get
@@ -203,8 +203,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private string path = "";
     public string Path { get => path; set { path = value; StringInquiryViewModel.Result = value; } }
     public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
+    public List<Stats> Pics { get; } = [];
     [Reactive]
-    public Stats Stats { get; set; } = new();
+    public Stats Stats { get; set; }
     [Reactive]
     public StretchMode Stretch { get; set; }
     public bool Loading { get => Config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
@@ -214,8 +215,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool Pinned { get; set; }
     [Reactive]
     public bool WindowOnTop { get; set; }
-    [Reactive]
-    public string? SvgPath { get; set; }
     //Reload dir when Recursive property changed.
     public bool Recursive
     {
@@ -248,10 +247,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand PickColorCommand { get; }
     public ICommand RotateCommand { get; }
     public ICommand CopyPathCommand { get; }
+    public ICommand OpenPropCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
     public Interaction<ColorPickerWindowViewModel, Unit> OpenColorPicker { get; } = new();
+    public Interaction<PropertyWindowViewModel, Unit> OpenPropWindow { get; } = new();
     public Interaction<string, Unit> CopyToClipboard { get; } = new();
     public Interaction<Unit, Uri?> OpenFilePicker { get; } = new();
 
@@ -365,7 +366,7 @@ public partial class MainWindowViewModel : ViewModelBase
             ImageFile = file; Path = file.FullName;
             Stats = new() { FileCount = files.Count(), FileIndex = destination, File = file, DisplayName = file.Name };
 
-            var oldBitmap = Bitmap;
+            var oldBitmap = Stats.Bitmap;
             using (var fs = file.OpenRead())
                 await ShowImage(fs, file.FullName);
 
@@ -392,13 +393,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         var imageInfo = new MagickImageInfo(stream);
         MagickImage? image = null;
-        Stats.Format = imageInfo.Format;
+        Stats.Info = imageInfo;
         if (imageInfo.Format == MagickFormat.Svg)
         {
-            SvgPath = path;
-            Bitmap = null;
-            Stats.Height = imageInfo.Height;
-            Stats.Width = imageInfo.Width;
+            Stats.SvgPath = path;
+            Stats.Bitmap = null;
         }
         else
         {
@@ -408,31 +407,21 @@ public partial class MainWindowViewModel : ViewModelBase
             bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(stream, out image); });
 
             if (path != Path) return;
-            Bitmap = bitmapTemp;
+            Stats.Bitmap = bitmapTemp;
 
-            SvgPath = null;
-            if (Bitmap == null)
+            Stats.SvgPath = null;
+            if (Stats.Bitmap == null)
                 Stats.Success = false;
-            else
-            {
-                Stats.Height = Bitmap.Size.Height;
-                Stats.Width = Bitmap.Size.Width;
-            }
         }
         Magick = image;
         ErrorReport(Stats);
     }
     public async Task ShowMagickImageAsync(MagickImage magick)
     {
-        Bitmap = await Task.Run(() => { return Utils.ConvertImage(magick); });
-        SvgPath = null;
-        if (Bitmap == null)
+        Stats.Bitmap = await Task.Run(() => { return Utils.ConvertImage(magick); });
+        Stats.SvgPath = null;
+        if (Stats.Bitmap == null)
             Stats.Success = false;
-        else
-        {
-            Stats.Height = Bitmap.Size.Height;
-            Stats.Width = Bitmap.Size.Width;
-        }
     }
     public async void ShowWebImage(string url)
     {
@@ -483,8 +472,8 @@ public partial class MainWindowViewModel : ViewModelBase
             var preloadFileName = files.ElementAt(preloadIndex).FullName;
             newPreloadSet.Add(preloadFileName);
 
-            if (offset == 0 && Bitmap != null)
-                Preload.TryAdd(preloadFileName, Bitmap);
+            if (offset == 0 && Stats.Bitmap != null)
+                Preload.TryAdd(preloadFileName, Stats.Bitmap);
             else if (token.IsCancellationRequested) break;
             else if (!Preload.ContainsKey(preloadFileName))
             {

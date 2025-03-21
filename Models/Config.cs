@@ -22,6 +22,7 @@ public class Config
     public bool LoadingIndicator { get; set; } = true;
     //Not working.
     public StretchMode Stretch { get; set; } = StretchMode.Uniform;
+    public bool MoveToRecycleBin { get; set; } = true;
     public bool DeleteConfirmation { get; set; } = true;
     public bool RenameConfirmation { get; set; } = false;
     public bool MoveConfirmation { get; set; } = false;
