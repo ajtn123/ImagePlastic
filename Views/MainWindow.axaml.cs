@@ -41,7 +41,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(s ?? ""); HidePathBox(); });
             ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
             this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => UpdateTitleBarVisibility(b));
-            this.WhenAnyValue(a => a.ViewModel!.Magick).Subscribe(b => RelativePosition.Magick = b);
+            this.WhenAnyValue(a => a.ViewModel!.Stats.Image).Subscribe(b => RelativePosition.Magick = b);
             this.WhenAnyValue(a => a.ViewModel!.Stats.Bitmap).Subscribe(b => RelativePosition.Bitmap = b);
             UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
             if (string.IsNullOrEmpty(ViewModel.Path))
@@ -255,7 +255,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         ColorPickerWindow?.Close();
         RelativePosition = context.Input.RelativePosition;
-        RelativePosition.Magick = ViewModel?.Magick;
+        RelativePosition.Magick = ViewModel?.Stats.Image;
         RelativePosition.Bitmap = ViewModel?.Stats.Bitmap;
         ColorPickerWindow = new() { DataContext = context.Input };
         ChildWindows.Add(ColorPickerWindow);

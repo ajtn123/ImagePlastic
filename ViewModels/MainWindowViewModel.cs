@@ -136,14 +136,14 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         PickColorCommand = ReactiveCommand.Create(async () =>
         {
-            if (Magick == null) return;
+            if (Stats.Image == null) return;
             _ = await OpenColorPicker.Handle(new());
         });
         RotateCommand = ReactiveCommand.Create(() =>
         {
-            if (Magick == null) return;
-            Magick.Rotate(90);
-            _ = ShowMagickImageAsync(Magick);
+            if (Stats.Image == null) return;
+            Stats.Image.Rotate(90);
+            _ = ShowMagickImageAsync(Stats.Image);
         });
         CopyPathCommand = ReactiveCommand.Create(async () =>
         {
@@ -172,8 +172,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool fsChanged = false;
     private readonly FileSystemWatcher fsWatcher;
     private bool recursive;
-    private MagickImage? magick;
-    public Dictionary<string, Bitmap?> Preload = [];
+    public Dictionary<string, Stats?> Preload = [];
     public FileInfo? ImageFile;
     public IOrderedEnumerable<FileInfo>? CurrentDirItems;
 
@@ -184,20 +183,6 @@ public partial class MainWindowViewModel : ViewModelBase
             args = value;
             if (Args != null && Args.Length != 0)
                 ChangeImageToPath(Args[0]);
-        }
-    }
-    public MagickImage? Magick
-    {
-        get
-        {
-            if (magick == null && Stats.File != null)
-                Magick = new(Stats.File);
-            return magick;
-        }
-        set
-        {
-            magick?.Dispose();
-            this.RaiseAndSetIfChanged(ref magick, value);
         }
     }
     private string path = "";
@@ -342,7 +327,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats.File = file;
             Stats.DisplayName = file.Name;
         }
-        else Stats = new() { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name };
+        else Stats = new() { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name, Info = new(file) };
     }
     //Return FileInfo of ImageFile or its neighbor.
     public FileInfo? SeekFile(int offset = 0, int destination = -1)
@@ -394,6 +379,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var imageInfo = new MagickImageInfo(stream);
         MagickImage? image = null;
         Stats.Info = imageInfo;
+        Stats.Stream = stream.CloneStream();
         if (imageInfo.Format == MagickFormat.Svg)
         {
             Stats.SvgPath = path;
@@ -403,7 +389,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             Bitmap? bitmapTemp = null;
             if (Config.Preload)
-                Preload.TryGetValue(path, out bitmapTemp);
+            { Preload.TryGetValue(path, out var s); bitmapTemp = s?.Bitmap; image = s?.Image; }
             bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(stream, out image); });
 
             if (path != Path) return;
@@ -413,7 +399,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (Stats.Bitmap == null)
                 Stats.Success = false;
         }
-        Magick = image;
+        Stats.Image = image;
         ErrorReport(Stats);
     }
     public async Task ShowMagickImageAsync(MagickImage magick)
@@ -473,12 +459,12 @@ public partial class MainWindowViewModel : ViewModelBase
             newPreloadSet.Add(preloadFileName);
 
             if (offset == 0 && Stats.Bitmap != null)
-                Preload.TryAdd(preloadFileName, Stats.Bitmap);
+                Preload.TryAdd(preloadFileName, Stats);
             else if (token.IsCancellationRequested) break;
             else if (!Preload.ContainsKey(preloadFileName))
             {
                 Preload.TryAdd(preloadFileName, null);
-                preloadTasks.Add(Task.Run(() => Preload[preloadFileName] = Utils.ConvertImage(files.ElementAt(preloadIndex)), token));
+                preloadTasks.Add(Task.Run(() => Preload[preloadFileName] = new() { Bitmap = Utils.ConvertImage(files.ElementAt(preloadIndex), out var image), Image = image }, token));
             }
         }
 
@@ -486,8 +472,8 @@ public partial class MainWindowViewModel : ViewModelBase
         var keysToRemove = Preload.Keys.Where(key => !newPreloadSet.Contains(key)).ToList();
         foreach (var key in keysToRemove)
         {
-            Preload.Remove(key, out var bm);
-            bm?.Dispose();
+            Preload.Remove(key, out var s);
+            s?.Dispose();
         }
     }
 }

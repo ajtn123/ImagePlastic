@@ -11,7 +11,7 @@ using System.Linq;
 namespace ImagePlastic.Models;
 
 //Actually necessary, doesn't it?
-public class Stats : ReactiveObject
+public class Stats : ReactiveObject, IDisposable
 {
     public Stats()
     {
@@ -26,6 +26,8 @@ public class Stats : ReactiveObject
     public string? Url { get; set; }
     [Reactive]
     public FileInfo? File { get; set; }
+    [Reactive]
+    public Stream? Stream { get; set; }
     [Reactive]
     public string? DisplayName { get; set; }
     [Reactive]
@@ -49,9 +51,12 @@ public class Stats : ReactiveObject
     public double Height => Info != null ? Info.Height : double.NaN;
     public double Width => Info != null ? Info.Width : double.NaN;
 
-    ~Stats()
+    public void Dispose()
     {
         Image?.Dispose();
         Bitmap?.Dispose();
+        Stream?.Dispose();
+        GC.SuppressFinalize(this);
     }
+    ~Stats() => Dispose();
 }

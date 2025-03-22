@@ -40,6 +40,11 @@ public static class Utils
         using var fs = file.OpenRead();
         return ConvertImage(fs);
     }
+    public static Bitmap? ConvertImage(FileInfo file, out MagickImage? image)
+    {
+        using var fs = file.OpenRead();
+        return ConvertImage(fs, out image);
+    }
     public static Bitmap? ConvertImage(MagickImage image)
     {
         try { return image.ConvertToAvaloniaBitmap(); }
@@ -107,5 +112,17 @@ public static class Utils
         if (l >= 30)
             return $"{double.Round(length / (double)(1 << 30), 2)} GiB";
         return length.ToString();
+    }
+
+    public static MemoryStream CloneStream(this Stream original)
+    {
+        if (original is MemoryStream memoryStream)
+            return new MemoryStream(memoryStream.ToArray());
+
+        MemoryStream clone = new();
+        original.Position = 0;
+        original.CopyTo(clone);
+        clone.Position = 0;
+        return clone;
     }
 }

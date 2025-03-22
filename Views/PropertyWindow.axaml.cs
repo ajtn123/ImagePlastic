@@ -1,10 +1,11 @@
-using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 using ImagePlastic.Models;
 using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
-using ShimSkiaSharp;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
 
@@ -15,25 +16,26 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
         InitializeComponent();
         this.WhenActivated(a =>
         {
-            if (Stats == null) return;
-            if (Stats.File != null)
-            {
-                Add("Path", Stats.File.FullName);
-                Add("Last Write Time", Stats.File.LastWriteTime.ToString());
-                Add("Last Access Time", Stats.File.LastAccessTime.ToString());
-                Add("Creation Time", Stats.File.CreationTime.ToString());
-                Add("File Size", Utils.ToReadable(Stats.File.Length));
-            }
-            if (Stats.Url != null)
-            {
-                Add("URL", Stats.Url.ToString());
-            }
+            if (Stats == null || ViewModel == null) return;
+            DraggableBehavior.SetIsDraggable(this);
+            _ = AddPropGroup(Stats.File);
+            _ = AddPropGroup(Stats.Info);
+            _ = AddPropGroup(Stats.Stream);
+            _ = AddPropGroup(Stats.Image);
         });
     }
-
-    public void Add(string name, string value)
+    public static async Task<List<Prop>> IterateProps(object o)
+        => await Task.Run(() => o.GetType().GetProperties().Where(prop => prop.CanRead).Select(prop =>
+        {
+            string value = "";
+            try { value = prop.GetValue(o)?.ToString() ?? ""; }
+            catch { }
+            return new Prop(prop.Name, value);
+        }).ToList());
+    public async Task AddPropGroup(object? o)
     {
-        ViewModel?.Props.Add(new(name, value));
+        if (o == null || ViewModel == null) return;
+        ViewModel.PropGroups.Add(new(o.GetType().Name, await IterateProps(o)));
     }
     public Stats? Stats => ViewModel?.Stats;
 }
