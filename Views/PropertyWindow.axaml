@@ -11,6 +11,11 @@
         ExtendClientAreaChromeHints="Default"
         Background="{Binding Config.BackgroundColor}"
         TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}">
+    <Window.Styles>
+        <Style Selector="ScrollBar">
+            <Setter Property="HideDelay" Value="0"/>
+        </Style>
+    </Window.Styles>
     <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,*" Margin="5">
         <Border CornerRadius="10" ClipToBounds="True">
             <Image Source="{Binding Stats.Bitmap}"/>
@@ -18,17 +23,22 @@
         <TextBlock Text="{Binding Stats.DisplayName}" Grid.Column="1"
                    FontSize="28" TextWrapping="Wrap" Margin="5"/>
         <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2">
-            <ItemsControl ItemsSource="{Binding PropGroups}">
+            <ItemsControl ItemsSource="{Binding PropGroups}" x:Name="Groups">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="vm:PropGroup">
-                        <Expander Header="{Binding GroupName}" HorizontalAlignment="Stretch" Margin="0,5,0,0">
+                        <Expander Header="{Binding GroupName}" IsExpanded="{Binding Expanded}"
+                                  HorizontalAlignment="Stretch" Margin="0,5,0,0">
                             <ItemsControl ItemsSource="{Binding Props}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="vm:Prop">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Width="200" Text="{Binding Name}"/>
-                                            <TextBlock Text="{Binding Value}"/>
-                                        </StackPanel>
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBox BorderThickness="0" Padding="0" MinHeight="0" Background="Transparent" Width="200"
+                                                         IsReadOnly="True" Text="{Binding Name}"/>
+                                                <TextBox BorderThickness="0" Padding="0" MinHeight="0" Background="Transparent"
+                                                         IsReadOnly="True" Text="{Binding Value}"/>
+                                            </StackPanel>
+                                        </ScrollViewer>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

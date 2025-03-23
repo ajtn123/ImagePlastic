@@ -18,11 +18,19 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
         {
             if (Stats == null || ViewModel == null) return;
             DraggableBehavior.SetIsDraggable(this);
+            AddMainGroup();
             _ = AddPropGroup(Stats.File);
             _ = AddPropGroup(Stats.Info);
             _ = AddPropGroup(Stats.Stream);
             _ = AddPropGroup(Stats.Image);
         });
+    }
+
+    public void AddMainGroup()
+    {
+        if (ViewModel == null) return;
+        List<Prop> mains = [new("", Stats?.File?.FullName ?? "")];
+        ViewModel.PropGroups.Add(new("Main", mains) { Expanded = true });
     }
     public static async Task<List<Prop>> IterateProps(object o)
         => await Task.Run(() => o.GetType().GetProperties().Where(prop => prop.CanRead).Select(prop =>

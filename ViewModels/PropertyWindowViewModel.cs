@@ -18,5 +18,6 @@ public class Prop(string name, string value)
 public class PropGroup(string groupName, List<Prop> props)
 {
     public string GroupName { get; set; } = groupName;
+    public bool Expanded { get; set; } = false;
     public List<Prop> Props { get; set; } = props;
 }
