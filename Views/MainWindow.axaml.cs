@@ -7,7 +7,6 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
-using ImagePlastic.Models;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
@@ -37,12 +36,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.OpenColorPicker.RegisterHandler(ShowColorPickerWindow);
             ViewModel.OpenPropWindow.RegisterHandler(ShowPropWindow);
             ViewModel.CopyToClipboard.RegisterHandler(x => { Clipboard?.SetTextAsync(x.Input); x.SetOutput(Unit.Default); });
-            ViewModel.ErrorReport += ShowError;
             ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(s ?? ""); HidePathBox(); });
             ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
             this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => UpdateTitleBarVisibility(b));
             this.WhenAnyValue(a => a.ViewModel!.Stats.Image).Subscribe(b => RelativePosition.Magick = b);
             this.WhenAnyValue(a => a.ViewModel!.Stats.Bitmap).Subscribe(b => RelativePosition.Bitmap = b);
+            this.WhenAnyValue(a => a.ViewModel!.Stats.Success).Subscribe(b => ShowError());
             UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
             if (string.IsNullOrEmpty(ViewModel.Path))
             {
@@ -178,15 +177,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => ((Button)sender!).Foreground = Brushes.Transparent;
 
     //Show Error View and make other ui changes.
-    private void ShowError(Stats errorStats)
+    private void ShowError()
     {
-        UpdateTitleBarVisibility(!errorStats.Success);
+        var stats = ViewModel!.Stats;
+        UpdateTitleBarVisibility(!stats.Success);
         HidePathBox();
-        ZoomText.IsVisible = errorStats.Success;
-        Zoomer.IsVisible = errorStats.Success;
-        ErrorView.IsVisible = !errorStats.Success;
-        ErrorView.ErrorMsg.Text = errorStats.DisplayName != null ? $"Unable to open {errorStats.DisplayName}" : "Error!";
-        if (errorStats.Bitmap == null) ColorPickerWindow?.Close();
+        ZoomText.IsVisible = stats.Success;
+        Zoomer.IsVisible = stats.Success;
+        ErrorView.IsVisible = !stats.Success;
+        ErrorView.ErrorMsg.Text = stats.DisplayName != null ? $"Unable to open {stats.DisplayName}" : "Error!";
+        if (stats.Bitmap == null) ColorPickerWindow?.Close();
         Zoomer.Uniform();
     }
 
@@ -201,21 +201,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => ViewModel!.Stretch = StretchMode.None;
     private void ZoomBorder_GotFocus(object? sender, GotFocusEventArgs e)
         => HidePathBox();
-    private void TextBox_KeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key != Key.Enter || string.IsNullOrEmpty(ZoomText.Text)) return;
-        if (double.TryParse(ZoomText.Text, out double v1))
-        {
-            SetZoom(v1);
-            ZoomText.Background = Brushes.Transparent;
-        }
-        else if (double.TryParse(ZoomText.Text.TrimEnd('%'), out double v2))
-        {
-            SetZoom(v2 / 100);
-            ZoomText.Background = Brushes.Transparent;
-        }
-        else ZoomText.Background = Brushes.Red;
-    }
     private void Button_Click_1(object? sender, RoutedEventArgs e)
         => SetZoom(1);
     private void Button_Click_2(object? sender, RoutedEventArgs e)
@@ -400,5 +385,21 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             if (fileNames.First().TryGetLocalPath() is { } fileName)
                 ViewModel.ChangeImageToPath(fileName);
         }
+    }
+
+    private void TextBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (!ZoomText.IsFocused) return;
+        if (double.TryParse(ZoomText.Text, out double v1))
+        {
+            SetZoom(v1);
+            ZoomText.Background = Brushes.Transparent;
+        }
+        else if (double.TryParse(ZoomText.Text?.TrimEnd('%'), out double v2))
+        {
+            SetZoom(v2 / 100);
+            ZoomText.Background = Brushes.Transparent;
+        }
+        else ZoomText.Background = Brushes.Red;
     }
 }

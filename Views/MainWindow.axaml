@@ -31,7 +31,7 @@
                 <TextBlock VerticalAlignment="Center" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
-                <TextBox VerticalAlignment="Center" MinHeight="10" KeyDown="TextBox_KeyDown" BorderThickness="0"
+                <TextBox VerticalAlignment="Center" MinHeight="10" TextChanged="TextBox_TextChanged" BorderThickness="0"
                          x:Name="ZoomText" Padding="0" Background="Transparent" MinWidth="10"/>
                 <Button Padding="0" Click="Button_Click_1">
                     <Svg Path="/Assets/ViewRealSize.svg"/>
