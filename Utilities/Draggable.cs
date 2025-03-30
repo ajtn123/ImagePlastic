@@ -10,6 +10,11 @@ public static class DraggableBehavior
 {
     public static readonly AttachedProperty<bool> IsDraggableProperty
         = AvaloniaProperty.RegisterAttached<Control, bool>("IsDraggable", typeof(DraggableBehavior));
+    public static readonly AttachedProperty<bool> IsMouseDownProperty
+        = AvaloniaProperty.RegisterAttached<Control, bool>("IsMouseDown", typeof(DraggableBehavior));
+    public static readonly AttachedProperty<PointerPoint> OriginalPointProperty
+        = AvaloniaProperty.RegisterAttached<Control, PointerPoint>("OriginalPoint", typeof(DraggableBehavior));
+
     public static bool GetIsDraggable(Control control)
         => control.GetValue(IsDraggableProperty);
     public static void SetIsDraggable(Control control, bool value = true)
@@ -33,48 +38,51 @@ public static class DraggableBehavior
             control.PointerReleased -= Control_PointerReleased;
             control.PointerCaptureLost -= Control_PointerCaptureLost;
             if (control is Window)
-                control.LostFocus += Control_LostFocus;
+                control.LostFocus -= Control_LostFocus;
             else if (control.FindAncestorOfType<Window>() is Window window2)
-                window2.LostFocus += Control_LostFocus;
+                window2.LostFocus -= Control_LostFocus;
         }
     }
+    private static void SetIsMouseDown(Control control, bool value)
+    => control.SetValue(IsMouseDownProperty, value);
+    private static bool GetIsMouseDown(Control control)
+        => control.GetValue(IsMouseDownProperty);
+
+    private static void SetOriginalPoint(Control control, PointerPoint value)
+        => control.SetValue(OriginalPointProperty, value);
+    private static PointerPoint GetOriginalPoint(Control control)
+        => control.GetValue(OriginalPointProperty);
 
     //https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
-    private static bool _mouseDownForWindowMoving = false;
-    private static PointerPoint _originalPoint;
     private static void Control_PointerMoved(object? sender, PointerEventArgs e)
     {
-        Window? window = null;
-        if (_mouseDownForWindowMoving && sender is Control control)
-            if (control is Window window1) window = window1;
-            else if (control.FindAncestorOfType<Window>() is Window window2) window = window2;
-            else return;
+        if (sender is not Control control || !GetIsMouseDown(control)) return;
+        Window? window = control as Window ?? control.FindAncestorOfType<Window>();
         if (window != null)
         {
             PointerPoint currentPoint = e.GetCurrentPoint(window);
+            PointerPoint originalPoint = GetOriginalPoint(control);
             window.Position = new PixelPoint(
-                window.Position.X + (int)(currentPoint.Position.X - _originalPoint.Position.X),
-                window.Position.Y + (int)(currentPoint.Position.Y - _originalPoint.Position.Y)
-                );
+                window.Position.X + (int)(currentPoint.Position.X - originalPoint.Position.X),
+                window.Position.Y + (int)(currentPoint.Position.Y - originalPoint.Position.Y)
+            );
         }
     }
     private static void Control_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        Window? window = null;
-        if (sender is Control control && e.GetCurrentPoint(window).Properties.IsLeftButtonPressed)
-            if (control is Window window1) window = window1;
-            else if (control.FindAncestorOfType<Window>() is Window window2) window = window2;
-            else return;
-        if (window != null && window.WindowState == WindowState.Normal)
+        if (sender is not Control control) return;
+        Window? window = control as Window ?? control.FindAncestorOfType<Window>();
+        if (window != null && window.WindowState == WindowState.Normal && e.GetCurrentPoint(window).Properties.IsLeftButtonPressed)
         {
-            _mouseDownForWindowMoving = true;
-            _originalPoint = e.GetCurrentPoint(window);
+            SetIsMouseDown(control, true);
+            SetOriginalPoint(control, e.GetCurrentPoint(window));
         }
     }
+
     private static void Control_PointerReleased(object? sender, PointerReleasedEventArgs e)
-        => _mouseDownForWindowMoving = false;
+    { if (sender is Control control) SetIsMouseDown(control, false); }
     private static void Control_PointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
-    => _mouseDownForWindowMoving = false;
+    { if (sender is Control control) SetIsMouseDown(control, false); }
     private static void Control_LostFocus(object? sender, RoutedEventArgs e)
-        => _mouseDownForWindowMoving = false;
+    { if (sender is Control control) SetIsMouseDown(control, false); }
 }
