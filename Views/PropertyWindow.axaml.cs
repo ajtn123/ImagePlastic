@@ -29,7 +29,7 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
     public void AddMainGroup()
     {
         if (ViewModel == null) return;
-        List<Prop> mains = [new("", Stats?.File?.FullName ?? "")];
+        List<Prop> mains = [new("File Path", Stats?.File?.FullName ?? "")];
         ViewModel.PropGroups.Add(new("Main", mains) { Expanded = true });
     }
     public static async Task<List<Prop>> IterateProps(object o)
