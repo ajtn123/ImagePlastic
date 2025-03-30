@@ -158,6 +158,11 @@ public partial class MainWindowViewModel : ViewModelBase
             var vm = new PropertyWindowViewModel() { Stats = Stats };
             _ = await OpenPropWindow.Handle(vm);
         });
+        OpenAboutCommand = ReactiveCommand.Create(async () =>
+        {
+            var vm = new PropertyWindowViewModel() { Stats = Stats };
+            _ = await OpenPropWindow.Handle(vm);
+        });
     }
 
     private void UpdateStats()
@@ -233,6 +238,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand RotateCommand { get; }
     public ICommand CopyPathCommand { get; }
     public ICommand OpenPropCommand { get; }
+    public ICommand OpenAboutCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();

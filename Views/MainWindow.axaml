@@ -22,9 +22,6 @@
                Height="60" ZIndex="10" x:Name="TitleArea"
                PointerEntered="StackPanel_PointerEntered"
                PointerExited="StackPanel_PointerExited"
-               PointerMoved="Window_PointerMoved"
-               PointerPressed="Window_PointerPressed"
-               PointerReleased="Window_PointerReleased"
                Background="Transparent">
             <StackPanel Orientation="Horizontal" Height="30" VerticalAlignment="Top" x:Name="TitleBar" ZIndex="11" Background="{Binding AccentBrush}">
                 <view:StringInquiry x:Name="PathBox" DataContext="{Binding StringInquiryViewModel}" IsVisible="False"/>
@@ -45,6 +42,15 @@
                 <CheckBox Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Height="30" HorizontalAlignment="Right" VerticalAlignment="Top" x:Name="WindowControls" ZIndex="100">
+                <Menu>
+                    <MenuItem MinWidth="0" Padding="8">
+                        <MenuItem.Header>
+                            <Svg Path="/Assets/Menu.svg"/>
+                        </MenuItem.Header>
+                        <MenuItem Header="Property" Command="{Binding OpenPropCommand}"/>
+                        <MenuItem Header="About" Command="{Binding OpenAboutCommand}"/>
+                    </MenuItem>
+                </Menu>
                 <Button Click="MinimizeButton_Click">
                     <Svg Path="/Assets/Minimize.svg"/>
                 </Button>
