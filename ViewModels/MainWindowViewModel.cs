@@ -160,8 +160,8 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         OpenAboutCommand = ReactiveCommand.Create(async () =>
         {
-            var vm = new PropertyWindowViewModel() { Stats = Stats };
-            _ = await OpenPropWindow.Handle(vm);
+            var vm = new AboutWindowViewModel();
+            _ = await OpenAboutWindow.Handle(vm);
         });
     }
 
@@ -244,6 +244,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public Interaction<OpenUriWindowViewModel, string?> InquiryUriString { get; } = new();
     public Interaction<ColorPickerWindowViewModel, Unit> OpenColorPicker { get; } = new();
     public Interaction<PropertyWindowViewModel, Unit> OpenPropWindow { get; } = new();
+    public Interaction<AboutWindowViewModel, Unit> OpenAboutWindow { get; } = new();
     public Interaction<string, Unit> CopyToClipboard { get; } = new();
     public Interaction<Unit, Uri?> OpenFilePicker { get; } = new();
 

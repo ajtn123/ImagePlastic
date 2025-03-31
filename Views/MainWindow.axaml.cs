@@ -37,6 +37,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
             ViewModel.OpenColorPicker.RegisterHandler(ShowColorPickerWindow);
             ViewModel.OpenPropWindow.RegisterHandler(ShowPropWindow);
+            ViewModel.OpenAboutWindow.RegisterHandler(ShowAboutWindow);
             ViewModel.CopyToClipboard.RegisterHandler(x => { Clipboard?.SetTextAsync(x.Input); x.SetOutput(Unit.Default); });
             ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(s ?? ""); HidePathBox(); });
             ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
@@ -187,7 +188,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void RefreshZoomDisplay()
         => ZoomText.Text = $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ViewModel!.Stats.Height, 2)}%";
     private void SetZoom(double zoom)
-        => Zoomer.Zoom(ViewModel!.Stats.Height * zoom / (Scaling * Zoomer.Bounds.Height), 0, 0);
+        => Zoomer.Zoom(ViewModel!.Stats.Height * zoom / (Scaling * Zoomer.Bounds.Height), Zoomer.Bounds.Width / 2, Zoomer.Bounds.Height / 2);
 
     //Shorten path when not on focus.
     private void TextBlock_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -229,6 +230,13 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void ShowPropWindow(IInteractionContext<PropertyWindowViewModel, Unit> context)
     {
         var window = new PropertyWindow() { DataContext = context.Input };
+        ChildWindows.Add(window);
+        window.Show(this);
+        context.SetOutput(Unit.Default);
+    }
+    private void ShowAboutWindow(IInteractionContext<AboutWindowViewModel, Unit> context)
+    {
+        var window = new AboutWindow() { DataContext = context.Input };
         ChildWindows.Add(window);
         window.Show(this);
         context.SetOutput(Unit.Default);
