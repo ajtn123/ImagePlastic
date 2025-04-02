@@ -16,10 +16,10 @@
         <StackPanel Orientation="Horizontal">
             <Button Content="Source Code" Command="{Binding OpenRepoCommand}"/>
             <Button Content="Releases" Command="{Binding OpenReleaseCommand}"/>
-            <Button Content="ajtn123" Command="{Binding OpenProfileCommand}"/>
-            
+            <Button Content="ajtn123" Command="{Binding OpenProfileCommand}"/>          
         </StackPanel>
         <Button Content="Check Update" Command="{Binding CheckUpdateCommand}"/>
-        <Button Content="{Binding UpdateMessage}" Command="{Binding OpenReleaseCommand}"/>
+        <Button Content="{Binding UpdateMessage}" Command="{Binding OpenReleaseCommand}"
+                x:Name="UpdateButton" IsVisible="{Binding UpdateMessage,Converter={StaticResource BoolConverter}}"/>
     </StackPanel>
 </Window>

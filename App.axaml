@@ -34,8 +34,16 @@
         <Style Selector="MenuItem.Con:pointerover /template/ Border">
             <Setter Property="Background" Value="#BFFF7F7F"/>
         </Style>
+        <Style Selector="Button.Con">
+            <Setter Property="Background" Value="#1FFF0000"/>
+            <Setter Property="BorderBrush" Value="#BFFF7F7F"/>
+        </Style>
         <Style Selector="Button.Con:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#BFFF7F7F"/>
+        </Style>
+        <Style Selector="Button.Pro">
+            <Setter Property="Background" Value="#1F00FF00"/>
+            <Setter Property="BorderBrush" Value="#BF7FFF7F"/>
         </Style>
         <Style Selector="Button.Pro:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#BF7FFF7F"/>

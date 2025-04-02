@@ -4,6 +4,7 @@ using ReactiveUI.Fody.Helpers;
 using System.Windows.Input;
 
 namespace ImagePlastic.ViewModels;
+
 public class AboutWindowViewModel : ViewModelBase
 {
     public AboutWindowViewModel()
@@ -29,7 +30,7 @@ public class AboutWindowViewModel : ViewModelBase
     [Reactive]
     public bool HasUpdate { get; set; } = false;
     [Reactive]
-    public string UpdateMessage { get; set; } = "";
+    public string? UpdateMessage { get; set; }
 
     public ICommand OpenRepoCommand { get; }
     public ICommand OpenReleaseCommand { get; }
