@@ -16,14 +16,18 @@
             <Setter Property="HideDelay" Value="0"/>
         </Style>
     </Window.Styles>
-    <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,*" Margin="5">
+    <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,*" Margin="5">
         <Border CornerRadius="10" ClipToBounds="True">
             <Image Source="{Binding Stats.Bitmap}"/>
         </Border>
         <TextBlock Text="{Binding Stats.DisplayName}" Grid.Column="1"
                    FontSize="28" TextWrapping="Wrap" Margin="5"/>
-        <Separator Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5,0,0" VerticalAlignment="Top" ZIndex="1"/>
-        <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Margin="0,5,0,0">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,0" Spacing="5">
+            <Button Content="Explorer" Classes="Pro" Command="{Binding OpenExplorerCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
+            <Button Content="Edit" Classes="Pro" Command="{Binding EditCommand}" IsVisible="{Binding !Stats.IsWeb}"/>
+        </StackPanel>
+        <Separator Grid.Row="2" Grid.ColumnSpan="2" Margin="0,5,0,0" VerticalAlignment="Top" ZIndex="1"/>
+        <ScrollViewer Grid.Row="2" Grid.ColumnSpan="2" Margin="0,5,0,0">
             <ItemsControl ItemsSource="{Binding PropGroups}" x:Name="Groups">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="vm:PropGroup">

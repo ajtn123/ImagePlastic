@@ -72,18 +72,18 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         EditCommand = ReactiveCommand.Create(() =>
         {
-            if (Stats != null && Stats.EditCmd != null)
+            if (Stats.EditCmd != null)
                 Process.Start(Stats.EditCmd);
         });
         ShowInExplorerCommand = ReactiveCommand.Create(() =>
         {
-            if (Stats != null && Stats.File != null)
+            if (Stats.File != null)
                 Utils.SelectInExplorer(Stats.File);
         });
         RenameCommand = ReactiveCommand.Create(async () =>
         {
             var file = Stats.File;
-            if (Stats == null || Stats.IsWeb == true || file == null) return;
+            if (Stats.IsWeb == true || file == null) return;
 
             var newFilePath = await InquiryRenameString.Handle(new(file, false));
 
