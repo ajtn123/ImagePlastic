@@ -21,6 +21,7 @@ public class PropGroup(string groupName, List<Prop> props)
     public string GroupName { get; set; } = groupName;
     public string? CommandName { get; set; }
     public ICommand? Command { get; set; }
+    public int NameColumnWidth { get; set; } = 200;
     public bool Expanded { get; set; } = false;
     public List<Prop> Props { get; set; } = props;
 }

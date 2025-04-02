@@ -112,11 +112,12 @@ public static class ShellPropertyHelper
                 Marshal.Release(propertyStorePtr);
         }
         return properties;
-
     }
+
 
     //https://stackoverflow.com/a/78716810
     private static readonly List<PropertyInfo> PropertyInfos = IterateProperties();
+    public static List<Prop> GetMap() => [.. PropertyInfos.Select(p => new Prop(p.CanonicalName ?? "", $"{p.FmtID:B} {p.PID}"))];
     private static unsafe List<PropertyInfo> IterateProperties()
     {
         List<PropertyInfo> properties = [];
