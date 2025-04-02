@@ -25,7 +25,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     public MainWindowViewModel()
     {
-        Pics.Add(new()); Stats = Pics.First();
+        Stats = new();
         if (Config.DefaultFile != null)
             Path = Config.DefaultFile.FullName;
         fsWatcher = new();
@@ -193,7 +193,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private string path = "";
     public string Path { get => path; set { path = value; StringInquiryViewModel.Result = value; } }
     public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
-    public List<Stats> Pics { get; } = [];
+    public IOrderedEnumerable<Stats>? Pics { get; set; }
     [Reactive]
     public Stats Stats { get; set; }
     [Reactive]
@@ -315,6 +315,7 @@ public partial class MainWindowViewModel : ViewModelBase
                               .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
                               .Where(file => Config.ShowHiddenOrSystemFile || ((file.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0))
                               .OrderBy(file => file.FullName, new IntuitiveStringComparer());
+        Pics = CurrentDirItems.Select(file => new Stats() { File = file }).OrderBy(s => s.File!.FullName, new IntuitiveStringComparer());
         fsWatcher.Path = currentDir.FullName;
         fsWatcher.IncludeSubdirectories = Recursive;
         fsWatcher.EnableRaisingEvents = true;
