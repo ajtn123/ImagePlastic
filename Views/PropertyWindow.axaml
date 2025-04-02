@@ -27,8 +27,15 @@
             <ItemsControl ItemsSource="{Binding PropGroups}" x:Name="Groups">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="vm:PropGroup">
-                        <Expander Header="{Binding GroupName}" IsExpanded="{Binding Expanded}"
+                        <Expander IsExpanded="{Binding Expanded}"
                                   HorizontalAlignment="Stretch" Margin="0,5,0,0">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="{Binding GroupName}" VerticalAlignment="Center"/>
+                                    <Button Content="{Binding CommandName}" Command="{Binding Command}" Classes="Pro"
+                                            IsVisible="{Binding Command,Converter={StaticResource BoolConverter}}"/>
+                                </StackPanel>
+                            </Expander.Header>
                             <ScrollViewer HorizontalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding Props}" Margin="0,0,0,20">
                                     <ItemsControl.ItemTemplate>

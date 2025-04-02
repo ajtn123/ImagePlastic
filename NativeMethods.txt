@@ -1,0 +1,3 @@
+﻿IPropertyDescription
+IPropertyDescriptionList
+PSEnumeratePropertyDescriptions

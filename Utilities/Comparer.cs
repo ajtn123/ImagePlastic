@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -10,7 +9,7 @@ namespace ImagePlastic.Utilities;
 public class IntuitiveStringComparer : IComparer<string>
 {
     [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
-    internal static extern Int32 StrCmpLogicalW(string psz1, string psz2);
+    private static extern int StrCmpLogicalW(string psz1, string psz2);
     public int Compare(string? x, string? y)
         => (x == null || y == null) ? 0 : StrCmpLogicalW(x, y);
 }

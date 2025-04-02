@@ -23,13 +23,18 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
             _ = AddPropGroup(Stats.Info);
             _ = AddPropGroup(Stats.Stream);
             _ = AddPropGroup(Stats.Image);
+            if (Stats.File?.FullName is string filePath)
+                ViewModel.PropGroups.Add(new("Shell", ShellPropertyHelper.IterateFileProperties(filePath)) { Command = ReactiveCommand.Create(() => FilePropertiesOpener.OpenFileProperties(filePath)), CommandName = "Explorer Properties" });
         });
     }
 
     public void AddMainGroup()
     {
         if (ViewModel == null) return;
-        List<Prop> mains = [new("File Path", Stats?.File?.FullName ?? "")];
+        List<Prop> mains = [
+            new("File Name", Stats?.File?.Name ?? ""),
+            new("File Path", Stats?.File?.FullName ?? "")
+            ];
         ViewModel.PropGroups.Add(new("Main", mains) { Expanded = true });
     }
     public static async Task<List<Prop>> IterateProps(object o)
