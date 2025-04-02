@@ -125,4 +125,7 @@ public static class Utils
         clone.Position = 0;
         return clone;
     }
+
+    public static void OpenUrl(string url)
+        => Process.Start(new ProcessStartInfo() { FileName = url, UseShellExecute = true });
 }

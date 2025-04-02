@@ -6,6 +6,20 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ImagePlastic.Views.AboutWindow"
         x:DataType="vm:AboutWindowViewModel"
-        Title="AboutWindow">
-  Welcome to Avalonia!
+        Title="AboutWindow"
+        ExtendClientAreaChromeHints="Default"
+        Background="{Binding Config.BackgroundColor}"
+        TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}">
+    <StackPanel Margin="10" Spacing="10">
+            <TextBlock Text="{Binding AppName}" FontSize="50"/>
+            <TextBlock Text="{Binding AppVersion}" FontSize="50"/>
+        <StackPanel Orientation="Horizontal">
+            <Button Content="Source Code" Command="{Binding OpenRepoCommand}"/>
+            <Button Content="Releases" Command="{Binding OpenReleaseCommand}"/>
+            <Button Content="ajtn123" Command="{Binding OpenProfileCommand}"/>
+            
+        </StackPanel>
+        <Button Content="Check Update" Command="{Binding CheckUpdateCommand}"/>
+        <Button Content="{Binding UpdateMessage}" Command="{Binding OpenReleaseCommand}"/>
+    </StackPanel>
 </Window>
