@@ -1,28 +1,34 @@
 ﻿using ImagePlastic.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Versioning;
 using Windows.Win32;
 using Windows.Win32.UI.Shell.PropertiesSystem;
 
-[assembly: SupportedOSPlatform("windows6.0.6000")]
+[assembly: SupportedOSPlatform("windows10.0")]
 
 namespace ImagePlastic.Utilities;
 
-public static class ShellPropertyHelper
+public static partial class ShellPropertyHelper
 {
-    [DllImport("ole32.dll", PreserveSig = false)]
-    private static extern void PropVariantClear(ref PropVariant pvar);
+    [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial int SHGetPropertyStoreFromParsingName(string pszPath, IntPtr pbc, int flags, ref Guid riid, out IPropertyStore ppv);
+    [LibraryImport("oleaut32.dll")]
+    private static partial void VariantInit(IntPtr pvarg);
+    [LibraryImport("propsys.dll")]
+    private static partial int PropVariantToVariant(ref PropVariant pPropVar, IntPtr pVar);
+    [LibraryImport("ole32.dll")]
+    private static partial int PropVariantClear(ref PropVariant pvar);
+    [LibraryImport("oleaut32.dll")]
+    private static partial void VariantClear(IntPtr pvarg);
 
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
-    private static extern void SHGetPropertyStoreFromParsingName(string pszPath, IntPtr pbc, int flags, ref Guid riid, out IntPtr ppv);
-
-    [ComImport]
+    [GeneratedComInterface]
     [Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IPropertyStore
+    internal partial interface IPropertyStore
     {
         void GetCount(out uint count);
         void GetAt(uint index, out PropertyKey pkey);
@@ -30,87 +36,59 @@ public static class ShellPropertyHelper
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct PropertyKey
+    internal struct PropertyKey
     {
         public Guid fmtid;
         public uint pid;
     }
 
-    [StructLayout(LayoutKind.Explicit)]
-    private struct PropVariant
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PropVariant
     {
-        [FieldOffset(0)] public ushort vt;
-        [FieldOffset(8)] public IntPtr p; // String pointer (if applicable)
-        [FieldOffset(8)] public int iVal; // Integer value (if applicable)
-        [FieldOffset(8)] public long lVal; // Large integer (FILETIME, etc.)
-
-        public readonly object? GetValue()
-        {
-            switch (vt)
-            {
-                case 0: //VT_EMPTY (empty)
-                    return null;
-
-                case 31: // VT_LPWSTR (String)
-                    return p != IntPtr.Zero ? Marshal.PtrToStringUni(p) : null;
-
-                case 3:  // VT_I4 (Integer)
-                    return iVal;
-
-                //case 5:  // VT_R8 (Double)
-                //    return p != IntPtr.Zero ? BitConverter.Int64BitsToDouble(lVal) : null;
-
-                case 11: // VT_BOOL (Boolean)
-                    return iVal != 0;
-
-                case 64: // VT_FILETIME (DateTime)
-                    return p != IntPtr.Zero ? DateTime.FromFileTime(lVal) : null;
-
-                default:
-                    return $"Unsupported type: {vt}";
-            }
-        }
+        public ushort vt;
+        public IntPtr pointerValue;
     }
 
     public static List<Prop> IterateFileProperties(string filePath)
     {
-        IntPtr propertyStorePtr = IntPtr.Zero;
-        IPropertyStore? propertyStore = null;
+        Guid iPropertyStoreGuid = typeof(IPropertyStore).GUID;
         List<Prop> properties = [];
-        try
-        {
-            Guid iPropertyStoreGuid = typeof(IPropertyStore).GUID;
-            SHGetPropertyStoreFromParsingName(filePath, IntPtr.Zero, 0, ref iPropertyStoreGuid, out propertyStorePtr);
-            propertyStore = (IPropertyStore)Marshal.GetObjectForIUnknown(propertyStorePtr);
-            propertyStore.GetCount(out uint count);
-            for (uint i = 0; i < count; i++)
-            {
-                propertyStore.GetAt(i, out PropertyKey propertyKey);
-                var info = PropertyInfos.FirstOrDefault(i => i.FmtID.Equals(propertyKey.fmtid) && i.PID == propertyKey.pid);
 
-                string propertyName = info?.Name ?? info?.CanonicalName ?? $"{propertyKey.fmtid:B} {propertyKey.pid}";
-                try
-                {
-                    propertyStore.GetValue(ref propertyKey, out PropVariant propValue);
-                    object? value = propValue.GetValue(); // Read the value safely
-                    PropVariantClear(ref propValue); // Free memory after use
-                    properties.Add(new(propertyName, value?.ToString() ?? ""));
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to get value for {propertyKey.fmtid} {propertyKey.pid}: {ex.Message}");
-                }
+        var errorCode = SHGetPropertyStoreFromParsingName(filePath, IntPtr.Zero, 0, ref iPropertyStoreGuid, out IPropertyStore propertyStore);
+        if (errorCode < 0) { Trace.WriteLine("Property iteration error: " + Marshal.GetExceptionForHR(errorCode)?.Message); return []; }
+
+        propertyStore.GetCount(out uint count);
+
+        for (uint i = 0; i < count; i++)
+        {
+            IntPtr variantPtr = Marshal.AllocCoTaskMem(24);
+            VariantInit(variantPtr);
+            propertyStore.GetAt(i, out PropertyKey propertyKey);
+            object? value = null;
+
+            try
+            {
+                propertyStore.GetValue(ref propertyKey, out PropVariant propValue);
+
+                if (PropVariantToVariant(ref propValue, variantPtr) == 0)
+                    value = Marshal.GetObjectForNativeVariant(variantPtr);
+
+                PropVariantClear(ref propValue);
             }
+            catch (Exception ex) { Trace.WriteLine($"Failed to get value for {propertyKey.fmtid} {propertyKey.pid}: {ex.Message}"); }
+            finally { VariantClear(variantPtr); Marshal.FreeCoTaskMem(variantPtr); }
+
+            var info = PropertyInfos.FirstOrDefault(i => i.FmtID.Equals(propertyKey.fmtid) && i.PID == propertyKey.pid);
+            string propertyName = info?.Name ?? info?.CanonicalName ?? $"{propertyKey.fmtid:B} {propertyKey.pid}";
+            string valueString;
+
+            if (value == null) valueString = "";
+            else if (value.GetType().Equals(typeof(string[]))) valueString = ((string[])value).Aggregate((a, b) => $"{a} | {b}");
+            else valueString = value.ToString() ?? $"[{value.GetType().Name}]";
+
+            properties.Add(new(propertyName, valueString));
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error: " + ex.Message);
-        }
-        finally
-        {
-            if (propertyStorePtr != IntPtr.Zero)
-                Marshal.Release(propertyStorePtr);
-        }
+
         return properties;
     }
 
@@ -131,9 +109,10 @@ public static class ShellPropertyHelper
 
             pd.GetPropertyKey(out var pk);
             pd.GetCanonicalName(out var cname);
-            Marshal.FreeCoTaskMem((nint)cname.Value);
 
             properties.Add(new(pd) { FmtID = pk.fmtid, PID = pk.pid, CanonicalName = Marshal.PtrToStringUni((IntPtr)cname.Value) });
+
+            Marshal.FreeCoTaskMem((IntPtr)cname.Value);
         }
         return properties;
     }
@@ -154,16 +133,19 @@ public static class ShellPropertyHelper
                 Marshal.FreeCoTaskMem((nint)dname.Value);
                 return displayName;
             }
-            catch { }
+            catch (Exception ex) { Trace.WriteLine($"Failed to get display name: {ex.Message}"); }
             return null;
         });
     }
 }
 
-public class FilePropertiesOpener
+public class ExplorerPropertiesOpener
 {
+    [DllImport("shell32.dll", CharSet = CharSet.Auto)]
+    private static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-    public struct SHELLEXECUTEINFO
+    private struct SHELLEXECUTEINFO
     {
         public int cbSize;
         public uint fMask;
@@ -189,21 +171,16 @@ public class FilePropertiesOpener
 
     private const uint SEE_MASK_INVOKEIDLIST = 0x0000000C;
 
-    [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-    private static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
-
     public static void OpenFileProperties(string filePath)
     {
         SHELLEXECUTEINFO sei = new();
         sei.cbSize = Marshal.SizeOf(sei);
-        sei.lpVerb = "properties"; // Open Properties window
+        sei.lpVerb = "properties";
         sei.lpFile = filePath;
         sei.nShow = 0;
         sei.fMask = SEE_MASK_INVOKEIDLIST;
 
         if (!ShellExecuteEx(ref sei))
-        {
-            Console.WriteLine("Failed to open properties window.");
-        }
+            Trace.WriteLine("Failed to open properties window.");
     }
 }
