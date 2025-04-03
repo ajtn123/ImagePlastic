@@ -17,7 +17,7 @@ public static class ShellPropertyHelper
     private static extern void PropVariantClear(ref PropVariant pvar);
 
     [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
-    public static extern void SHGetPropertyStoreFromParsingName(string pszPath, IntPtr pbc, int flags, ref Guid riid, out IntPtr ppv);
+    private static extern void SHGetPropertyStoreFromParsingName(string pszPath, IntPtr pbc, int flags, ref Guid riid, out IntPtr ppv);
 
     [ComImport]
     [Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99")]
@@ -190,7 +190,7 @@ public class FilePropertiesOpener
     private const uint SEE_MASK_INVOKEIDLIST = 0x0000000C;
 
     [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-    public static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
+    private static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
 
     public static void OpenFileProperties(string filePath)
     {

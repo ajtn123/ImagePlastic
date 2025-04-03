@@ -124,7 +124,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel!.Select(offset: offset);
         else if (!waitLast)
             ViewModel!.ShowLocalImage(offset: offset);
-        else if (!ViewModel!.loading || !waitLast)
+        else if (!ViewModel!.Loading || !waitLast)
             ViewModel!.ShowLocalImage(offset: offset, doPreload: false);
         if (ImageNavigationOffset != 0)
             UpdateTitleBarVisibility(true);

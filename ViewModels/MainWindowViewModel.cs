@@ -173,7 +173,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private string[]? args;
     private DirectoryInfo? currentDir;
     private DirectoryInfo? recursiveDir = null;
-    public bool loading = false;
+    private bool loading = false;
+    private bool loadingIndication = false;
     public bool fsChanged = false;
     private readonly FileSystemWatcher fsWatcher;
     private bool recursive;
@@ -198,7 +199,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public Stats Stats { get; set; }
     [Reactive]
     public StretchMode Stretch { get; set; }
-    public bool Loading { get => Config.LoadingIndicator && loading; set => this.RaiseAndSetIfChanged(ref loading, value); }
+    public bool Loading { get => loading; set { this.RaiseAndSetIfChanged(ref loading, value); this.RaiseAndSetIfChanged(ref loadingIndication, Config.LoadingIndicator && value, nameof(LoadingIndication)); } }
+    public bool LoadingIndication => loadingIndication;
     [Reactive]
     public string? UIMessage { get; set; }
     [Reactive]

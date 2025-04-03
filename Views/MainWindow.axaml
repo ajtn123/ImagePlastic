@@ -108,7 +108,7 @@
             </Panel>
         </ZoomBorder>
 
-        <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding Loading}" ZIndex="11"/>
+        <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding LoadingIndication}" ZIndex="11"/>
         <TextBlock Grid.Row="2" Background="AntiqueWhite" Text="{Binding UIMessage}"
                    PointerReleased="TextBlock_PointerReleased"
                    IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
