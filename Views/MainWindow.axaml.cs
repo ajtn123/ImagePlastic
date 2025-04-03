@@ -285,7 +285,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void ProgressToRatio(double progressRatio, bool doShow = false)
     {
-        if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount >= 0) return;
+        if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount <= 0) return;
         var imageIndex = (int)double.Round(progressRatio * ViewModel.Stats.FileCount - 1);
         imageIndex = Math.Clamp(imageIndex, 0, ViewModel.Stats.FileCount - 1);
         if (doShow) ViewModel.ShowLocalImage(destination: imageIndex);
