@@ -9,7 +9,7 @@
         <SelfContained>false</SelfContained>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ApplicationIcon>Assets\avalonia-logo.ico</ApplicationIcon>
-        <Version>1.10.3</Version>
+        <Version>1.11.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
