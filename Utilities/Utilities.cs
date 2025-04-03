@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Utilities;
@@ -85,8 +86,10 @@ public static class Utils
     public static int SeekIndex(int current, int offset, int total)
         => (current + offset + total) % total;
 
+    [SupportedOSPlatform("windows10.0")]
     public static void SelectInExplorer(FileInfo file)
         => Process.Start("explorer.exe", $@"/select,""{file.FullName}""");
+    [SupportedOSPlatform("windows10.0")]
     public static void OpenInExplorer(string path)
         => Process.Start("explorer.exe", $@"""{path}""");
     public static ProcessStartInfo? GetEditAppStartInfo(FileInfo file, MagickFormat format, Config? config = null)

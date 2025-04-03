@@ -9,10 +9,9 @@ using System.Runtime.Versioning;
 using Windows.Win32;
 using Windows.Win32.UI.Shell.PropertiesSystem;
 
-[assembly: SupportedOSPlatform("windows10.0")]
-
 namespace ImagePlastic.Utilities;
 
+[SupportedOSPlatform("windows10.0")]
 public static partial class ShellPropertyHelper
 {
     [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
@@ -139,6 +138,7 @@ public static partial class ShellPropertyHelper
     }
 }
 
+[SupportedOSPlatform("windows10.0")]
 public class ExplorerPropertiesOpener
 {
     [DllImport("shell32.dll", CharSet = CharSet.Auto)]
