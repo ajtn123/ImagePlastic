@@ -16,7 +16,7 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
         InitializeComponent();
         this.WhenActivated(a =>
         {
-            if (Stats == null || ViewModel == null) return;
+            if (ViewModel == null) return;
             DraggableBehavior.SetIsDraggable(this);
             AddMainGroup();
             _ = AddPropGroup(Stats.File);
@@ -33,8 +33,8 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
     {
         if (ViewModel == null) return;
         List<Prop> mains = [
-            new("File Name", Stats?.File?.Name ?? ""),
-            new("File Path", Stats?.File?.FullName ?? "")
+            new("File Name", Stats.File?.Name ?? ""),
+            new("File Path", Stats.File?.FullName ?? "")
             ];
         ViewModel.PropGroups.Add(new("Main", mains) { Expanded = true });
     }
@@ -51,5 +51,5 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
         if (o == null || ViewModel == null) return;
         ViewModel.PropGroups.Add(new(o.GetType().Name, await IterateProps(o)));
     }
-    public Stats? Stats => ViewModel?.Stats;
+    public Stats Stats => ViewModel!.Stats;
 }

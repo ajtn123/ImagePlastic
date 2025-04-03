@@ -7,6 +7,7 @@
         x:Class="ImagePlastic.Views.PropertyWindow"
         Title="Properties"
         xmlns:vm="using:ImagePlastic.ViewModels"
+        xmlns:m="using:ImagePlastic.Models"
         x:DataType="vm:PropertyWindowViewModel"
         ExtendClientAreaChromeHints="Default"
         Background="{Binding Config.BackgroundColor}"
@@ -30,7 +31,7 @@
         <ScrollViewer Grid.Row="2" Grid.ColumnSpan="2" Margin="0,5,0,0">
             <ItemsControl ItemsSource="{Binding PropGroups}" x:Name="Groups">
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="vm:PropGroup">
+                    <DataTemplate DataType="m:PropGroup">
                         <Expander IsExpanded="{Binding Expanded}"
                                   HorizontalAlignment="Stretch" Margin="0,5,0,0">
                             <Expander.Header>
@@ -43,7 +44,7 @@
                             <ScrollViewer HorizontalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding Props}" Margin="0,0,0,20">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="vm:Prop">
+                                        <DataTemplate DataType="m:Prop">
                                                 <StackPanel Orientation="Horizontal">
                                                     <Panel Width="200">
                                                     <TextBox BorderThickness="0" Padding="0" MinHeight="0" MinWidth="0" Background="Transparent" 

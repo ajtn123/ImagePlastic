@@ -1,4 +1,4 @@
-﻿using ImagePlastic.ViewModels;
+﻿using ImagePlastic.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
