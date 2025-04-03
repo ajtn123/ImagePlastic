@@ -55,7 +55,7 @@ public static partial class ShellPropertyHelper
         List<Prop> properties = [];
 
         var errorCode = SHGetPropertyStoreFromParsingName(filePath, IntPtr.Zero, 0, ref iPropertyStoreGuid, out IPropertyStore propertyStore);
-        if (errorCode < 0) { Trace.WriteLine("Property iteration error: " + Marshal.GetExceptionForHR(errorCode)?.Message); return []; }
+        if (errorCode < 0) { Trace.WriteLine("Property iteration error: " + Marshal.GetExceptionForHR(errorCode)?.Message); return properties; }
 
         propertyStore.GetCount(out uint count);
 

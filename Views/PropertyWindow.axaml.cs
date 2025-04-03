@@ -24,8 +24,8 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
             _ = AddPropGroup(Stats.Stream);
             _ = AddPropGroup(Stats.Image);
             if (Stats.File?.FullName is string filePath)
-                ViewModel.PropGroups.Add(new("Shell", ShellPropertyHelper.IterateFileProperties(filePath)) { Command = ReactiveCommand.Create(() => ExplorerPropertiesOpener.OpenFileProperties(filePath)), CommandName = "Explorer Properties" });
-            ViewModel.PropGroups.Add(new("Shell Properties Map", ShellPropertyHelper.GetMap()));
+                ViewModel.PropGroups.Add(new("Shell", ShellPropertyHelper.IterateFileProperties(filePath)) { Command = ReactiveCommand.Create(() => ViewModel.PropGroups.Insert(2, new("Shell Property Map", ShellPropertyHelper.GetMap()))), CommandName = "Property Map" });
+
         });
     }
 
