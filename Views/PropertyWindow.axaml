@@ -33,7 +33,7 @@
             <ItemsControl ItemsSource="{Binding PropGroups}" x:Name="Groups">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="m:PropGroup">
-                        <Expander IsExpanded="{Binding Expanded}"
+                        <Expander IsExpanded="{Binding Expanded}" Background="{Binding AccentBrush}"
                                   HorizontalAlignment="Stretch" Margin="0,5,0,0">
                             <Expander.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="10">

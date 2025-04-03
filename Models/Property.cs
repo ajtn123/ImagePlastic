@@ -1,19 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using Avalonia.Media;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using System.Collections.Generic;
 using System.Windows.Input;
 
 namespace ImagePlastic.Models;
 
-public class Prop(string name, string value)
+public class Prop(string name, string value) : ReactiveObject
 {
+    [Reactive]
     public string Name { get; set; } = name;
+    [Reactive]
     public string Value { get; set; } = value;
 }
-public class PropGroup(string groupName, List<Prop> props)
+
+public class PropGroup() : ReactiveObject
 {
-    public string GroupName { get; set; } = groupName;
+    [Reactive]
+    public required string GroupName { get; set; }
+    [Reactive]
+    public required List<Prop> Props { get; set; }
+    [Reactive]
     public string? CommandName { get; set; }
+    [Reactive]
     public ICommand? Command { get; set; }
-    public int NameColumnWidth { get; set; } = 200;
+    [Reactive]
     public bool Expanded { get; set; } = false;
-    public List<Prop> Props { get; set; } = props;
+    [Reactive]
+    public IBrush? AccentBrush { get; set; } = Brush.Parse("#7FFFFFFF");
 }

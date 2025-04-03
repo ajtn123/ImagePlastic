@@ -24,7 +24,7 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
             _ = AddPropGroup(Stats.Stream);
             _ = AddPropGroup(Stats.Image);
             if (Stats.File?.FullName is string filePath)
-                ViewModel.PropGroups.Add(new("Shell", ShellPropertyHelper.IterateFileProperties(filePath)) { Command = ReactiveCommand.Create(() => ViewModel.PropGroups.Insert(2, new("Shell Property Map", ShellPropertyHelper.GetMap()))), CommandName = "Property Map" });
+                ViewModel.PropGroups.Add(new() { GroupName = "Shell", Props = ShellPropertyHelper.IterateFileProperties(filePath), Command = ReactiveCommand.Create(() => ViewModel.PropGroups.Insert(2, new() { GroupName = "Shell Property Map", Props = ShellPropertyHelper.GetMap() })), CommandName = "Property Map" });
 
         });
     }
@@ -36,7 +36,7 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
             new("File Name", Stats.File?.Name ?? ""),
             new("File Path", Stats.File?.FullName ?? "")
             ];
-        ViewModel.PropGroups.Add(new("Main", mains) { Expanded = true });
+        ViewModel.PropGroups.Add(new() { GroupName = "Main", Props = mains, Expanded = true });
     }
     public static async Task<List<Prop>> IterateProps(object o)
         => await Task.Run(() => o.GetType().GetProperties().Where(prop => prop.CanRead).Select(prop =>
@@ -49,7 +49,7 @@ public partial class PropertyWindow : ReactiveWindow<PropertyWindowViewModel>
     public async Task AddPropGroup(object? o)
     {
         if (o == null || ViewModel == null) return;
-        ViewModel.PropGroups.Add(new(o.GetType().Name, await IterateProps(o)));
+        ViewModel.PropGroups.Add(new() { GroupName = o.GetType().Name, Props = await IterateProps(o) });
     }
     public Stats Stats => ViewModel!.Stats;
 }

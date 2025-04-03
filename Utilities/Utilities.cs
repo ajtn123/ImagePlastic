@@ -86,10 +86,10 @@ public static class Utils
     public static int SeekIndex(int current, int offset, int total)
         => (current + offset + total) % total;
 
-    [SupportedOSPlatform("windows10.0")]
+    [SupportedOSPlatform("windows7.0")]
     public static void SelectInExplorer(FileInfo file)
         => Process.Start("explorer.exe", $@"/select,""{file.FullName}""");
-    [SupportedOSPlatform("windows10.0")]
+    [SupportedOSPlatform("windows7.0")]
     public static void OpenInExplorer(string path)
         => Process.Start("explorer.exe", $@"""{path}""");
     public static ProcessStartInfo? GetEditAppStartInfo(FileInfo file, MagickFormat format, Config? config = null)

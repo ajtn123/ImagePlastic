@@ -6,7 +6,7 @@ using System.Security;
 namespace ImagePlastic.Utilities;
 
 //https://stackoverflow.com/a/54812587
-[SupportedOSPlatform("windows10.0")]
+[SupportedOSPlatform("windows7.0")]
 [SuppressUnmanagedCodeSecurity]
 public partial class IntuitiveStringComparer : IComparer<string>
 {
