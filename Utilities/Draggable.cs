@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using System;
 
 namespace ImagePlastic.Utilities;
 
@@ -10,9 +11,6 @@ public static class DraggableBehavior
 {
     public static readonly AttachedProperty<bool> IsDraggableProperty
         = AvaloniaProperty.RegisterAttached<Control, bool>("IsDraggable", typeof(DraggableBehavior));
-
-    private static bool IsMouseDown;
-    private static PointerPoint OriginalPoint;
 
     public static bool GetIsDraggable(Control control)
         => control.GetValue(IsDraggableProperty);
@@ -42,6 +40,9 @@ public static class DraggableBehavior
                 window.LostFocus -= Control_LostFocus;
         }
     }
+
+    private static bool IsMouseDown;
+    private static PointerPoint OriginalPoint;
 
     //https://github.com/AvaloniaUI/Avalonia/discussions/8441#discussioncomment-3081536
     private static void Control_PointerMoved(object? sender, PointerEventArgs e)
@@ -75,4 +76,93 @@ public static class DraggableBehavior
         => IsMouseDown = false;
     private static void Control_LostFocus(object? sender, RoutedEventArgs e)
         => IsMouseDown = false;
+}
+
+public static class ProgressDraggableBehavior
+{
+    public static readonly AttachedProperty<bool> IsProgressDraggableProperty
+        = AvaloniaProperty.RegisterAttached<ProgressBar, bool>("IsProgressDraggable", typeof(ProgressDraggableBehavior));
+    public static readonly AttachedProperty<double> ProgressDraggingProperty
+        = AvaloniaProperty.RegisterAttached<ProgressBar, double>("ProgressDragging", typeof(ProgressDraggableBehavior));
+
+    public static bool GetIsProgressDraggable(ProgressBar progressBar)
+        => progressBar.GetValue(IsProgressDraggableProperty);
+    public static void SetIsProgressDraggable(ProgressBar progressBar, bool value = true)
+    {
+        progressBar.SetValue(IsProgressDraggableProperty, value);
+        if (value)
+        {
+            progressBar.PointerMoved += ProgressBar_PointerMoved;
+            progressBar.PointerPressed += ProgressBar_PointerPressed;
+            progressBar.PointerReleased += ProgressBar_PointerReleased;
+            progressBar.PointerEntered += ProgressBar_PointerEntered;
+            progressBar.PointerExited += ProgressBar_PointerExited;
+        }
+        else
+        {
+            progressBar.PointerMoved -= ProgressBar_PointerMoved;
+            progressBar.PointerPressed -= ProgressBar_PointerPressed;
+            progressBar.PointerReleased -= ProgressBar_PointerReleased;
+            progressBar.PointerEntered -= ProgressBar_PointerEntered;
+            progressBar.PointerExited -= ProgressBar_PointerExited;
+        }
+    }
+
+    private static bool ProgressBarPressed;
+    private static void ProgressBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not ProgressBar progressBar) return;
+        progressBar.Height = 12;
+        ProgressBarPressed = true;
+        progressBar.SetValue(ProgressDraggingProperty, e.GetPosition((Visual?)sender).X / progressBar.Bounds.Width);
+    }
+    private static void ProgressBar_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (sender is not ProgressBar progressBar) return;
+        if (ProgressBarPressed)
+            progressBar.SetValue(ProgressDraggingProperty, e.GetPosition((Visual?)sender).X / progressBar.Bounds.Width);
+    }
+    private static void ProgressBar_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (sender is not ProgressBar progressBar) return;
+        progressBar.Height = 10;
+        ProgressBarPressed = false;
+        progressBar.SetValue(ProgressDraggingProperty, e.GetPosition((Visual?)sender).X / progressBar.Bounds.Width);
+    }
+
+    private static void ProgressBar_PointerEntered(object? sender, PointerEventArgs e)
+        => ((ProgressBar)sender!).Height = 10;
+    private static void ProgressBar_PointerExited(object? sender, PointerEventArgs e)
+        => ((ProgressBar)sender!).Height = double.NaN;
+}
+
+public class ProximityVisibilityBehavior
+{
+    public static readonly AttachedProperty<bool> IsProximalVisible
+        = AvaloniaProperty.RegisterAttached<Control, bool>("IsProximalVisible", typeof(ProximityVisibilityBehavior));
+    public static readonly AttachedProperty<double> VisibleRadius
+        = AvaloniaProperty.RegisterAttached<Control, double>("VisibleRadius", typeof(ProximityVisibilityBehavior));
+
+    public static bool GetProximityVisibility(Control control)
+        => control.GetValue(IsProximalVisible);
+    public static void SetProximityVisibility(Control control, bool value = true, double radius = 50)
+    {
+        control.SetValue(IsProximalVisible, value);
+        control.SetValue(VisibleRadius, radius);
+        if (value) control.PointerMoved += Control_PointerMoved;
+        else control.PointerMoved -= Control_PointerMoved;
+    }
+
+    private static void Control_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (sender is not Control control) return;
+
+        var pointerPos = e.GetPosition(control);
+        var bounds = control.Bounds;
+
+        var center = new Point(bounds.Width / 2, bounds.Height / 2);
+        var distance = Math.Sqrt(Math.Pow(pointerPos.X - center.X, 2) + Math.Pow(pointerPos.Y - center.Y, 2));
+
+        control.IsVisible = distance < control.GetValue(VisibleRadius);
+    }
 }

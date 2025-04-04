@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
@@ -30,6 +31,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         this.WhenActivated(a =>
         {
             DraggableBehavior.SetIsDraggable(TitleBar);
+            ProgressDraggableBehavior.SetIsProgressDraggable(Progress);
+            Progress.GetPropertyChangedObservable(ProgressDraggableBehavior.ProgressDraggingProperty)
+                .Throttle(TimeSpan.FromMilliseconds(500))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(e => ViewModel!.ShowLocalImage(destination: ProgressToRatio((double)e.NewValue!)));
+            Progress.GetPropertyChangedObservable(ProgressDraggableBehavior.ProgressDraggingProperty)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(e => ViewModel!.Select(destination: ProgressToRatio((double)e.NewValue!)));
             ViewModel ??= new();
             ViewModel.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
             ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
@@ -260,36 +269,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => Progress.IsVisible = true;
     private void Panel_PointerExited(object? sender, PointerEventArgs e)
         => Progress.IsVisible = false;
-    private void ProgressBar_PointerEntered(object? sender, PointerEventArgs e)
-        => Progress.Height = 10;
-    private void ProgressBar_PointerExited(object? sender, PointerEventArgs e)
-        => Progress.Height = double.NaN;
-    private bool _progressBarPressed = false;
-    private void ProgressBar_PointerPressed(object? sender, PointerPressedEventArgs e)
+    private int ProgressToRatio(double progressRatio)
     {
-        _progressBarPressed = true;
-        Progress.Height = 12;
-        UpdateTitleBarVisibility(true);
-        ProgressToRatio(e.GetPosition((Visual?)sender).X / Progress.Bounds.Width);
-    }
-    private void ProgressBar_PointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (_progressBarPressed)
-            ProgressToRatio(e.GetPosition((Visual?)sender).X / Progress.Bounds.Width);
-    }
-    private void ProgressBar_PointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        _progressBarPressed = false;
-        Progress.Height = 10;
-        ProgressToRatio(e.GetPosition((Visual?)sender).X / Progress.Bounds.Width, doShow: true);
-    }
-    private void ProgressToRatio(double progressRatio, bool doShow = false)
-    {
-        if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount <= 0) return;
+        if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount <= 0) return 0;
         var imageIndex = (int)double.Round(progressRatio * ViewModel.Stats.FileCount - 1);
-        imageIndex = Math.Clamp(imageIndex, 0, ViewModel.Stats.FileCount - 1);
-        if (doShow) ViewModel.ShowLocalImage(destination: imageIndex);
-        else ViewModel.Select(destination: imageIndex);
+        UpdateTitleBarVisibility(true);
+        return Math.Clamp(imageIndex, 0, ViewModel.Stats.FileCount - 1);
     }
 
     private void MinimizeButton_Click(object? sender, RoutedEventArgs e)

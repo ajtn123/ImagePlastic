@@ -120,12 +120,7 @@
                PointerExited="Panel_PointerExited" Height="40" IsVisible="{Binding !Stats.IsWeb}">
             <ProgressBar Margin="5,10" VerticalAlignment="Bottom" x:Name="Progress" IsVisible="False" MinWidth="0"
                          Maximum="{Binding Stats.FileCount,Mode=OneWay}"
-                         Value="{Binding Stats.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"
-                         PointerPressed="ProgressBar_PointerPressed"
-                         PointerMoved="ProgressBar_PointerMoved"
-                         PointerReleased="ProgressBar_PointerReleased"
-                         PointerEntered="ProgressBar_PointerEntered"
-                         PointerExited="ProgressBar_PointerExited"/>
+                         Value="{Binding Stats.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"/>
         </Panel>
         
         <Grid.ContextMenu>
