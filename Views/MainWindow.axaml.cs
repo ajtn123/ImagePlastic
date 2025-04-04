@@ -30,6 +30,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         this.GetObservable(WindowStateProperty).Subscribe(SetWindowStateUI);
         this.WhenActivated(a =>
         {
+            ProximityVisibilityBehavior.SetProximityVisibility(Progress);
+            ProximityVisibilityBehavior.SetProximityVisibility(LeftArrowButton);
+            ProximityVisibilityBehavior.SetProximityVisibility(RightArrowButton);
+            ProximityVisibilityBehavior.SetProximityVisibility(TitleArea);
             DraggableBehavior.SetIsDraggable(TitleBar);
             ProgressDraggableBehavior.SetIsProgressDraggable(Progress);
             Progress.GetPropertyChangedObservable(ProgressDraggableBehavior.ProgressDraggingProperty)
@@ -50,14 +54,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.CopyToClipboard.RegisterHandler(x => { Clipboard?.SetTextAsync(x.Input); x.SetOutput(Unit.Default); });
             ViewModel.StringInquiryViewModel.ConfirmCommand.Subscribe(s => { ViewModel.ChangeImageToPath(s ?? ""); HidePathBox(); });
             ViewModel.StringInquiryViewModel.DenyCommand.Subscribe(s => HidePathBox());
-            this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => UpdateTitleBarVisibility(b));
+            this.WhenAnyValue(a => a.ViewModel!.Pinned).Subscribe(b => TitleArea.Visibility = b);
             this.WhenAnyValue(a => a.ViewModel!.Stats.Image).Subscribe(b => RelativePosition.Magick = b);
             this.WhenAnyValue(a => a.ViewModel!.Stats.Bitmap).Subscribe(b => RelativePosition.Bitmap = b);
             this.WhenAnyValue(a => a.ViewModel!.Stats.Success).Subscribe(b => ShowError());
-            UpdateTitleBarVisibility(!ViewModel.Config.ExtendImageToTitleBar);
+            TitleArea.Visibility = !ViewModel.Config.ExtendImageToTitleBar;
             if (string.IsNullOrEmpty(ViewModel.Path))
             {
-                UpdateTitleBarVisibility(true);
+                TitleArea.Visibility = true;
                 PathBox.IsVisible = true;
                 FileName.IsVisible = false;
                 PathBox.Focus();
@@ -97,7 +101,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     public List<Window> childWindows = [];
     public List<Window> ChildWindows => childWindows = [.. childWindows.Where(window => window.IsLoaded)];
     public RelativePosition RelativePosition = new();
-    public bool ErrorState => ViewModel != null && ViewModel.Stats != null && !ViewModel.Stats.Success;
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
     public int ImageNavigationOffset { get; set; } = 0;
@@ -136,40 +139,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else if (!ViewModel!.Loading || !waitLast)
             ViewModel!.ShowLocalImage(offset: offset, doPreload: false);
         if (ImageNavigationOffset != 0)
-            UpdateTitleBarVisibility(true);
+            TitleArea.Visibility = true;
         ImageNavigationOffset += offset;
     }
 
-    //Auto resize Title Bar.
-    private void Window_SizeChanged(object? sender, SizeChangedEventArgs e)
-    {
-        //if (e.HeightChanged) ;
-        if (e.WidthChanged) TitleArea.Width = Width;
-    }
-
-    //Auto hide Title Bar.
-    private void UpdateTitleBarVisibility(bool visible)
-    {
-        visible = visible || ErrorState || PathBox.InquiryBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned;
-        WindowControls.IsVisible = visible;
-        TitleBar.IsVisible = visible;
-    }
-    private void StackPanel_PointerEntered(object? sender, PointerEventArgs e)
-        => UpdateTitleBarVisibility(true);
-    private void StackPanel_PointerExited(object? sender, PointerEventArgs e)
-        => UpdateTitleBarVisibility(false);
-
-    //Auto hide left and right Buttons.
-    private void Button_PointerEntered(object? sender, PointerEventArgs e)
-        => ((Button)sender!).Foreground = Brushes.Black;
-    private void Button_PointerExited(object? sender, PointerEventArgs e)
-        => ((Button)sender!).Foreground = Brushes.Transparent;
+    public bool UpdateTitleBarVisibility(bool visible)
+        => visible || !ViewModel!.Stats.Success || PathBox.InquiryBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned;
 
     //Show Error View and make other ui changes.
     private void ShowError()
     {
         var stats = ViewModel!.Stats;
-        UpdateTitleBarVisibility(!stats.Success);
+        TitleArea.Visibility = !stats.Success;
         HidePathBox();
         ZoomText.IsVisible = stats.Success;
         Zoomer.IsVisible = stats.Success;
@@ -208,7 +189,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
     private void HidePathBox()
     {
-        if (ViewModel != null && string.IsNullOrWhiteSpace(ViewModel.Path) || ErrorState) return;
+        if (string.IsNullOrWhiteSpace(ViewModel!.Path) || !ViewModel.Stats.Success) return;
         PathBox.IsVisible = false;
         FileName.IsVisible = true;
     }
@@ -273,7 +254,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         if (ViewModel == null || ViewModel.Stats.IsWeb || ViewModel.Stats.FileCount <= 0) return 0;
         var imageIndex = (int)double.Round(progressRatio * ViewModel.Stats.FileCount - 1);
-        UpdateTitleBarVisibility(true);
+        TitleArea.Visibility = true;
         return Math.Clamp(imageIndex, 0, ViewModel.Stats.FileCount - 1);
     }
 

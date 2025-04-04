@@ -4,12 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:view="using:ImagePlastic.Views"
+        xmlns:uc="using:ImagePlastic.UserControls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ImagePlastic.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Stats.DisplayName}"
         Background="{Binding Config.BackgroundColor}"
-        SizeChanged="Window_SizeChanged"
         TransparencyLevelHint="{Binding Config.Blurs,Converter={StaticResource BlurConverter}}"
         Topmost="{Binding WindowOnTop}">
     <Design.DataContext>
@@ -17,12 +17,8 @@
     </Design.DataContext>
 
     <Grid RowDefinitions="Auto,*,Auto" DragDrop.AllowDrop="True" DragDrop.Drop="FileDrop">
-        <Panel Grid.Row="{Binding Config.ExtendImageToTitleBar,Converter={StaticResource BoolToParameterConverter},ConverterParameter=1}"
-               VerticalAlignment="Top" HorizontalAlignment="Left"
-               Height="60" ZIndex="10" x:Name="TitleArea"
-               PointerEntered="StackPanel_PointerEntered"
-               PointerExited="StackPanel_PointerExited"
-               Background="Transparent">
+        <uc:TitleArea Grid.Row="{Binding Config.ExtendImageToTitleBar,Converter={StaticResource BoolToParameterConverter},ConverterParameter=1}"
+                      VerticalAlignment="Top" HorizontalAlignment="Stretch" ZIndex="10" x:Name="TitleArea">
             <StackPanel Orientation="Horizontal" Height="30" VerticalAlignment="Top" x:Name="TitleBar" ZIndex="11" Background="{Binding AccentBrush}">
                 <view:StringInquiry x:Name="PathBox" DataContext="{Binding StringInquiryViewModel}" IsVisible="False"/>
                 <TextBlock VerticalAlignment="Center" Text="{Binding Stats.DisplayName}"
@@ -70,17 +66,17 @@
                     <Svg Path="/Assets/Exit.svg"/>
                 </Button>
             </StackPanel>
-        </Panel>
+        </uc:TitleArea>
 
         <Panel Grid.Row="1" ZIndex="6" IsVisible="{Binding Config.ArrowButton,Converter={StaticResource EnumToBoolConverter},ConverterParameter=Normal}">
-            <Button Content="←" Command="{Binding GoLeft}" Foreground="Transparent"
+            <Button Content="←" Command="{Binding GoLeft}"
                     Margin="24,0,0,0" CornerRadius="24" FontSize="{Binding Config.ArrowSize}"
                     IsVisible="{Binding !Stats.IsWeb}" HorizontalAlignment="Left" Focusable="False"
-                    PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
-            <Button Content="→" Command="{Binding GoRight}" Foreground="Transparent"
+                    x:Name="LeftArrowButton"/>
+            <Button Content="→" Command="{Binding GoRight}"
                     Margin="0,0,24,0" CornerRadius="24" FontSize="{Binding Config.ArrowSize}"
                     IsVisible="{Binding !Stats.IsWeb}" HorizontalAlignment="Right" Focusable="False"
-                    PointerEntered="Button_PointerEntered" PointerExited="Button_PointerExited"/>
+                    x:Name="RightArrowButton"/>
         </Panel>
         
         <Grid Grid.Row="1" ColumnDefinitions="*,*,*" ZIndex="5" IsVisible="{Binding Config.ArrowButton,Converter={StaticResource EnumToBoolConverter},ConverterParameter=FullWindow}">
@@ -115,13 +111,9 @@
         
         <view:Error Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="ErrorView"/>
 
-        <Panel Grid.Row="1" VerticalAlignment="Bottom" ZIndex="9" Background="Transparent"
-               PointerEntered="Panel_PointerEntered" x:Name="ProgressBarPanel"
-               PointerExited="Panel_PointerExited" Height="40" IsVisible="{Binding !Stats.IsWeb}">
-            <ProgressBar Margin="5,10" VerticalAlignment="Bottom" x:Name="Progress" IsVisible="False" MinWidth="0"
-                         Maximum="{Binding Stats.FileCount,Mode=OneWay}"
-                         Value="{Binding Stats.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"/>
-        </Panel>
+        <ProgressBar Grid.Row="1" Margin="5,10" VerticalAlignment="Bottom" ZIndex="9" x:Name="Progress" MinWidth="0"
+                     Maximum="{Binding Stats.FileCount,Mode=OneWay}" IsVisible="{Binding !Stats.IsWeb}"
+                     Value="{Binding Stats.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"/>
         
         <Grid.ContextMenu>
             <ContextMenu Background="#BFFFFFFF">

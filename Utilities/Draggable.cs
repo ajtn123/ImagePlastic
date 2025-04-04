@@ -3,7 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using ImagePlastic.UserControls;
 using System;
+using System.Collections.Generic;
 
 namespace ImagePlastic.Utilities;
 
@@ -23,9 +25,7 @@ public static class DraggableBehavior
             control.PointerPressed += Control_PointerPressed;
             control.PointerReleased += Control_PointerReleased;
             control.PointerCaptureLost += Control_PointerCaptureLost;
-            if (control is Window)
-                control.LostFocus += Control_LostFocus;
-            else if (control.FindAncestorOfType<Window>() is Window window)
+            if (control.FindAncestorOfType<Window>(true) is Window window)
                 window.LostFocus += Control_LostFocus;
         }
         else
@@ -34,9 +34,7 @@ public static class DraggableBehavior
             control.PointerPressed -= Control_PointerPressed;
             control.PointerReleased -= Control_PointerReleased;
             control.PointerCaptureLost -= Control_PointerCaptureLost;
-            if (control is Window)
-                control.LostFocus -= Control_LostFocus;
-            else if (control.FindAncestorOfType<Window>() is Window window)
+            if (control.FindAncestorOfType<Window>(true) is Window window)
                 window.LostFocus -= Control_LostFocus;
         }
     }
@@ -138,31 +136,71 @@ public static class ProgressDraggableBehavior
 
 public class ProximityVisibilityBehavior
 {
-    public static readonly AttachedProperty<bool> IsProximalVisible
+    public static readonly AttachedProperty<List<Control>> ProximalVisibleControlsProperty
+        = AvaloniaProperty.RegisterAttached<Control, List<Control>>("ProximalVisibleControls", typeof(ProximityVisibilityBehavior));
+    public static readonly AttachedProperty<bool> IsProximalVisibleProperty
         = AvaloniaProperty.RegisterAttached<Control, bool>("IsProximalVisible", typeof(ProximityVisibilityBehavior));
-    public static readonly AttachedProperty<double> VisibleRadius
+    public static readonly AttachedProperty<double> VisibleRadiusProperty
         = AvaloniaProperty.RegisterAttached<Control, double>("VisibleRadius", typeof(ProximityVisibilityBehavior));
 
     public static bool GetProximityVisibility(Control control)
-        => control.GetValue(IsProximalVisible);
+        => control.GetValue(IsProximalVisibleProperty);
     public static void SetProximityVisibility(Control control, bool value = true, double radius = 50)
     {
-        control.SetValue(IsProximalVisible, value);
-        control.SetValue(VisibleRadius, radius);
-        if (value) control.PointerMoved += Control_PointerMoved;
-        else control.PointerMoved -= Control_PointerMoved;
+        if (value)
+        {
+            if (control.FindAncestorOfType<Window>() is Window window)
+            {
+                var controls = window.GetValue(ProximalVisibleControlsProperty) ?? [];
+                window.SetValue(ProximalVisibleControlsProperty, controls);
+
+                controls.Add(control);
+
+                if (controls.Count == 1)
+                    window.PointerMoved += Control_PointerMoved;
+            }
+            else return;
+        }
+        else
+        {
+            if (control.FindAncestorOfType<Window>() is Window window)
+            {
+                var controls = window.GetValue(ProximalVisibleControlsProperty);
+
+                controls?.Remove(control);
+
+                if (controls != null && controls.Count == 0)
+                    window.PointerMoved -= Control_PointerMoved;
+            }
+            else return;
+        }
+
+        control.SetValue(IsProximalVisibleProperty, value);
+        control.SetValue(VisibleRadiusProperty, radius);
     }
 
     private static void Control_PointerMoved(object? sender, PointerEventArgs e)
     {
-        if (sender is not Control control) return;
+        if (sender is not Window window) return;
 
-        var pointerPos = e.GetPosition(control);
-        var bounds = control.Bounds;
+        foreach (var control in window.GetValue(ProximalVisibleControlsProperty))
+        {
+            var pointerPos = e.GetPosition(control);
+            var bounds = control.Bounds;
 
-        var center = new Point(bounds.Width / 2, bounds.Height / 2);
-        var distance = Math.Sqrt(Math.Pow(pointerPos.X - center.X, 2) + Math.Pow(pointerPos.Y - center.Y, 2));
+            var x = pointerPos.X < 0 ? -pointerPos.X
+                : pointerPos.X > bounds.Width ? pointerPos.X - bounds.Width
+                : 0;
+            var y = pointerPos.Y < 0 ? -pointerPos.Y
+                : pointerPos.Y > bounds.Height ? pointerPos.Y - bounds.Height
+                : 0;
 
-        control.IsVisible = distance < control.GetValue(VisibleRadius);
+            var distance = Math.Sqrt(Math.Pow(x, 2) + Math.Pow(y, 2));
+
+            if (control is TitleArea titleArea)
+                titleArea.Visibility = distance <= control.GetValue(VisibleRadiusProperty);
+
+            else control.Opacity = distance <= control.GetValue(VisibleRadiusProperty) ? 1 : 0;
+        }
     }
 }

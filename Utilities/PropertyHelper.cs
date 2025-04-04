@@ -115,26 +115,32 @@ public static partial class ShellPropertyHelper
         }
         return properties;
     }
-    private class PropertyInfo(IPropertyDescription pd)
+    private class PropertyInfo
     {
-        public IPropertyDescription PD = pd;
+        public unsafe PropertyInfo(IPropertyDescription pd)
+        {
+            PD = pd;
+            name = new(() =>
+            {
+                try
+                {
+                    pd.GetDisplayName(out var dname);
+                    var displayName = Marshal.PtrToStringUni((IntPtr)dname.Value);
+                    Marshal.FreeCoTaskMem((nint)dname.Value);
+                    return displayName;
+                }
+                catch (Exception ex) { Trace.WriteLine($"Failed to get display name of {CanonicalName}: {ex.Message}"); }
+                return null;
+            });
+        }
+
+        public IPropertyDescription PD;
         public Guid FmtID { get; set; }
         public uint PID { get; set; }
         public string? CanonicalName { get; set; }
         public string? Name => name.Value;
 
-        private readonly unsafe Lazy<string?> name = new(() =>
-        {
-            try
-            {
-                pd.GetDisplayName(out var dname);
-                var displayName = Marshal.PtrToStringUni((IntPtr)dname.Value);
-                Marshal.FreeCoTaskMem((nint)dname.Value);
-                return displayName;
-            }
-            catch (Exception ex) { Trace.WriteLine($"Failed to get display name: {ex.Message}"); }
-            return null;
-        });
+        private readonly unsafe Lazy<string?> name;
     }
 }
 
