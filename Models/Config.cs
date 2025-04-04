@@ -41,7 +41,7 @@ public class Config
     //Value of null = default;
     //Value of empty = disabled.
     public Dictionary<MagickFormat, string?> EditApp = new(){
-        {default,@"C:\Program Files\GIMP 2\bin\gimp-2.10.exe"},
+        {default,@"C:\Program Files\GIMP 3\bin\gimp-3.exe"},
     };
     //Left and right arrows.
     public ArrowButton ArrowButton { get; set; } = ArrowButton.Normal;
