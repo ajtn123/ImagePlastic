@@ -20,7 +20,7 @@ public class TitleArea : Panel
     {
         if (sender is not TitleArea titleArea) return value;
 
-        value = titleArea.FindAncestorOfType<MainWindow>()?.UpdateTitleBarVisibility(value) ?? true;
+        value = titleArea.FindAncestorOfType<MainWindow>()?.CoerceTitleAreaVisibility(value) ?? true;
 
         titleArea.Opacity = value ? 1 : 0;
         return value;

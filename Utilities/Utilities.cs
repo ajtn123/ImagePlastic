@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
@@ -131,4 +132,22 @@ public static class Utils
 
     public static void OpenUrl(string url)
         => Process.Start(new ProcessStartInfo() { FileName = url, UseShellExecute = true });
+
+    public static async Task<List<Prop>> IteratePropsToPropList(object o)
+        => await Task.Run(() => o.GetType().GetProperties().Where(prop => prop.CanRead).Select(prop =>
+        {
+            string value = "";
+            try { value = prop.GetValue(o)?.ToString() ?? ""; }
+            catch { Trace.WriteLine($"Failed to get property value of {prop.Name}."); }
+            return new Prop(prop.Name, value);
+        }).ToList());
+
+    public static async Task<Dictionary<string, object?>> IterateProps(object o)
+        => await Task.Run(() => o.GetType().GetProperties()
+        .ToDictionary(prop => prop.Name, prop =>
+        {
+            try { return prop.GetValue(o); }
+            catch { Trace.WriteLine($"Failed to get property value of {prop.Name}."); }
+            return null;
+        }));
 }

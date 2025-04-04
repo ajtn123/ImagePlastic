@@ -100,7 +100,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     }
 
     public RelativePosition RelativePosition = new();
-    public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
     public int ImageNavigationOffset { get; set; } = 0;
 
@@ -142,7 +141,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         ImageNavigationOffset += offset;
     }
 
-    public bool UpdateTitleBarVisibility(bool visible)
+    public bool CoerceTitleAreaVisibility(bool visible)
         => visible || !ViewModel!.Stats.Success || PathBox.InquiryBox.IsFocused || !ViewModel!.Config.ExtendImageToTitleBar || ViewModel.Pinned;
 
     //Show Error View and make other ui changes.
@@ -332,7 +331,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         FullscreenRightButtonClickCount -= 1;
     }
 
-    public void FileDrop(object sender, DragEventArgs e)
+    private void FileDrop(object sender, DragEventArgs e)
     {
         if (e.Data.GetFiles() is { } fileNames && ViewModel != null)
         {

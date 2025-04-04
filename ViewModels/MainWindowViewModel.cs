@@ -204,8 +204,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 ChangeImageToPath(Args[0]);
         }
     }
-    private string path = "";
-    public string Path { get => path; set { path = value; StringInquiryViewModel.Result = value; } }
+    public string Path { get => StringInquiryViewModel.Result; set => StringInquiryViewModel.Result = value; }
     public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
     public IOrderedEnumerable<Stats>? Pics { get; set; }
     [Reactive]
@@ -458,7 +457,7 @@ public partial class MainWindowViewModel : ViewModelBase
     //😋 https://chatgpt.com/
     private CancellationTokenSource? preloadCTS = null;
     private readonly Lock preloadLock = new();
-    public void PreloadImage(IEnumerable<FileInfo> files, int index)
+    private void PreloadImage(IEnumerable<FileInfo> files, int index)
     {
         if (!files.Any()) return;
 
