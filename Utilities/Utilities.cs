@@ -134,20 +134,14 @@ public static class Utils
         => Process.Start(new ProcessStartInfo() { FileName = url, UseShellExecute = true });
 
     public static async Task<List<Prop>> IteratePropsToPropList(object o)
-        => await Task.Run(() => o.GetType().GetProperties().Where(prop => prop.CanRead).Select(prop =>
-        {
-            string value = "";
-            try { value = prop.GetValue(o)?.ToString() ?? ""; }
-            catch { Trace.WriteLine($"Failed to get property value of {prop.Name}."); }
-            return new Prop(prop.Name, value);
-        }).ToList());
+        => [.. (await IterateProps(o)).Select(kp => new Prop(kp.Key, kp.Value?.ToString() ?? ""))];
 
     public static async Task<Dictionary<string, object?>> IterateProps(object o)
         => await Task.Run(() => o.GetType().GetProperties()
         .ToDictionary(prop => prop.Name, prop =>
         {
             try { return prop.GetValue(o); }
-            catch { Trace.WriteLine($"Failed to get property value of {prop.Name}."); }
+            catch (Exception e) { Trace.WriteLine($"Failed to get property value of {prop.Name}: {e.Message}"); }
             return null;
         }));
 }
