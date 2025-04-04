@@ -12,6 +12,8 @@ public class Prop(string name, string value) : ReactiveObject
     public string Name { get; set; } = name;
     [Reactive]
     public string Value { get; set; } = value;
+    [Reactive]
+    public double NameWidth { get; set; } = 200;
 }
 
 public class PropGroup() : ReactiveObject

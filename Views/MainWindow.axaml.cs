@@ -48,6 +48,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
             ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);
             ViewModel.OpenFilePicker.RegisterHandler(ShowFilePickerAsync);
+            ViewModel.OpenSaveFilePicker.RegisterHandler(ShowSaveFilePickerAsync);
             ViewModel.OpenColorPicker.RegisterHandler(ShowColorPickerWindow);
             ViewModel.OpenPropWindow.RegisterHandler(ShowPropWindow);
             ViewModel.OpenAboutWindow.RegisterHandler(ShowAboutWindow);
@@ -98,8 +99,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         RelativePosition.PointerY = pointerPosition.Y / BitmapImage.Bounds.Height;
     }
 
-    public List<Window> childWindows = [];
-    public List<Window> ChildWindows => childWindows = [.. childWindows.Where(window => window.IsLoaded)];
     public RelativePosition RelativePosition = new();
     public ZoomChangedEventArgs ZoomProperties { get; set; } = new(1, 1, 0, 0);
     public double Scaling => Screens.ScreenFromWindow(this)!.Scaling;
@@ -213,34 +212,36 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         RelativePosition.Magick = ViewModel?.Stats.Image;
         RelativePosition.Bitmap = ViewModel?.Stats.Bitmap;
         ColorPickerWindow = new() { DataContext = context.Input };
-        ChildWindows.Add(ColorPickerWindow);
         ColorPickerWindow.Show(this);
         context.SetOutput(Unit.Default);
     }
     private void ShowPropWindow(IInteractionContext<PropertyWindowViewModel, Unit> context)
     {
         var window = new PropertyWindow() { DataContext = context.Input };
-        ChildWindows.Add(window);
         window.Show(this);
         context.SetOutput(Unit.Default);
     }
     private void ShowAboutWindow(IInteractionContext<AboutWindowViewModel, Unit> context)
     {
         var window = new AboutWindow() { DataContext = context.Input };
-        ChildWindows.Add(window);
         window.Show(this);
         context.SetOutput(Unit.Default);
     }
-    private async Task ShowFilePickerAsync(IInteractionContext<Unit, Uri?> context)
+    private async Task ShowFilePickerAsync(IInteractionContext<Unit, IReadOnlyList<IStorageFile>?> context)
     {
-        try
-        {
-            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { AllowMultiple = false });
-            context.SetOutput(files.Any() ? files[0].Path : null);
-        }
+        try { context.SetOutput(await StorageProvider.OpenFilePickerAsync(new() { AllowMultiple = false })); }
         catch (Exception e)
         {
-            Trace.WriteLine(e);
+            Trace.WriteLine(e.Message);
+            context.SetOutput(null);
+        }
+    }
+    private async Task ShowSaveFilePickerAsync(IInteractionContext<string, IStorageFile?> context)
+    {
+        try { context.SetOutput(await StorageProvider.SaveFilePickerAsync(new() { SuggestedFileName = context.Input, SuggestedStartLocation = await StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Downloads) })); }
+        catch (Exception e)
+        {
+            Trace.WriteLine(e.Message);
             context.SetOutput(null);
         }
     }
@@ -273,7 +274,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else WindowState = WindowState.FullScreen;
     }
     private void ExitButton_Click(object? sender, RoutedEventArgs e)
-        => (ChildWindows.Count != 0 && ViewModel!.Config.OrderedClosing ? ChildWindows.Last() : this).Close();
+        => (OwnedWindows.Count != 0 && ViewModel!.Config.OrderedClosing ? OwnedWindows[^1] : this).Close();
 
     private void SetWindowStateUI(WindowState state)
     {

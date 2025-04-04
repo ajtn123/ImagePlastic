@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls.PanAndZoom;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform.Storage;
 using DynamicData;
 using ImageMagick;
 using ImagePlastic.Models;
@@ -109,11 +110,18 @@ public partial class MainWindowViewModel : ViewModelBase
             LoadFile(newFile);
             UIMessage = $"{file.FullName} => {newFile.FullName}";
         });
+        SaveCommand = ReactiveCommand.Create(async () =>
+        {
+            if (Stats.Stream == null || !Stats.IsWeb) return;
+            using var file = await OpenSaveFilePicker.Handle(Stats.DisplayName ?? "");
+            Stats.Stream.CopyTo(await file.OpenWriteAsync());
+        });
         OpenLocalCommand = ReactiveCommand.Create(async () =>
         {
-            var fileUri = await OpenFilePicker.Handle(new());
+            var files = await OpenFilePicker.Handle(new());
             recursiveDir = null;
-            LoadFile(new(fileUri.LocalPath));
+            if (files != null && files.Count >= 1 && files[0].TryGetLocalPath() is string path)
+                LoadFile(new(path));
         });
         OpenUriCommand = ReactiveCommand.Create(async () =>
         {
@@ -155,8 +163,13 @@ public partial class MainWindowViewModel : ViewModelBase
         });
         OpenPropCommand = ReactiveCommand.Create(async () =>
         {
-            var vm = new PropertyWindowViewModel() { Stats = Stats };
+            var vm = new PropertyWindowViewModel() { Stats = Stats, ShowInExplorerCommand = ShowInExplorerCommand, ShowExplorerPropCommand = ShowExplorerPropCommand, EditCommand = EditCommand, SaveCommand = SaveCommand };
             _ = await OpenPropWindow.Handle(vm);
+        });
+        ShowExplorerPropCommand = ReactiveCommand.Create(() =>
+        {
+            if (Stats.File != null)
+                ExplorerPropertiesOpener.OpenFileProperties(Stats.File.FullName);
         });
         OpenAboutCommand = ReactiveCommand.Create(async () =>
         {
@@ -232,6 +245,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand ShowInExplorerCommand { get; }
     public ICommand RenameCommand { get; }
     public ICommand MoveCommand { get; }
+    public ICommand SaveCommand { get; }
     public ICommand OpenLocalCommand { get; }
     public ICommand OpenUriCommand { get; }
     public ICommand ReloadDirCommand { get; }
@@ -240,6 +254,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public ICommand RotateCommand { get; }
     public ICommand CopyPathCommand { get; }
     public ICommand OpenPropCommand { get; }
+    public ICommand ShowExplorerPropCommand { get; }
     public ICommand OpenAboutCommand { get; }
     public Interaction<ConfirmationWindowViewModel, bool> RequireConfirmation { get; } = new();
     public Interaction<RenameWindowViewModel, string?> InquiryRenameString { get; } = new();
@@ -248,7 +263,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public Interaction<PropertyWindowViewModel, Unit> OpenPropWindow { get; } = new();
     public Interaction<AboutWindowViewModel, Unit> OpenAboutWindow { get; } = new();
     public Interaction<string, Unit> CopyToClipboard { get; } = new();
-    public Interaction<Unit, Uri?> OpenFilePicker { get; } = new();
+    public Interaction<Unit, IReadOnlyList<IStorageFile>?> OpenFilePicker { get; } = new();
+    public Interaction<string, IStorageFile?> OpenSaveFilePicker { get; } = new();
 
     public delegate void ErrorStats(Stats errorStats);
     public event ErrorStats ErrorReport = (e) => { };

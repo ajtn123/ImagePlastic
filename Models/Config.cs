@@ -16,7 +16,7 @@ public class Config
     public string[] Extensions { get; set; }
         = [".png", ".jpg", ".jpeg", ".webp", ".avif", ".heic", ".heif", ".bmp", ".jxl", ".gif", ".psd", ".svg"];
     public bool ExtendImageToTitleBar { get; set; } = true;
-    public bool SystemAccentColor { get; set; } = false;
+    public bool SystemAccentColor { get; set; } = true;
     public byte SystemAccentColorOpacity { get; set; } = 127;
     public string CustomAccentColor { get; set; } = "#7FABCDEF";
     public bool LoadingIndicator { get; set; } = true;

@@ -131,6 +131,7 @@
                 <MenuItem Header="Pick Color" Command="{Binding PickColorCommand}" IsVisible="{Binding Stats.Bitmap,Converter={StaticResource BoolConverter}}"/>
                 <MenuItem Header="Property" Command="{Binding OpenPropCommand}"/>
                 <MenuItem Header="Edit" Command="{Binding EditCommand}" IsVisible="{Binding Stats.EditCmd,Converter={StaticResource BoolConverter}}"/>
+                <MenuItem Header="Save As" Command="{Binding SaveCommand}" IsVisible="{Binding Stats.IsWeb}"/>
                 <MenuItem Header="Setting" Command="{Binding ConfigureCommand}"/>
                 <MenuItem Header="Delete" Command="{Binding DeleteCommand}" IsVisible="{Binding !Stats.IsWeb}" Classes="Con"/>
                 <MenuItem Header="QUIT" Click="ExitButton_Click" Classes="Con"/>
