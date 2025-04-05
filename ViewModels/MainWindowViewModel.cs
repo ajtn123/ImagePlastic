@@ -192,7 +192,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly FileSystemWatcher fsWatcher;
     private bool recursive;
     public Dictionary<string, Stats?> Preload = [];
-    public FileInfo? ImageFile;
+    public FileInfo? ImageFile { get; set; }
     public IOrderedEnumerable<FileInfo>? CurrentDirItems;
 
     public string[]? Args
@@ -265,9 +265,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public Interaction<Unit, IReadOnlyList<IStorageFile>?> OpenFilePicker { get; } = new();
     public Interaction<string, IStorageFile?> OpenSaveFilePicker { get; } = new();
 
-    public delegate void ErrorStats(Stats errorStats);
-    public event ErrorStats ErrorReport = (e) => { };
-
     public void ChangeImageToPath(string path)
     {
         Path = path;
@@ -290,10 +287,7 @@ public partial class MainWindowViewModel : ViewModelBase
             LoadFile(new(Path));
         }
         else
-        {
             Stats = new() { Success = false };
-            ErrorReport(Stats);
-        }
     }
     private void OnFSChanged(object sender, FileSystemEventArgs e)
         => fsChanged = true;
@@ -319,10 +313,7 @@ public partial class MainWindowViewModel : ViewModelBase
             ShowLocalImage();
         }
         else
-        {
             Stats = new() { Success = false, File = ImageFile, DisplayName = ImageFile.Name };
-            ErrorReport(Stats);
-        }
     }
     //Load image files under a directory to CurrentDirItems.
     public void LoadDir(DirectoryInfo dir)
@@ -401,12 +392,14 @@ public partial class MainWindowViewModel : ViewModelBase
     //Show image from the stream, use path as identifier.
     public async Task ShowImage(Stream stream, string path)
     {
-        MagickImageInfo imageInfo = null;
+        MagickImageInfo? imageInfo = null;
         try { imageInfo = new MagickImageInfo(stream); }
         catch (Exception e) { Trace.WriteLine($"Failed to load {path}: {e.Message}"); }
-        MagickImage? image = null;
+        if (imageInfo == null) return;
         Stats.Info = imageInfo;
         Stats.Stream = stream.CloneStream();
+
+        MagickImage? image = null;
         if (imageInfo.Format == MagickFormat.Svg)
         {
             Stats.SvgPath = path;
@@ -416,18 +409,22 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             Bitmap? bitmapTemp = null;
             if (Config.Preload)
-            { Preload.TryGetValue(path, out var s); bitmapTemp = s?.Bitmap; image = s?.Image; }
+            {
+                Preload.TryGetValue(path, out var s);
+                bitmapTemp = s?.Bitmap;
+                image = s?.Image;
+            }
             bitmapTemp ??= await Task.Run(() => { return Utils.ConvertImage(stream, out image); });
 
             if (path != Path) return;
-            Stats.Bitmap = bitmapTemp;
 
+            Stats.Bitmap = bitmapTemp;
             Stats.SvgPath = null;
+
             if (Stats.Bitmap == null)
                 Stats.Success = false;
         }
         Stats.Image = image;
-        ErrorReport(Stats);
     }
     public async Task ShowMagickImageAsync(MagickImage magick)
     {
@@ -444,7 +441,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (webStream != null) await ShowImage(webStream, url);
 
-        ErrorReport(Stats);
         Loading = false;
     }
     //Get index of current file.

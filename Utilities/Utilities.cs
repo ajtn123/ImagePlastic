@@ -25,7 +25,7 @@ public static class Utils
             using var mi = new MagickImage(stream);
             return mi.ConvertToAvaloniaBitmap();
         }
-        catch (Exception e) { Trace.WriteLine(e); return null; }
+        catch (Exception e) { Trace.WriteLine(e.Message); return null; }
     }
     public static Bitmap? ConvertImage(Stream stream, out MagickImage? image)
     {
@@ -35,7 +35,7 @@ public static class Utils
             image = new MagickImage(stream);
             return image.ConvertToAvaloniaBitmap();
         }
-        catch (Exception e) { Trace.WriteLine(e); image = null; return null; }
+        catch (Exception e) { Trace.WriteLine(e.Message); image = null; return null; }
     }
     public static Bitmap? ConvertImage(FileInfo file)
     {
@@ -50,7 +50,7 @@ public static class Utils
     public static Bitmap? ConvertImage(MagickImage image)
     {
         try { return image.ConvertToAvaloniaBitmap(); }
-        catch (Exception e) { Trace.WriteLine(e); return null; }
+        catch (Exception e) { Trace.WriteLine(e.Message); return null; }
     }
 
     public static IBrush? GetSystemBrush(double opacity = 0.5)
@@ -70,7 +70,7 @@ public static class Utils
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadAsStreamAsync();
             }
-            catch (Exception e) { Trace.WriteLine(e); return null; }
+            catch (Exception e) { Trace.WriteLine(e.Message); return null; }
         return null;
     }
 
