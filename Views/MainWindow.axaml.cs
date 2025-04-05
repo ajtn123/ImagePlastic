@@ -69,10 +69,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 ZoomText.IsVisible = false;
             }
             RenderOptions.SetBitmapInterpolationMode(BitmapImage, ViewModel.Config.InterpolationMode);
-            BitmapImage.PointerMoved += BitmapImage_PointerMoved;
-            BitmapImage.PointerPressed += BitmapImage_PointerPressed;
             Zoomer.Focus();
         });
+    }
+
+    private void ImagePanel_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        Zoomer.MinOffsetX = -e.NewSize.Width;
+        Zoomer.MaxOffsetX = e.NewSize.Width;
+        Zoomer.MinOffsetY = -e.NewSize.Height;
+        Zoomer.MaxOffsetY = e.NewSize.Height;
     }
 
     private void BitmapImage_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -149,7 +155,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     {
         var stats = ViewModel!.Stats;
         TitleArea.Visibility = !stats.Success;
-        HidePathBox();
         ZoomText.IsVisible = stats.Success;
         Zoomer.IsVisible = stats.Success;
         ErrorView.IsVisible = !stats.Success;
@@ -167,8 +172,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         => RefreshZoomDisplay();
     private void ZoomBorder_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
         => ViewModel!.Stretch = StretchMode.None;
-    private void ZoomBorder_GotFocus(object? sender, GotFocusEventArgs e)
-        => HidePathBox();
     private void Button_Click_1(object? sender, RoutedEventArgs e)
         => SetZoom(1);
     private void Button_Click_2(object? sender, RoutedEventArgs e)
@@ -176,7 +179,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private void RefreshZoomDisplay()
         => ZoomText.Text = $"{double.Round(Zoomer.Bounds.Height * Zoomer.ZoomX * 100 * Scaling / ViewModel!.Stats.Height, 2)}%";
     private void SetZoom(double zoom)
-        => Zoomer.Zoom(ViewModel!.Stats.Height * zoom / (Scaling * Zoomer.Bounds.Height), Zoomer.Bounds.Width / 2, Zoomer.Bounds.Height / 2);
+        => Zoomer.Zoom(ViewModel!.Stats.Height * zoom / (Scaling * Zoomer.Bounds.Height), ImagePanel.Bounds.Width / 2, ImagePanel.Bounds.Height / 2);
 
     //Shorten path when not on focus.
     private void TextBlock_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -185,6 +188,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         FileName.IsVisible = false;
         Dispatcher.UIThread.Post(() => PathBox.InquiryBox.Focus(), DispatcherPriority.Background);
     }
+    private void StringInquiry_LostFocus(object? sender, RoutedEventArgs e)
+        => HidePathBox();
     private void HidePathBox()
     {
         if (string.IsNullOrWhiteSpace(ViewModel!.Path) || !ViewModel.Stats.Success) return;

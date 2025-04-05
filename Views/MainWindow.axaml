@@ -20,7 +20,8 @@
         <uc:TitleArea Grid.Row="{Binding Config.ExtendImageToTitleBar,Converter={StaticResource BoolToParameterConverter},ConverterParameter=1}"
                       VerticalAlignment="Top" HorizontalAlignment="Stretch" ZIndex="10" x:Name="TitleArea">
             <StackPanel Orientation="Horizontal" Height="30" VerticalAlignment="Top" x:Name="TitleBar" ZIndex="11" Background="{Binding AccentBrush}">
-                <view:StringInquiry x:Name="PathBox" DataContext="{Binding StringInquiryViewModel}" IsVisible="False"/>
+                <view:StringInquiry x:Name="PathBox" LostFocus="StringInquiry_LostFocus"
+                                    DataContext="{Binding StringInquiryViewModel}" IsVisible="False"/>
                 <TextBlock VerticalAlignment="Center" Text="{Binding Stats.DisplayName}"
                            PointerPressed="TextBlock_PointerPressed" x:Name="FileName" MinWidth="50"/>
                 <TextBlock VerticalAlignment="Center" Text="{Binding Stats,Converter={StaticResource StatsConverter}}"/>
@@ -96,10 +97,13 @@
 
         <ZoomBorder Grid.Row="1" ZIndex="2" x:Name="Zoomer" SizeChanged="ZoomBorder_SizeChanged"
                     Stretch="{Binding Stretch}" Focusable="True" PanButton="{Binding Config.PanButton}"
-                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" GotFocus="ZoomBorder_GotFocus"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
-            <Panel x:Name="ImagePanel">
-                <Image Source="{Binding Stats.Bitmap}" Stretch="Uniform" x:Name="BitmapImage" IsVisible="{Binding Stats.Bitmap,Converter={StaticResource BoolConverter}}"/>
+            <Panel x:Name="ImagePanel" SizeChanged="ImagePanel_SizeChanged"
+                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Image Source="{Binding Stats.Bitmap}" Stretch="Uniform" x:Name="BitmapImage"
+                       PointerMoved="BitmapImage_PointerMoved" PointerPressed="BitmapImage_PointerPressed"
+                       IsVisible="{Binding Stats.Bitmap,Converter={StaticResource BoolConverter}}"/>
                 <Svg Path="{Binding Stats.SvgPath}" x:Name="SvgImage" IsVisible="{Binding Stats.SvgPath,Converter={StaticResource BoolConverter}}"/>
             </Panel>
         </ZoomBorder>
