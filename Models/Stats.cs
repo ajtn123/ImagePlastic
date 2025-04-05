@@ -54,7 +54,7 @@ public class Stats : ReactiveObject, IDisposable
     public void Dispose()
     {
         Image?.Dispose();
-        Bitmap?.Dispose();
+        //Bitmap?.Dispose();
         Stream?.Dispose();
         GC.SuppressFinalize(this);
     }

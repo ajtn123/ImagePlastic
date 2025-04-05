@@ -401,7 +401,9 @@ public partial class MainWindowViewModel : ViewModelBase
     //Show image from the stream, use path as identifier.
     public async Task ShowImage(Stream stream, string path)
     {
-        var imageInfo = new MagickImageInfo(stream);
+        MagickImageInfo imageInfo = null;
+        try { imageInfo = new MagickImageInfo(stream); }
+        catch (Exception e) { Trace.WriteLine($"Failed to load {path}: {e.Message}"); }
         MagickImage? image = null;
         Stats.Info = imageInfo;
         Stats.Stream = stream.CloneStream();
@@ -498,7 +500,7 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var key in keysToRemove)
         {
             Preload.Remove(key, out var s);
-            s?.Dispose();
+            //s?.Dispose();
         }
     }
 }
