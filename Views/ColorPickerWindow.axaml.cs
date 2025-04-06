@@ -4,6 +4,7 @@ using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
 using System;
+using System.Reactive.Disposables;
 
 namespace ImagePlastic.Views;
 
@@ -22,19 +23,19 @@ public partial class ColorPickerWindow : ReactiveWindow<ColorPickerWindowViewMod
                 Position = new(((MainWindow)Owner).Position.X + 25, ((MainWindow)Owner).Position.Y + 25);
 
             this.WhenAnyValue(x => x.ViewModel!.PixelX, x => x.ViewModel!.PixelY)
-                .Subscribe(pos => { GetColor(pos.Item1, pos.Item2); });
+                .Subscribe(pos => GetColor(pos.Item1, pos.Item2));
             this.WhenAnyValue(a => a.ViewModel!.RelativePosition.PointerX)
                 .Subscribe(x =>
                 {
                     if (ViewModel.Magick != null)
                         ViewModel.PixelX = (int)Math.Clamp((int)Math.Round(ViewModel.Magick.Width * x), 0, ViewModel.Magick.Width - 1);
-                });
+                }).DisposeWith(d);
             this.WhenAnyValue(a => a.ViewModel!.RelativePosition.PointerY)
                 .Subscribe(y =>
                 {
                     if (ViewModel.Magick != null)
                         ViewModel.PixelY = (int)Math.Clamp((int)Math.Round(ViewModel.Magick.Height * y), 0, ViewModel.Magick.Height - 1);
-                });
+                }).DisposeWith(d);
         });
     }
 

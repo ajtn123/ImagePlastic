@@ -73,14 +73,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         });
     }
 
-    private void ImagePanel_SizeChanged(object? sender, SizeChangedEventArgs e)
-    {
-        Zoomer.MinOffsetX = -e.NewSize.Width;
-        Zoomer.MaxOffsetX = e.NewSize.Width;
-        Zoomer.MinOffsetY = -e.NewSize.Height;
-        Zoomer.MaxOffsetY = e.NewSize.Height;
-    }
-
     private void BitmapImage_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (ColorPickerWindow == null) return;

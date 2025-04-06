@@ -99,8 +99,7 @@
                     Stretch="{Binding Stretch}" Focusable="True" PanButton="{Binding Config.PanButton}"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
-            <Panel x:Name="ImagePanel" SizeChanged="ImagePanel_SizeChanged"
-                   HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Panel x:Name="ImagePanel" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Image Source="{Binding Stats.Bitmap}" Stretch="Uniform" x:Name="BitmapImage"
                        PointerMoved="BitmapImage_PointerMoved" PointerPressed="BitmapImage_PointerPressed"
                        IsVisible="{Binding Stats.Bitmap,Converter={StaticResource BoolConverter}}"/>
@@ -110,7 +109,7 @@
 
         <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding LoadingIndication}" ZIndex="11"/>
         <TextBlock Grid.Row="2" Background="AntiqueWhite" Text="{Binding UIMessage}"
-                   PointerReleased="TextBlock_PointerReleased"
+                   PointerReleased="TextBlock_PointerReleased" ZIndex="100"
                    IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
         
         <view:Error Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="ErrorView"/>

@@ -30,7 +30,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (Config.DefaultFile != null)
             Path = Config.DefaultFile.FullName;
         fsWatcher = new();
-        //FSWatcher.Changed += OnChanged;
+        //FSWatcher.Changed += OnFSChanged;
         fsWatcher.Created += OnFSChanged;
         fsWatcher.Deleted += OnFSChanged;
         fsWatcher.Renamed += OnFSChanged;
