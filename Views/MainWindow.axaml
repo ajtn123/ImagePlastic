@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ImagePlastic.ViewModels"
+        xmlns:m="using:ImagePlastic.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:view="using:ImagePlastic.Views"
@@ -16,7 +17,7 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*,Auto" DragDrop.AllowDrop="True" DragDrop.Drop="FileDrop">
+    <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" DragDrop.AllowDrop="True" DragDrop.Drop="FileDrop">
         <uc:TitleArea Grid.Row="{Binding Config.ExtendImageToTitleBar,Converter={StaticResource BoolToParameterConverter},ConverterParameter=1}"
                       VerticalAlignment="Top" HorizontalAlignment="Stretch" ZIndex="10" x:Name="TitleArea">
             <StackPanel Orientation="Horizontal" Height="30" VerticalAlignment="Top" x:Name="TitleBar" ZIndex="11" Background="{Binding AccentBrush}">
@@ -95,7 +96,7 @@
             </Button>
         </Grid>
 
-        <ZoomBorder Grid.Row="1" ZIndex="2" x:Name="Zoomer" SizeChanged="ZoomBorder_SizeChanged"
+        <ZoomBorder Grid.Row="1" ZIndex="2" x:Name="Zoomer" SizeChanged="ZoomBorder_SizeChanged" Grid.RowSpan="4"
                     Stretch="{Binding Stretch}" Focusable="True" PanButton="{Binding Config.PanButton}"
                     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                     ZoomChanged="ZoomBorder_ZoomChanged" PointerWheelChanged="ZoomBorder_PointerWheelChanged">
@@ -108,16 +109,38 @@
         </ZoomBorder>
 
         <ProgressBar Grid.Row="1" VerticalAlignment="Top" IsIndeterminate="True" IsVisible="{Binding LoadingIndication}" ZIndex="11"/>
-        <TextBlock Grid.Row="2" Background="AntiqueWhite" Text="{Binding UIMessage}"
+
+        <TextBlock Grid.Row="4" Background="AntiqueWhite" Text="{Binding UIMessage}"
                    PointerReleased="TextBlock_PointerReleased" ZIndex="100"
                    IsVisible="{Binding UIMessage,Converter={StaticResource BoolConverter}}"/>
         
         <view:Error Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="ErrorView"/>
 
-        <ProgressBar Grid.Row="1" Margin="5,10" VerticalAlignment="Bottom" ZIndex="9" x:Name="Progress" MinWidth="0"
+        <ListBox ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                    Grid.Row="2" ZIndex="11" VerticalAlignment="Bottom"
+                    ItemsSource="{Binding Thumbnails}" Background="Transparent"
+                    SelectedIndex="{Binding Stats.FileIndex,Mode=OneWay}"
+                    x:Name="Thumbnails" IsVisible="{Binding Config.Thumbnail}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="m:ThumbnailItem">
+                    <Border CornerRadius="5" ClipToBounds="True"
+                            ToolTip.Tip="{Binding Name}">
+                        <Image Source="{Binding Bitmap}" Height="100"/>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ListBox>
+        
+        <ProgressBar Grid.Row="3" Margin="5,10" VerticalAlignment="Bottom" ZIndex="9" x:Name="Progress" MinWidth="0"
                      Maximum="{Binding Stats.FileCount,Mode=OneWay}" IsVisible="{Binding !Stats.IsWeb}"
                      Value="{Binding Stats.FileIndex,Mode=OneWay,Converter={StaticResource IntConverter},ConverterParameter=1}"/>
-        
+
         <Grid.ContextMenu>
             <ContextMenu Background="#BFFFFFFF">
                 <CheckBox IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}">Title Bar</CheckBox>

@@ -15,7 +15,18 @@ public class Stats : ReactiveObject, IDisposable
 {
     public Stats()
     {
-        this.WhenAnyValue(s => s.File).Subscribe(f => Optimizable = Constants.OptimizableExts.Contains(f?.Extension));
+        this.WhenAnyValue(s => s.File).Subscribe(f =>
+        {
+            if (f == null) return;
+            Optimizable = Constants.OptimizableExts.Contains(f.Extension);
+            thumbnail = new(() => Utils.GetThumbnail(f.FullName));
+            DisplayName = f.Name;
+        });
+        this.WhenAnyValue(s => s.Url).Subscribe(url =>
+        {
+            if (url == null) return;
+            DisplayName = url.Split('/')[^1];
+        });
     }
 
     [Reactive]
@@ -46,6 +57,8 @@ public class Stats : ReactiveObject, IDisposable
     public Bitmap? Bitmap { get; set; }
     [Reactive]
     public string? SvgPath { get; set; }
+    public Bitmap? Thumbnail => thumbnail?.Value;
+    private Lazy<Bitmap?>? thumbnail;
 
     public MagickFormat Format => Info != null ? Info.Format : default;
     public double Height => Info != null ? Info.Height : double.NaN;

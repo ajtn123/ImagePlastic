@@ -15,7 +15,7 @@
     <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,*" Margin="5">
         <Border CornerRadius="10" ClipToBounds="True">
             <Panel>
-                <Image Source="{Binding Stats.Bitmap}"/>
+                <Image Source="{Binding Stats.Thumbnail}"/>
                 <Svg Path="{Binding Stats.SvgPath}"/>
             </Panel>
         </Border>

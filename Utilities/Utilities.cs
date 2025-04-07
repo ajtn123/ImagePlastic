@@ -4,6 +4,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
 using ImageMagick;
 using ImagePlastic.Models;
+using Microsoft.WindowsAPICodePack.Shell;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -51,6 +52,13 @@ public static class Utils
     {
         try { return image.ConvertToAvaloniaBitmap(); }
         catch (Exception e) { Trace.WriteLine(e.Message); return null; }
+    }
+
+    public static Bitmap? GetThumbnail(string path)
+    {
+        ShellFile shellFile = ShellFile.FromFilePath(path);
+        using var shellThumb = shellFile.Thumbnail?.Bitmap;
+        return shellThumb?.ConvertToAvaloniaBitmap();
     }
 
     public static IBrush? GetSystemBrush(double opacity = 0.5)

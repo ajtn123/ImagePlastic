@@ -53,6 +53,7 @@ public class Config
     public PathQuotation PathCopyQuotation { get; set; } = PathQuotation.ContainSpace;
     //Close the last child window, if exist, before closing the parent.
     public bool OrderedClosing { get; set; } = true;
+    public bool Thumbnail { get; set; } = true;
 }
 
 public enum ArrowButton

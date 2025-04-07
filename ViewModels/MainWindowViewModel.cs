@@ -10,6 +10,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
@@ -38,8 +39,8 @@ public partial class MainWindowViewModel : ViewModelBase
         Recursive = Config.RecursiveSearch;
         this.WhenAnyValue(vm => vm.Stats).Subscribe(stats => stats.PropertyChanged += UpdateStats);
         GoPath = ReactiveCommand.Create(ChangeImageToPath);
-        GoLeft = ReactiveCommand.Create(() => { ShowLocalImage(offset: -1); });
-        GoRight = ReactiveCommand.Create(() => { ShowLocalImage(offset: 1); });
+        GoLeft = ReactiveCommand.Create(() => ShowLocalImage(offset: -1));
+        GoRight = ReactiveCommand.Create(() => ShowLocalImage(offset: 1));
         OptCommand = ReactiveCommand.Create(async () =>
         {
             if (Stats == null || Stats.Optimizable == false) return;
@@ -206,7 +207,10 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     public string Path { get => StringInquiryViewModel.Result; set => StringInquiryViewModel.Result = value; }
     public StringInquiryViewModel StringInquiryViewModel { get; set; } = new(message: "Image Path");
+    [Reactive]
     public IOrderedEnumerable<Stats>? Pics { get; set; }
+    [Reactive]
+    public ImmutableArray<ThumbnailItem>? Thumbnails { get; set; }
     [Reactive]
     public Stats Stats { get; set; }
     [Reactive]
@@ -313,17 +317,21 @@ public partial class MainWindowViewModel : ViewModelBase
             ShowLocalImage();
         }
         else
-            Stats = new() { Success = false, File = ImageFile, DisplayName = ImageFile.Name };
+            Stats = new() { Success = false, File = ImageFile };
     }
     //Load image files under a directory to CurrentDirItems.
     public void LoadDir(DirectoryInfo dir)
     {
         currentDir = dir;
         CurrentDirItems = dir!.EnumerateFiles("", Recursive ? System.IO.SearchOption.AllDirectories : System.IO.SearchOption.TopDirectoryOnly)
-                              .Where(file => Config.Extensions.Contains(file.Extension.ToLower()))
-                              .Where(file => Config.ShowHiddenOrSystemFile || ((file.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0))
+                              .Where(file => Config.Extensions.Contains(file.Extension.ToLower()) && (Config.ShowHiddenOrSystemFile || ((file.Attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0)))
                               .OrderBy(file => file.FullName, new IntuitiveStringComparer());
-        Pics = CurrentDirItems.Select(file => new Stats() { File = file }).OrderBy(s => s.File!.FullName, new IntuitiveStringComparer());
+        Pics = CurrentDirItems.Select(file => new Stats() { File = file })
+            .OrderBy(s => 1);
+        //.OrderBy(s => s.File!.FullName, new IntuitiveStringComparer());
+
+        _ = LoadThumbnail();
+
         fsWatcher.Path = currentDir.FullName;
         fsWatcher.IncludeSubdirectories = Recursive;
         fsWatcher.EnableRaisingEvents = true;
@@ -332,7 +340,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public void Select(int offset = 0, int destination = -1)
     {
         if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || CurrentDirItems == null) return;
-        if (destination == -1) destination = Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
+        if (destination == -1) destination = Utils.SeekIndex(CurrentIndex, offset, CurrentDirItems.Count());
         var file = CurrentDirItems.ElementAt(destination);
         ImageFile = file;
         Path = file.FullName;
@@ -343,13 +351,13 @@ public partial class MainWindowViewModel : ViewModelBase
             Stats.File = file;
             Stats.DisplayName = file.Name;
         }
-        else Stats = new() { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, DisplayName = file.Name, Info = new(file) };
+        else Stats = new() { FileIndex = destination, FileCount = CurrentDirItems!.Count(), File = file, Info = new(file) };
     }
     //Return FileInfo of ImageFile or its neighbor.
     public FileInfo? SeekFile(int offset = 0, int destination = -1)
     {
         if (Stats == null || Stats.File == null || !Stats.File.Exists || Stats.IsWeb || CurrentDirItems == null) return null;
-        if (destination == -1) destination = Utils.SeekIndex(GetCurrentIndex(), offset, CurrentDirItems.Count());
+        if (destination == -1) destination = Utils.SeekIndex(CurrentIndex, offset, CurrentDirItems.Count());
         return CurrentDirItems.ElementAt(destination);
     }
     //Show ImageFile or its neighbor.
@@ -359,34 +367,22 @@ public partial class MainWindowViewModel : ViewModelBase
         var files = CurrentDirItems;
         Loading = true;
 
-        if (offset != 0 || Config.Extensions.Contains(ImageFile.Extension.ToLower()))
-        {
-            if (files == null || !files.Any()) return;
-            if (destination == -1) destination = Utils.SeekIndex(GetCurrentIndex(), offset, files.Count());
-            var file = files.ElementAt(destination);
-            ImageFile = file; Path = file.FullName;
-            Stats = new() { FileCount = files.Count(), FileIndex = destination, File = file, DisplayName = file.Name };
+        if (files == null || !files.Any()) return;
+        if (destination == -1) destination = Utils.SeekIndex(CurrentIndex, offset, files.Count());
+        var file = files.ElementAt(destination);
+        ImageFile = file; Path = file.FullName;
+        Stats = new() { FileCount = files.Count(), FileIndex = destination, File = file };
 
-            var oldBitmap = Stats.Bitmap;
-            using (var fs = file.OpenRead())
-                await ShowImage(fs, file.FullName);
+        var oldBitmap = Stats.Bitmap;
+        using (var fs = file.OpenRead())
+            await ShowImage(fs, file.FullName);
 
-            Stats.EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config);
+        Stats.EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config);
 
-            if (Config.Preload && doPreload && file.FullName == Path)
-                PreloadImage(files, destination);
-            else oldBitmap?.Dispose();
-        }
-        else
-        {
-            var file = ImageFile; Path = file.FullName;
-            Stats = new() { File = file, DisplayName = file.Name };
+        if (Config.Preload && doPreload && file.FullName == Path)
+            PreloadImage(files, destination);
+        else oldBitmap?.Dispose();
 
-            using (var fs = file.OpenRead())
-                await ShowImage(fs, file.FullName);
-
-            Stats.EditCmd = Utils.GetEditAppStartInfo(Stats.File, Stats.Format, Config);
-        }
         Loading = false;
     }
     //Show image from the stream, use path as identifier.
@@ -435,22 +431,34 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     public async void ShowWebImage(string url)
     {
-        Loading = true; ImageFile = null;
+        Loading = true; ImageFile = null; Thumbnails = null;
         using var webStream = await Utils.GetStreamFromWeb(url);
-        Stats = new() { Success = webStream != null, IsWeb = true, Url = url, DisplayName = url.Split('/')[^1] };
+        Stats = new() { Success = webStream != null, IsWeb = true, Url = url };
 
         if (webStream != null) await ShowImage(webStream, url);
 
         Loading = false;
     }
+
     //Get index of current file.
-    public int GetCurrentIndex()
+    public int CurrentIndex
     {
-        if (Stats.FileIndex >= 0 && !fsChanged)
-            return Stats.FileIndex;
-        fsChanged = false;
-        return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
+        get
+        {
+            if (Stats.FileIndex >= 0 && !fsChanged)
+                return Stats.FileIndex;
+            fsChanged = false;
+            _ = LoadThumbnail();
+            return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
+        }
     }
+
+    public Task LoadThumbnail()
+        => Task.Run(() =>
+        {
+            if (Pics == null || !Config.Thumbnail) return;
+            Thumbnails = Pics.Select(p => new ThumbnailItem() { Bitmap = p.Thumbnail, Name = p.DisplayName }).ToImmutableArray();
+        });
 
     //😋 https://chatgpt.com/
     private CancellationTokenSource? preloadCTS = null;

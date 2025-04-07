@@ -34,6 +34,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ProximityVisibilityBehavior.SetProximityVisibility(LeftArrowButton);
             ProximityVisibilityBehavior.SetProximityVisibility(RightArrowButton);
             ProximityVisibilityBehavior.SetProximityVisibility(TitleArea);
+            ProximityVisibilityBehavior.SetProximityVisibility(Thumbnails);
             DraggableBehavior.SetIsDraggable(TitleBar);
             ProgressDraggableBehavior.SetIsProgressDraggable(Progress);
             Progress.GetPropertyChangedObservable(ProgressDraggableBehavior.ProgressDraggingProperty)
@@ -43,6 +44,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             Progress.GetPropertyChangedObservable(ProgressDraggableBehavior.ProgressDraggingProperty)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(e => ViewModel!.Select(destination: ProgressToRatio((double)e.NewValue!)));
+            Thumbnails.GetPropertyChangedObservable(ListBox.SelectedIndexProperty)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(e => ViewModel!.ShowLocalImage(destination: (int)e.NewValue!));
+            Thumbnails.GetPropertyChangedObservable(ListBox.ItemsSourceProperty)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Subscribe(e => Thumbnails.SelectedIndex = ViewModel!.CurrentIndex);
             ViewModel ??= new();
             ViewModel.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
             ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
