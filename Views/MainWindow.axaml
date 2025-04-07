@@ -119,14 +119,14 @@
         <ListBox ScrollViewer.HorizontalScrollBarVisibility="Visible"
                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
                     Grid.Row="2" ZIndex="11" VerticalAlignment="Bottom"
-                    ItemsSource="{Binding Thumbnails}" Background="Transparent"
+                    ItemsSource="{Binding Thumbnail^}" Background="Transparent"
                     SelectedIndex="{Binding Stats.FileIndex,Mode=OneWay}"
                     x:Name="Thumbnails" IsVisible="{Binding Config.Thumbnail}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="m:ThumbnailItem">
                     <Border CornerRadius="5" ClipToBounds="True"
-                            ToolTip.Tip="{Binding Name}">
-                        <Image Source="{Binding Bitmap}" Height="100"/>
+                            ToolTip.Tip="{Binding File.Name}">
+                        <Image Source="{Binding BitmapAsync^}" Height="100"/>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

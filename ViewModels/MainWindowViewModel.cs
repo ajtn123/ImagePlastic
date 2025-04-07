@@ -210,8 +210,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [Reactive]
     public IOrderedEnumerable<Stats>? Pics { get; set; }
     [Reactive]
-    public ImmutableArray<ThumbnailItem>? Thumbnails { get; set; }
-    [Reactive]
     public Stats Stats { get; set; }
     [Reactive]
     public StretchMode Stretch { get; set; }
@@ -330,7 +328,7 @@ public partial class MainWindowViewModel : ViewModelBase
             .OrderBy(s => 1);
         //.OrderBy(s => s.File!.FullName, new IntuitiveStringComparer());
 
-        _ = LoadThumbnail();
+        LoadThumbnail();
 
         fsWatcher.Path = currentDir.FullName;
         fsWatcher.IncludeSubdirectories = Recursive;
@@ -431,7 +429,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     public async void ShowWebImage(string url)
     {
-        Loading = true; ImageFile = null; Thumbnails = null;
+        Loading = true; ImageFile = null; Pics = null; LoadThumbnail();
         using var webStream = await Utils.GetStreamFromWeb(url);
         Stats = new() { Success = webStream != null, IsWeb = true, Url = url };
 
@@ -448,16 +446,19 @@ public partial class MainWindowViewModel : ViewModelBase
             if (Stats.FileIndex >= 0 && !fsChanged)
                 return Stats.FileIndex;
             fsChanged = false;
-            _ = LoadThumbnail();
+            LoadThumbnail();
             return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
         }
     }
 
-    public Task LoadThumbnail()
-        => Task.Run(() =>
+    public void LoadThumbnail() => Thumbnail = GetThumbnail;
+    [Reactive]
+    public Task<ImmutableArray<ThumbnailItem>?>? Thumbnail { get; set; }
+    public Task<ImmutableArray<ThumbnailItem>?> GetThumbnail
+        => Task.Run<ImmutableArray<ThumbnailItem>?>(() =>
         {
-            if (Pics == null || !Config.Thumbnail) return;
-            Thumbnails = Pics.Select(p => new ThumbnailItem() { Bitmap = p.Thumbnail, Name = p.DisplayName }).ToImmutableArray();
+            if (Pics == null || !Config.Thumbnail) return null;
+            return Pics.Select(p => new ThumbnailItem() { File = p.File! }).ToImmutableArray();
         });
 
     //😋 https://chatgpt.com/

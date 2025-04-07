@@ -47,9 +47,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             Thumbnails.GetPropertyChangedObservable(ListBox.SelectedIndexProperty)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(e => ViewModel!.ShowLocalImage(destination: (int)e.NewValue!));
-            Thumbnails.GetPropertyChangedObservable(ListBox.ItemsSourceProperty)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(e => Thumbnails.SelectedIndex = ViewModel!.CurrentIndex);
+            Thumbnails.SelectedIndex = ViewModel.CurrentIndex;
             ViewModel ??= new();
             ViewModel.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
             ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);

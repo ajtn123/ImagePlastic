@@ -1,9 +1,12 @@
 ﻿using Avalonia.Media.Imaging;
+using ImagePlastic.Utilities;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace ImagePlastic.Models;
 
 public class ThumbnailItem
 {
-    public string? Name { get; set; }
-    public Bitmap? Bitmap { get; set; }
+    public required FileInfo File { get; set; }
+    public Task<Bitmap?> BitmapAsync => Task.Run(() => Utils.GetThumbnail(File.FullName));
 }

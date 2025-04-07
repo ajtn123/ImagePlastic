@@ -56,7 +56,7 @@ public static class Utils
 
     public static Bitmap? GetThumbnail(string path)
     {
-        ShellFile shellFile = ShellFile.FromFilePath(path);
+        using var shellFile = ShellFile.FromFilePath(path);
         using var shellThumb = shellFile.Thumbnail?.Bitmap;
         return shellThumb?.ConvertToAvaloniaBitmap();
     }
