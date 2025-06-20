@@ -11,6 +11,7 @@ using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
@@ -328,8 +329,6 @@ public partial class MainWindowViewModel : ViewModelBase
             .OrderBy(s => 1);
         //.OrderBy(s => s.File!.FullName, new IntuitiveStringComparer());
 
-        LoadThumbnail();
-
         fsWatcher.Path = currentDir.FullName;
         fsWatcher.IncludeSubdirectories = Recursive;
         fsWatcher.EnableRaisingEvents = true;
@@ -429,7 +428,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     public async void ShowWebImage(string url)
     {
-        Loading = true; ImageFile = null; Pics = null; LoadThumbnail();
+        Loading = true; ImageFile = null; Pics = null;
         using var webStream = await Utils.GetStreamFromWeb(url);
         Stats = new() { Success = webStream != null, IsWeb = true, Url = url };
 
@@ -446,20 +445,9 @@ public partial class MainWindowViewModel : ViewModelBase
             if (Stats.FileIndex >= 0 && !fsChanged)
                 return Stats.FileIndex;
             fsChanged = false;
-            LoadThumbnail();
             return ImageFile != null ? CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer) : 0;
         }
     }
-
-    public void LoadThumbnail() => Thumbnail = GetThumbnail;
-    [Reactive]
-    public Task<ImmutableArray<ThumbnailItem>?>? Thumbnail { get; set; }
-    public Task<ImmutableArray<ThumbnailItem>?> GetThumbnail
-        => Task.Run<ImmutableArray<ThumbnailItem>?>(() =>
-        {
-            if (Pics == null || !Config.Thumbnail) return null;
-            return Pics.Select(p => new ThumbnailItem() { File = p.File! }).ToImmutableArray();
-        });
 
     //😋 https://chatgpt.com/
     private CancellationTokenSource? preloadCTS = null;

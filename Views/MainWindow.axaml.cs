@@ -7,6 +7,8 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
+using ImagePlastic.Models;
 using ImagePlastic.Utilities;
 using ImagePlastic.ViewModels;
 using ReactiveUI;
@@ -16,6 +18,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Views;
@@ -356,5 +359,39 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             ZoomText.Background = Brushes.Transparent;
         }
         else ZoomText.Background = Brushes.Red;
+    }
+
+    private CancellationTokenSource? LoadThumbnailBitmapCts;
+    private void ThumbnailsScrolled(object? sender, ScrollChangedEventArgs e)
+    {
+        LoadThumbnailBitmapCts?.Cancel();
+        LoadThumbnailBitmapCts = new CancellationTokenSource();
+        var token = LoadThumbnailBitmapCts.Token;
+
+
+        if (ViewModel?.Pics?.Count() is not int count) return;
+        var scrollViewerBoundsN = Thumbnails.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault()?.GetTransformedBounds()?.Clip;
+        if (scrollViewerBoundsN is not Rect scrollViewerBounds) return;
+
+        bool lastVisibility = false;
+        for (int i = 0; i < count; i++)
+        {
+            var container = Thumbnails.ContainerFromIndex(i);
+            var containerBounds = container?.GetTransformedBounds()?.Clip;
+
+            bool isVisible = containerBounds?.Intersects(scrollViewerBounds) ?? false;
+
+            if (isVisible)
+                _ = (container?.DataContext as Stats)?.LoadBitmapAsync(token);
+            else if (lastVisibility) break;
+        }
+    }
+
+    private void ListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        var scrollViewerN = Thumbnails.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
+        if (scrollViewerN is not { } scrollViewer) return;
+
+        scrollViewer.Offset = new Vector((Thumbnails.SelectedIndex + 0.5) * 100 - Thumbnails.Bounds.Width / 2, scrollViewer.Offset.Y);
     }
 }

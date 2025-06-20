@@ -7,10 +7,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ImagePlastic.Models;
 
-//Actually necessary, doesn't it?
+//Actually necessary, isn't it?
 public class Stats : ReactiveObject, IDisposable
 {
     public Stats()
@@ -19,7 +21,6 @@ public class Stats : ReactiveObject, IDisposable
         {
             if (f == null) return;
             Optimizable = Constants.OptimizableExts.Contains(f.Extension);
-            thumbnail = new(() => Utils.GetThumbnail(f.FullName));
             DisplayName = f.Name;
         });
         this.WhenAnyValue(s => s.Url).Subscribe(url =>
@@ -57,18 +58,23 @@ public class Stats : ReactiveObject, IDisposable
     public Bitmap? Bitmap { get; set; }
     [Reactive]
     public string? SvgPath { get; set; }
-    public Bitmap? Thumbnail => thumbnail?.Value;
-    private Lazy<Bitmap?>? thumbnail;
+    public Bitmap? Thumbnail => ThumbnailListItem ?? (File == null ? Bitmap : Utils.GetThumbnail(File.FullName));
 
     public MagickFormat Format => Info != null ? Info.Format : default;
     public double Height => Info != null ? Info.Height : double.NaN;
     public double Width => Info != null ? Info.Width : double.NaN;
+
+    [Reactive]
+    public Bitmap? ThumbnailListItem { get; set; }
+    public async Task LoadBitmapAsync(CancellationToken token)
+        => ThumbnailListItem ??= File == null ? null : await Task.Run(() => Utils.GetThumbnail(File.FullName, token));
 
     public void Dispose()
     {
         Image?.Dispose();
         Bitmap?.Dispose();
         Stream?.Dispose();
+        ThumbnailListItem?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

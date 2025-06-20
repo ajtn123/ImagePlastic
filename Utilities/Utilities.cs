@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.Versioning;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ImagePlastic.Utilities;
@@ -59,6 +60,13 @@ public static class Utils
         using var shellFile = ShellFile.FromFilePath(path);
         using var shellThumb = shellFile.Thumbnail?.Bitmap;
         return shellThumb?.ConvertToAvaloniaBitmap();
+    }
+    public static async Task<Bitmap?> GetThumbnail(string path, CancellationToken token)
+    {
+        await Task.Delay(200, CancellationToken.None);
+        if (token.IsCancellationRequested)
+            return null;
+        return GetThumbnail(path);
     }
 
     public static IBrush? GetSystemBrush(double opacity = 0.5)

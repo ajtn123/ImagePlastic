@@ -37,6 +37,9 @@
                 <Button Padding="3" Command="{Binding RotateCommand}">
                     <Svg Path="/Assets/Rotate90Cw.svg"/>
                 </Button>
+                <Button Padding="0" Command="{Binding OpenLocalCommand}">
+                    <Svg Path="/Assets/Folder.svg"/>
+                </Button>
                 <CheckBox Padding="0" IsChecked="{Binding Pinned}" IsVisible="{Binding Config.ExtendImageToTitleBar}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Height="30" HorizontalAlignment="Right" VerticalAlignment="Top" x:Name="WindowControls" ZIndex="100">
@@ -117,16 +120,18 @@
         <view:Error Grid.Row="1" ZIndex="1" IsVisible="False" x:Name="ErrorView"/>
 
         <ListBox ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                    Grid.Row="2" ZIndex="11" VerticalAlignment="Bottom"
-                    ItemsSource="{Binding Thumbnail^}" Background="Transparent"
-                    SelectedIndex="{Binding Stats.FileIndex,Mode=OneWay}"
-                    x:Name="Thumbnails" IsVisible="{Binding Config.Thumbnail}">
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                 Grid.Row="2" ZIndex="11" VerticalAlignment="Bottom"
+                 ItemsSource="{Binding Pics}" Background="Transparent"
+                 SelectedIndex="{Binding Stats.FileIndex,Mode=OneWay}"
+                 x:Name="Thumbnails" IsVisible="{Binding Config.Thumbnail}"
+                 ScrollViewer.ScrollChanged="ThumbnailsScrolled"
+                 SelectionChanged="ListBox_SelectionChanged">
             <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="m:ThumbnailItem">
+                <DataTemplate x:DataType="m:Stats">
                     <Border CornerRadius="5" ClipToBounds="True"
                             ToolTip.Tip="{Binding File.Name}">
-                        <Image Source="{Binding BitmapAsync^}" Height="100"/>
+                        <Image Source="{Binding ThumbnailListItem}"/>
                     </Border>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -135,6 +140,14 @@
                     <StackPanel Orientation="Horizontal"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
+            <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                    <Setter Property="Padding" Value="5"/>
+                    <Setter Property="Width" Value="100"/>
+                    <Setter Property="Height" Value="100"/>
+                    <Setter Property="CornerRadius" Value="5"/>
+                </Style>
+            </ListBox.Styles>
         </ListBox>
         
         <ProgressBar Grid.Row="3" Margin="5,10" VerticalAlignment="Bottom" ZIndex="9" x:Name="Progress" MinWidth="0"
