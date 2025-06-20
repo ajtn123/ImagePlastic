@@ -30,6 +30,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         this.GetObservable(WindowStateProperty).Subscribe(SetWindowStateUI);
         this.WhenActivated(a =>
         {
+            ViewModel ??= new();
             ProximityVisibilityBehavior.SetProximityVisibility(Progress);
             ProximityVisibilityBehavior.SetProximityVisibility(LeftArrowButton);
             ProximityVisibilityBehavior.SetProximityVisibility(RightArrowButton);
@@ -48,7 +49,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(e => ViewModel!.ShowLocalImage(destination: (int)e.NewValue!));
             Thumbnails.SelectedIndex = ViewModel.CurrentIndex;
-            ViewModel ??= new();
             ViewModel.RequireConfirmation.RegisterHandler(ShowConfirmationWindow);
             ViewModel.InquiryRenameString.RegisterHandler(ShowInquiryWindow);
             ViewModel.InquiryUriString.RegisterHandler(ShowOpenUriWindow);

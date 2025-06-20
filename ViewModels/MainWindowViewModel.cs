@@ -447,7 +447,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 return Stats.FileIndex;
             fsChanged = false;
             LoadThumbnail();
-            return CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer);
+            return ImageFile != null ? CurrentDirItems!.IndexOf(ImageFile, Utils.FileInfoComparer) : 0;
         }
     }
 

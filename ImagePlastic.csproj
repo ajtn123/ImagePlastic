@@ -29,14 +29,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.2.6" />
-        <PackageReference Include="Avalonia.Controls.PanAndZoom" Version="11.2.0" />
-        <PackageReference Include="Avalonia.Desktop" Version="11.2.6" />
-        <PackageReference Include="Avalonia.Svg.Skia" Version="11.2.0.2" />
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.6" />
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.6" />
-        <PackageReference Include="Avalonia.Diagnostics" Version="11.2.6" Condition="'$(Configuration)' == 'Debug'" />
-        <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.6" />
+        <PackageReference Include="Avalonia" Version="11.3.1" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.1" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.1" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.1" />
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.1" Condition="'$(Configuration)' == 'Debug'" />
+        <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.1" />
     </ItemGroup>
     
     <ItemGroup>
@@ -44,7 +42,9 @@
         <PackageReference Include="Magick.NET.SystemDrawing" Version="8.0.6" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="Octokit" Version="14.0.0" />
+        <PackageReference Include="PanAndZoom" Version="11.3.0.1" />
         <PackageReference Include="ReactiveUI.Fody" Version="19.5.41" />
+        <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.0.1" />
         <PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
         <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183" PrivateAssets="all">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
